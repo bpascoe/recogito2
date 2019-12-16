@@ -1,0 +1,195 @@
+@(
+  doc: services.document.ExtendedDocumentMetadata,
+  currentPart: services.generated.tables.records.DocumentFilepartRecord,
+  currentUser: Option[services.user.User],
+  accessLevel: services.RuntimeAccessLevel,
+  clonedFrom: Option[services.generated.tables.records.DocumentRecord],
+  clones: Seq[services.generated.tables.records.DocumentRecord],
+  prefs: Seq[services.generated.tables.records.DocumentPreferencesRecord],
+  annotationCount: Long,
+  content: String,
+  sharedVia: Option[controllers.document.annotation.AnnotationSummary]
+ )(implicit request: RequestHeader, messages: Messages, webJarsUtil: org.webjars.play.WebJarsUtil)
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Recogito | @doc.author.map(_ + ": ")@doc.title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=0">
+    @views.html.document.annotation._meta(doc, annotationCount, Some(currentPart), Some(content), sharedVia)
+    <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/document/annotation/text/index.css")"/>
+    <link rel="stylesheet" id="colorscheme" href="@routes.Assets.versioned("stylesheets/document/annotation/text/colorByType.css")"/>
+    @Html(webJarsUtil.css("leaflet.css"))
+    @Html(webJarsUtil.script("leaflet.js"))
+    @Html(webJarsUtil.script("1.12.0/jquery.min.js"))
+    @Html(webJarsUtil.script("jquery-ui.min.js"))
+    @Html(webJarsUtil.script("jquery.timeago.js"))
+    @Html(webJarsUtil.script("velocity.min.js"))
+    @Html(webJarsUtil.script("typeahead.jquery.min.js"))
+    @Html(webJarsUtil.script("rangy-core.min.js"))
+    @Html(webJarsUtil.script("rangy-classapplier.min.js"))
+    @Html(webJarsUtil.requireJs(routes.Assets.versioned("javascripts/document/annotation/text/text2map.js")))
+    <script>
+      window.config = {
+        @if(currentUser.isDefined) { 
+          me: '@currentUser.get.username', 
+          features: [@Html(currentUser.get.featureToggles.map("'" + _ + "'").mkString(","))],
+        }
+        documentId: '@doc.id',
+        documentOwner: '@doc.ownerName',
+        partId: '@currentPart.getId',
+        partSequenceNo: @currentPart.getSequenceNo,
+        contentType: '@currentPart.getContentType',
+        isPublic: @doc.isOpenToPublic,
+        writeAccess: @accessLevel.canWrite,
+        isAdmin: @accessLevel.isAdmin,
+        clones: [@Html(clones.map{ doc => s"{ owner:'${doc.getOwner}', id:'${doc.getId}'}" }.mkString(","))],
+        @views.html.document.annotation._prefs(prefs)
+      }
+    </script>
+  </head>
+  <body>
+    @views.html.document.iconbar(doc.document, currentUser, accessLevel, "text2map")
+    <div class="header-infobox">
+      <h1>
+        @doc.author.map(_ + ": ")@doc.title
+        @views.html.document.annotation._clonedFrom(doc, clonedFrom)
+      </h1>
+      <h2 class="date">@doc.dateFreeform</h2>
+      <p class="source">@views.html.document.sourceLink(doc.source)</p>
+      <p class="quick-stats">
+        <span class="icon comment">&#xf0e5;</span>
+        <span class="annotations">-</span> @messages("common.annotations")
+        &nbsp; &centerdot; &nbsp;
+        <span class="icon">&#xf0c0;</span>
+        <span class="contributors">No Other Contributors</span>
+        @if(doc.license.isDefined) {
+          &nbsp; &centerdot; &nbsp;
+          @views.html.document.licenseInfo(doc.license.get, doc.attribution)
+        }
+        @if(clones.size > 0) {
+          &nbsp; &centerdot; &nbsp; <span class="clones">
+            <span class="icon">&#xf126;</span>
+            Cloned @clones.size @if(clones.size == 1) { time } else { times }
+          </span>
+        }
+      </p>
+    </div> <!-- .header-infobox -->
+    <div class="header-toolbar">
+      <ul class="menu">
+        <li class="group annotation-mode">
+          <h3>@messages("document.annotation.text.toolbar.annotation_mode")</h3>
+          <ul>
+            <li data-mode="NORMAL" class="active">
+              <span class="label">@messages("document.annotation.text.toolbar.mode.normal")</span>
+            </li>
+            <li class="quick has-submenu">
+              <span class="label">@messages("document.annotation.text.toolbar.mode.quick")</span>
+              <div class="submenu" style="display:none;">
+                <ul>
+                  <li data-mode="QUICK" data-type="PLACE">
+                    <span class="icon">&#xf041;</span> @messages("document.annotation.text.toolbar.mode.quick.places")
+                  </li>
+                  <li data-mode="QUICK" data-type="PERSON">
+                    <span class="icon">&#xf007;</span> @messages("document.annotation.text.toolbar.mode.quick.persons")
+                  </li>
+                  <li data-mode="QUICK" data-type="TAGS" class="disabled">
+                    <span class="icon">&#xf02c;</span> @messages("document.annotation.text.toolbar.mode.quick.tags")
+                  </li>
+                </ul>
+              </div>
+            </li>
+            <li data-mode="RELATIONS">
+              <span class="label">
+                @messages("document.annotation.text.toolbar.mode.relations")
+              </span>
+            </li>
+          </ul>
+        </li>
+
+        <li class="group color-scheme">
+          <h3>@messages("document.annotation.text.toolbar.color")</h3>
+          <ul>
+            <li data-scheme="BY_TYPE" class="active">
+              <span class="label">@messages("document.annotation.text.toolbar.color.by_type")</span>
+            </li>
+            <li data-scheme="BY_STATUS">
+              <span class="label">@messages("document.annotation.text.toolbar.color.by_status")</span>
+            </li>
+            <li data-scheme="BY_TAG">
+              <span class="label">@messages("document.annotation.text.toolbar.color.by_tag")</span>
+            </li>
+          </ul>
+        </li>
+
+        @if(currentUser.isDefined && currentUser.get.featureToggles.contains("annotation-timefilter")) {
+          <li class="time-filter">
+            <span class="icon">&#xf017;</span>
+          </li>
+        }
+      </ul> <!-- .menu -->
+    </div> <!-- .header-toolbar -->
+
+    <div class="sidebar">
+      @views.html.sidebarHeader(doc.owner)
+
+      <ul class="menu">
+        @for(part <- doc.fileparts) {
+          @if(part == currentPart) {
+            <li class="active">
+              <a href="#" onclick="return false;"><span class="label">@part.getTitle</span></a>
+            </li>
+          } else {
+            <li>
+              <a href="@controllers.document.annotation.routes.AnnotationController.showAnnotationView(doc.id, part.getSequenceNo)">
+                <span class="label">@part.getTitle</span>
+              </a>
+            </li>
+          }
+        }
+      </ul>
+    </div> <!-- .sidebar -->
+
+<div class="container">
+  <div class="map-container">
+    <div class="map" id="map"></div>
+
+    <div class="toggle-legend">
+      <span class="icon">&#xf013;</span> <span class="label"></span>
+    </div>
+
+    <!-- <div class="map-controls">
+      <div class="layers control icon" title="Change base layer">&#xf0c9;</div>
+      <div class="zoom">
+        <div class="zoom-in control" title="Zoom in">+</div>
+        <div class="zoom-out control" title="Zoom out">&ndash;</div>
+      </div>
+    </div> -->
+  </div>
+  <div class="text-container">
+    <div id="main">
+      <div id="content" @doc.language.map(l => Html(s"""lang="${l}""""))>@content</div>
+      <svg id="relations"></svg>
+    </div>
+
+    <div id="bulk-annotation" />
+  </div>
+</div>
+    <script type="text/javascript" src="@routes.Assets.versioned("build/bulkannotation.js")"></script>
+    @helper.javascriptRouter("jsRoutes")(
+      controllers.api.annotation.routes.javascript.AnnotationAPIController.listAnnotationsInPart,
+      controllers.api.annotation.routes.javascript.AnnotationAPIController.createAnnotation,
+      controllers.api.annotation.routes.javascript.AnnotationAPIController.deleteAnnotation,
+      controllers.api.annotation.routes.javascript.AnnotationAPIController.bulkUpsert,
+      controllers.api.annotation.routes.javascript.AnnotationAPIController.bulkDelete,
+      controllers.api.entity.routes.javascript.AuthoritiesAPIController.listGazetteers,
+      controllers.api.entity.routes.javascript.PlaceAPIController.findPlaceByURI,
+      controllers.api.entity.routes.javascript.PlaceAPIController.searchPlaces,
+      controllers.api.annotation.routes.javascript.AnnotationAPIController.getAnnotation,
+      controllers.api.annotation.routes.javascript.AnnotationAPIController.getImage,
+      controllers.api.annotation.routes.javascript.AnnotationAPIController.listAnnotationsInDocument,
+      controllers.api.entity.routes.javascript.AuthoritiesAPIController.listGazetteers,
+      controllers.api.entity.routes.javascript.PlaceAPIController.listPlacesInDocument,
+      controllers.document.annotation.routes.javascript.AnnotationController.resolveFromAnnotation
+    )
+  </body>
+</html>

@@ -199,4 +199,143 @@ class AnnotationController @Inject() (
 
   }
 
+  def textToMap(documentId: String, seqNo: Int) = silhouette.UserAwareAction.async { implicit request =>
+    val loggedIn = request.identity
+    
+    val fPreferences = documents.getDocumentPreferences(documentId)
+    
+    val fRedirectedVia = request.flash.get("annotation") match {
+      case Some(annotationId) => annotations.findById(UUID.fromString(annotationId)).map { _.map(_._1) }
+      case None => Future.successful(None)
+    }
+    
+    def fResponse(prefs: Seq[DocumentPreferencesRecord], via: Option[Annotation]) = 
+      documentPartResponse(documentId, seqNo, loggedIn, { case (doc, currentPart, accesslevel) =>
+        if (accesslevel.canReadData)
+          renderResponse2(doc, currentPart, loggedIn, accesslevel, prefs, via.map(AnnotationSummary.from))
+        else if (loggedIn.isEmpty) // No read rights - but user is not logged in yet
+          Future.successful(Redirect(controllers.landing.routes.LoginLogoutController.showLoginForm(None)))
+        else
+          Future.successful(ForbiddenPage)
+      })
+    
+    for {
+      preferences <- fPreferences
+      redirectedVia <- fRedirectedVia
+      response <- fResponse(preferences, redirectedVia)
+    } yield response
+  }
+  private def renderResponse2(
+    doc: ExtendedDocumentMetadata,
+    currentPart: DocumentFilepartRecord,
+    loggedInUser: Option[User],
+    accesslevel: RuntimeAccessLevel,
+    prefs: Seq[DocumentPreferencesRecord],
+    redirectedVia: Option[AnnotationSummary]
+  )(implicit request: RequestHeader) = {
+
+    logDocumentView(doc.document, Some(currentPart), accesslevel)
+
+    // Needed in any case - start now (val)
+    val fCountAnnotations = annotations.countByDocId(doc.id)
+    val fGetClonedFrom = doc.clonedFrom.map(origId => documents.getDocumentRecordById(origId))
+      .getOrElse(Future.successful(None))
+    val fClones = documents.listClones(doc.id)
+
+    val f = for {
+      annotationCount <- fCountAnnotations
+      clonedFrom <- fGetClonedFrom // Source doc this document was cloned from (if any)
+      clones <- fClones // Documents that were cloned from this document (if any)
+    } yield (annotationCount, clonedFrom.map(_._1), clones)
+
+    // Needed only for Text and TEI - start on demand (def)
+    def fReadTextfile() = uploads.readTextfile(doc.ownerName, doc.id, currentPart.getFile)
+
+    // Generic conditional: is the user authorized to see the content? Render 'forbidden' page if not.
+    def ifAuthorized(result: Result, annotationCount: Long) =
+      if (accesslevel.canReadAll) result else Ok(views.html.document.annotation.forbidden(doc, currentPart, loggedInUser, annotationCount))
+
+    ContentType.withName(currentPart.getContentType) match {
+
+      case Some(ContentType.IMAGE_UPLOAD) | Some(ContentType.IMAGE_IIIF) =>
+        f.map { case (count, clonedFrom, clones) =>
+          ifAuthorized(Ok(views.html.document.annotation.image(
+            doc, 
+            currentPart, 
+            loggedInUser, 
+            accesslevel, 
+            clonedFrom,
+            clones,
+            prefs, 
+            count, 
+            redirectedVia)), count)
+        }
+
+      case Some(ContentType.TEXT_PLAIN) =>
+        fReadTextfile() flatMap {
+          case Some(content) =>
+            f.map { case (count, clonedFrom, clones) =>
+              ifAuthorized(Ok(views.html.document.annotation.text2map(
+                doc, 
+                currentPart, 
+                loggedInUser, 
+                accesslevel, 
+                clonedFrom,
+                clones,
+                prefs, 
+                count, 
+                content, 
+                redirectedVia)), count)
+            }
+
+          case None =>
+            // Filepart found in DB, but not file on filesystem
+            Logger.error(s"Filepart recorded in the DB is missing on the filesystem: ${doc.ownerName}, ${doc.id}")
+            Future.successful(InternalServerError)
+        }
+
+      case Some(ContentType.TEXT_TEIXML) =>
+        fReadTextfile flatMap {
+          case Some(content) =>
+            f.map { case (count, clonedFrom, clones) =>
+              val preview = previewFromTEI(content)
+              ifAuthorized(Ok(views.html.document.annotation.tei(
+                doc, 
+                currentPart, 
+                loggedInUser, 
+                accesslevel, 
+                clonedFrom,
+                clones,
+                prefs, 
+                preview, 
+                count, 
+                redirectedVia)), count)
+            }
+
+          case None =>
+            // Filepart found in DB, but not file on filesystem
+            Logger.error(s"Filepart recorded in the DB is missing on the filesystem: ${doc.ownerName}, ${doc.id}")
+            Future.successful(InternalServerError)
+        }
+
+      case Some(ContentType.DATA_CSV) =>
+        f.map { case (count, clonedFrom, clones) =>
+          ifAuthorized(Ok(views.html.document.annotation.table(
+            doc, 
+            currentPart, 
+            loggedInUser, 
+            accesslevel, 
+            clonedFrom,
+            clones, 
+            prefs, 
+            count)), count)
+        }
+
+      case _ =>
+        // Unknown content type in DB, or content type we don't have an annotation view for - should never happen
+        Future.successful(InternalServerError)
+    }
+
+  }
+
 }

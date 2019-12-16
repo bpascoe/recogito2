@@ -20,6 +20,13 @@
         </a>
       </li>
 
+      <li class="tooltip narrow bottom@if(activeView == "text2map") { active}">
+        <a href="@controllers.document.annotation.routes.AnnotationController.textToMap(document.getId,1)">
+          <span class="icon">&#xe862;</span>
+          <span class="hint">Text to map mapping</span>
+        </a>
+      </li>
+
       <li class="tooltip bottom@if(activeView == "stats") { active}">
         <a href="@controllers.document.stats.routes.StatsController.showDocumentStats(document.getId, None)">
           <span class="icon">&#xe8ae;</span>

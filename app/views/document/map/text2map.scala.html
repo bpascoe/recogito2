@@ -1,0 +1,69 @@
+@(
+  doc: services.document.ExtendedDocumentMetadata,
+  currentUser: Option[services.user.User],
+  accessLevel: services.RuntimeAccessLevel,
+  annotationCount: Long,
+  content: scala.concurrent.Future[Option[String]]
+ )(implicit request: RequestHeader, messages: Messages, webJarsUtil: org.webjars.play.WebJarsUtil)
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Text To Map | @doc.author.map(_ + ": ")@doc.title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=0">
+    @views.html.document.standardMeta(doc, annotationCount)
+    <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/document/map/index.css")"/>
+    @Html(webJarsUtil.css("leaflet.css"))
+    @Html(webJarsUtil.script("leaflet.js"))
+    @Html(webJarsUtil.script("1.12.0/jquery.min.js"))
+    @Html(webJarsUtil.script("velocity.min.js"))
+    @Html(webJarsUtil.requireJs(routes.Assets.versioned("javascripts/document/map/app.js")))
+    <script>
+      window.config = {
+        @if(currentUser.isDefined) { me: '@currentUser.get.username', }
+        documentId: '@doc.id',
+        documentOwner: '@doc.ownerName',
+        parts: [
+          @Html(doc.fileparts.map { part =>
+            Html(s"{ title: '${part.getTitle}', id: '${part.getId}' }")
+          }.mkString(",\n"))
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    @views.html.document.iconbar(doc.document, currentUser, accessLevel, "text2map")
+    @views.html.sidebarHeader(doc.owner)
+
+    <div class="container">
+      <div class="map-container">
+        <div class="map"></div>
+
+        <div class="toggle-legend">
+          <span class="icon">&#xf013;</span> <span class="label"></span>
+        </div>
+
+        <div class="map-controls">
+          <div class="layers control icon" title="Change base layer">&#xf0c9;</div>
+          <div class="zoom">
+            <div class="zoom-in control" title="Zoom in">+</div>
+            <div class="zoom-out control" title="Zoom out">&ndash;</div>
+          </div>
+        </div>
+      </div>
+      <div class="text-container">
+        This is text.
+        @content
+        @* uploads.readTextfile(doc.owner, doc.id, doc.file) *@
+      </div>
+    </div>
+
+    @helper.javascriptRouter("jsRoutes")(
+      controllers.api.annotation.routes.javascript.AnnotationAPIController.getAnnotation,
+      controllers.api.annotation.routes.javascript.AnnotationAPIController.getImage,
+      controllers.api.annotation.routes.javascript.AnnotationAPIController.listAnnotationsInDocument,
+      controllers.api.entity.routes.javascript.AuthoritiesAPIController.listGazetteers,
+      controllers.api.entity.routes.javascript.PlaceAPIController.listPlacesInDocument,
+      controllers.document.annotation.routes.javascript.AnnotationController.resolveFromAnnotation
+    )
+  </body>
+</html>

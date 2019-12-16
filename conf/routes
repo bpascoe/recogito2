@@ -74,8 +74,11 @@ GET     /admin                                       controllers.admin.AdminCont
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 GET     /document/:id/part/:seqNo/edit               controllers.document.annotation.AnnotationController.showAnnotationView(id: String, seqNo: Int)
+GET     /document/:id/:seqNo/text2map               controllers.document.annotation.AnnotationController.textToMap(id: String, seqNo: Int)
+GET     /document/:id/text2map                       controllers.document.map.MapController.textToMap(id: String)
 
 GET     /document/:id/map                            controllers.document.map.MapController.showMap(id: String)
+# GET     /document/:id/text2map                       controllers.document.map.MapController.textToMap(id: String)
 
 GET     /document/:id/stats                          controllers.document.stats.StatsController.showDocumentStats(id: String, tab: Option[String])
 GET     /document/:id/stats/tags.json                controllers.document.stats.StatsController.getTagsAsJSON(id: String)
