@@ -44,6 +44,11 @@ marker.click(function(e){
   marker.bindPopup(e.latlng).openPopup();
 });
 
+// map from text to map
+$(".place").on("click", function(){
+  
+});
+
 
 // add a circle
 /*var circle = L.circle(center, {
