@@ -48,6 +48,22 @@ class AnnotationController @Inject() (
       case None => Future.successful(NotFoundPage)
     }
   }
+
+// map from map to text
+  def resolveFromAnnotation2(uuid: UUID) = Action.async { implicit request =>
+    annotations.findById(uuid).flatMap {
+      case Some((annotation, _)) =>
+        documents.findPartById(annotation.annotates.filepartId).map {
+          case Some(part) =>
+            Redirect(routes.AnnotationController.textToMap(part.getDocumentId, part.getSequenceNo)
+              .withFragment(annotation.annotationId.toString).toString).flashing("annotation" -> annotation.annotationId.toString)
+            
+          case None => InternalServerError // Annotation points to non-existing part? Should never happen
+        }
+        
+      case None => Future.successful(NotFoundPage)
+    }
+  }
   
   def resolveFromPart(uuid: UUID) = Action.async { implicit request =>
     documents.findPartById(uuid).map {

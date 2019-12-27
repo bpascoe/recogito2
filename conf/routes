@@ -138,6 +138,7 @@ GET     /document/:id/activity.json                  controllers.document.Docume
 
 GET     /annotation/:id                              controllers.document.annotation.AnnotationController.resolveFromAnnotation(id: java.util.UUID)
 GET     /part/:id                                    controllers.document.annotation.AnnotationController.resolveFromPart(id: java.util.UUID)
+GET     /annotation2/:id                              controllers.document.annotation.AnnotationController.resolveFromAnnotation2(id: java.util.UUID)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # JSON API
