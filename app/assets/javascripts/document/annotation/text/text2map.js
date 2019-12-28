@@ -49,9 +49,25 @@ require([
         /** Init the map with the places **/
         onPlacesLoaded = function(response) {
           map.setPlaces(response.items);
+          // Mapping map location to text location
           $('span.annotation.place').each(function() {
             $(this).attr("id", $(this).attr("data-id"));
           });
+          // Mapping text location to map location
+          $('span.annotation.place').on("click", function(event){
+            // var annotation_id = event.target.annotation.annotation_id;
+            // uris = response.items[0].is_conflation_of[0].uri
+            // var uri = event.target.annotation.bodies[1].uri
+
+            jQuery.each(response.items, function(index, item) {// loop to find which popup
+              if (item.is_conflation_of[0].uri == event.target.annotation.bodies[1].uri) {
+                latlng = response.items[index].representative_point;
+                map.showCard({lng: latlng[0], lat: latlng[1]}); 
+                return false;
+              }
+            });
+          });
+
         },
 
         onLoadError = function(error) {
@@ -63,11 +79,6 @@ require([
          .then(onAnnotationsLoaded)
          .done(onPlacesLoaded)
          .fail(onLoadError);
-    });
-
-    // map from text to map
-    $('span.annotation.place').on("click", function(){
-      
     });
 
     // $("a.jump-to-text").each(function() {

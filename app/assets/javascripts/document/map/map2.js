@@ -108,6 +108,10 @@ define([
           return annotations;
         },
 
+        showCard = function(latlng) {
+          selectNearest(latlng, TOUCH_DISTANCE_THRESHOLD);
+        },
+
         /**
          * Selects the marker nearest the given latlng. This is primarily a
          * means to support touch devices, where touch events will usually miss
@@ -156,6 +160,7 @@ define([
     this.getAnnotationsForPlace = getAnnotationsForPlace;
     this.setAnnotations = setAnnotations;
     this.setPlaces = setPlaces;
+    this.showCard = showCard;
 
     this.leafletMap.on('click', function(e) {
       selectNearest(e.latlng, TOUCH_DISTANCE_THRESHOLD);
