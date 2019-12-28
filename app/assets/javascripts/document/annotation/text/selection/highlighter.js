@@ -308,6 +308,7 @@ define([
           var spans = jQuery('[data-id="' + annotation.annotation_id + '"]');
           jQuery.each(spans, function(idx, span) {
             spans.addClass(className);
+            // $(span).attr("id",annotation.annotation_id);
           });
         },
 

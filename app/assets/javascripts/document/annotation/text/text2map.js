@@ -7,36 +7,32 @@ require.config({
   }
 });
 
-// load text
 require([
+// load text
   'document/annotation/common/baseTextApp',
   'document/annotation/text/selection/highlighter',
   'document/annotation/text/selection/selectionHandler2',
-  'document/annotation/text/selection/phraseAnnotator'
-], function(BaseTextApp, Highlighter, SelectionHandler, PhraseAnnotator) {
+  'document/annotation/text/selection/phraseAnnotator',
+
+// load map
+  'common/utils/placeUtils',
+  'common/annotationView',
+  'common/api',
+  'common/config',
+  'document/map/map2'
+], function(BaseTextApp, Highlighter, SelectionHandler, PhraseAnnotator, PlaceUtils, AnnotationView, API, Config, Map) {
 
   jQuery(document).ready(function() {
+// load text
     var contentNode = document.getElementById('content'),
         highlighter = new Highlighter(contentNode),
         selector = new SelectionHandler(contentNode, highlighter),
         phraseAnnotator = new PhraseAnnotator(contentNode, highlighter);
 
     new BaseTextApp(contentNode, highlighter, selector, phraseAnnotator);
-  });
-
-});
+    
 
 // load map
-require([
-  'common/utils/placeUtils',
-  'common/annotationView',
-  'common/api',
-  'common/config',
-  'document/map/map'
-], function(PlaceUtils, AnnotationView, API, Config, Map) {
-
-  jQuery(document).ready(function() {
-
     var map = new Map(jQuery('.map')),
     // var center = [-33.865143, 151.209900],
     //     map = L.map('map', { center: center, zoom: 10}),
@@ -53,6 +49,9 @@ require([
         /** Init the map with the places **/
         onPlacesLoaded = function(response) {
           map.setPlaces(response.items);
+          $('span.annotation.place').each(function() {
+            $(this).attr("id", $(this).attr("data-id"));
+          });
         },
 
         onLoadError = function(error) {
@@ -70,6 +69,12 @@ require([
     $('span.annotation.place').on("click", function(){
       
     });
+
+    // $("a.jump-to-text").each(function() {
+    //     var text = $(this).attr('href');
+    //     text = text.replace("/annotation/", "/annotation2/");
+    //     $(this).attr('href',text);
+    // });
   });
 });
 // // way two

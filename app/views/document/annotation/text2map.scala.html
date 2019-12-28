@@ -190,12 +190,5 @@
       controllers.api.entity.routes.javascript.PlaceAPIController.listPlacesInDocument,
       controllers.document.annotation.routes.javascript.AnnotationController.resolveFromAnnotation
     )
-    <script type="text/javascript">
-      $("a.jump-to-text").each(function() {
-          var text = $(this).attr('href');
-          text = text.replace("/annotation/", "/annotation2/");
-          $(this).attr('href',text);
-      });
-    </script>
   </body>
 </html>

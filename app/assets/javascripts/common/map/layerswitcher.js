@@ -21,6 +21,12 @@ define(['common/hasEvents'], function(HasEvents) {
                       'University of North Carolina at Chapel Hill.</p>' +
                     '</li>' +
 
+                    // '<li data-name="STREET">' +
+                    //   '<div class="thumb-container"><img class="map-thumb" src="https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/151.4241,-33.78,4,0,0/120x120@2x?access_token=tk.eyJ1Ijoiem9uZ3dlbiIsImV4cCI6MTU3NzQ5MDk4NiwiaWF0IjoxNTc3NDg3Mzg1LCJzY29wZXMiOlsiZXNzZW50aWFscyIsInNjb3BlczpsaXN0IiwibWFwOnJlYWQiLCJtYXA6d3JpdGUiLCJ1c2VyOnJlYWQiLCJ1c2VyOndyaXRlIiwidXBsb2FkczpyZWFkIiwidXBsb2FkczpsaXN0IiwidXBsb2Fkczp3cml0ZSIsInN0eWxlczp0aWxlcyIsInN0eWxlczpyZWFkIiwiZm9udHM6bGlzdCIsImZvbnRzOnJlYWQiLCJmb250czp3cml0ZSIsInN0eWxlczp3cml0ZSIsInN0eWxlczpsaXN0IiwidG9rZW5zOnJlYWQiLCJ0b2tlbnM6d3JpdGUiLCJkYXRhc2V0czpsaXN0IiwiZGF0YXNldHM6cmVhZCIsImRhdGFzZXRzOndyaXRlIiwidGlsZXNldHM6bGlzdCIsInRpbGVzZXRzOnJlYWQiLCJ0aWxlc2V0czp3cml0ZSIsInZpc2lvbjpyZWFkIiwidmlzaW9uOmRvd25sb2FkIiwic3R5bGVzOmRyYWZ0IiwiZm9udHM6bWV0YWRhdGEiLCJkYXRhc2V0czpzdHVkaW8iLCJjdXN0b21lcnM6d3JpdGUiLCJjcmVkZW50aWFsczpyZWFkIiwiY3JlZGVudGlhbHM6d3JpdGUiLCJhbmFseXRpY3M6cmVhZCJdLCJjbGllbnQiOiJtYXBib3guY29tIiwibGwiOjE1NzYxMDIwNTAwOTEsIml1IjpudWxsLCJlbWFpbCI6Inpvbmd3ZW4uZmFuQHVvbi5lZHUuYXUifQ.4wiNg3xSnQ1NwAd5LF-cNg&logo=false&attribution=false&fresh=false%22"></div>' +
+                    //   '<h3>Base street Map</h3>' +
+                    //   '<p>Mapbox streets via <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap2</a>.</p>' +
+                    // '</li>' +
+
                     '<li data-name="DARE">' +
                       '<div class="thumb-container"><img class="map-thumb" src="http://dare.ht.lu.se/tiles/imperium/7/68/47.png"></div>' +
                       '<h3>Ancient Places</h3>' +
