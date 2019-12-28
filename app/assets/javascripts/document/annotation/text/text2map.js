@@ -58,11 +58,12 @@ require([
             // var annotation_id = event.target.annotation.annotation_id;
             // uris = response.items[0].is_conflation_of[0].uri
             // var uri = event.target.annotation.bodies[1].uri
-
             jQuery.each(response.items, function(index, item) {// loop to find which popup
               if (item.is_conflation_of[0].uri == event.target.annotation.bodies[1].uri) {
                 latlng = response.items[index].representative_point;
                 map.showCard({lng: latlng[0], lat: latlng[1]}); 
+                var marker = L.marker([latlng[1], latlng[0]],{}).addTo(map.leafletMap);
+                map.leafletMap.flyTo([latlng[1], latlng[0]], 10);//zoom = 10
                 return false;
               }
             });
