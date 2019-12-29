@@ -50,6 +50,7 @@ require([
         onPlacesLoaded = function(response) {
           map.setPlaces(response.items);
           // Mapping map location to text location
+          // annotation-id or filepart-id???????
           $('span.annotation.place').each(function() {
             $(this).attr("id", $(this).attr("data-id"));
           });
