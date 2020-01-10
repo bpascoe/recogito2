@@ -22,6 +22,7 @@ define([
                 '<div class="next"><span class="icon stroke7">&#xe684;</span></div>' +
               '</div>' +
               '<div class="snippet-footer">' +
+                '<span class="placeurl"></span>' +
                 '<span class="label"></span>' +
                 '<a class="jump-to-text"></a>' +
               '</div>' +
@@ -33,6 +34,7 @@ define([
         snippetTextEl  = element.find('.snippet-text'),
         snippetLabelEl = element.find('.label'),
         snippetLinkEl  = element.find('.jump-to-text'),
+        placeurl  = element.find('.placeurl'),
 
         btnPrev = element.find('.snippet-body .previous .icon'),
         btnNext = element.find('.snippet-body .next .icon'),
@@ -116,7 +118,7 @@ define([
 
               linkText = (annotation.annotates.content_type.indexOf('IMAGE') > -1) ?
                 'JUMP TO IMAGE' :
-                'JUMP TO TEXT',
+                'JUMP TO TEXT IN ' + $('.header-infobox h1').text(),
 
               snippet =
                 (annotation.annotates.content_type.indexOf('TEXT') >= 0) ?
@@ -128,6 +130,7 @@ define([
 
           snippetLabelEl.html(label);
           snippetLinkEl.html(linkText);
+          placeurl.html(window.location.origin + getContentLink(annotation))
           // snippetLinkEl.attr('href', getContentLink(annotation));
           snippetLinkEl.attr('href', "#"+annotation.annotation_id);
 
