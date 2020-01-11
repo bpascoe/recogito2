@@ -130,7 +130,8 @@ define([
 
           snippetLabelEl.html(label);
           snippetLinkEl.html(linkText);
-          placeurl.html(window.location.origin + getContentLink(annotation))
+          var url = getContentLink(annotation);
+          placeurl.html(window.location.origin + url.replace("/annotation/", "/annotation2/") )
           // snippetLinkEl.attr('href', getContentLink(annotation));
           snippetLinkEl.attr('href', "#"+annotation.annotation_id);
 

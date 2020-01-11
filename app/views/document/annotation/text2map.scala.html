@@ -141,7 +141,7 @@
             </li>
           } else {
             <li>
-              <a href="@controllers.document.annotation.routes.AnnotationController.showAnnotationView(doc.id, part.getSequenceNo)">
+              <a href="@controllers.document.annotation.routes.AnnotationController.textToMap(doc.id, part.getSequenceNo)">
                 <span class="label">@part.getTitle</span>
               </a>
             </li>
@@ -189,7 +189,8 @@
       controllers.api.annotation.routes.javascript.AnnotationAPIController.listAnnotationsInDocument,
       controllers.api.entity.routes.javascript.AuthoritiesAPIController.listGazetteers,
       controllers.api.entity.routes.javascript.PlaceAPIController.listPlacesInDocument,
-      controllers.document.annotation.routes.javascript.AnnotationController.resolveFromAnnotation
+      controllers.document.annotation.routes.javascript.AnnotationController.resolveFromAnnotation,
+      controllers.document.annotation.routes.javascript.AnnotationController.resolveFromAnnotation2
     )
   </body>
 </html>

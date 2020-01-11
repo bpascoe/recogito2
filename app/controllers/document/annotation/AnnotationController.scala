@@ -65,6 +65,15 @@ class AnnotationController @Inject() (
     }
   }
   
+  def resolveFromPart2(uuid: UUID) = Action.async { implicit request =>
+    documents.findPartById(uuid).map {
+      case Some(part) =>
+        Redirect(routes.AnnotationController.textToMap(part.getDocumentId, part.getSequenceNo))
+        
+      case None =>  NotFoundPage
+    }
+  }
+
   def resolveFromPart(uuid: UUID) = Action.async { implicit request =>
     documents.findPartById(uuid).map {
       case Some(part) =>
