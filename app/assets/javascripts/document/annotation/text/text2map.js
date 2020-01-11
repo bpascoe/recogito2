@@ -77,6 +77,11 @@ require([
               }
             });
           });
+          // url zooms to location
+          partId = window.location.hash.substring(1);
+          if (partId.length>2) {
+            $('span[data-id=' + partId + ']').click();
+          }
 
         },
 

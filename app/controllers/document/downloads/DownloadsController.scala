@@ -174,6 +174,15 @@ class DownloadsController @Inject() (
     })
   }
 
+  def downloadKMLByDescription(documentId: String, forGeoBrowser: Boolean) = silhouette.UserAwareAction.async { implicit request => 
+    download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
+      val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else placesToKML(documentId)
+      fXml.map { xml =>
+        Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.title}.kml" })
+      }
+    })
+  }
+
   def downloadGeoJSON(documentId: String, asGazetteer: Boolean) = silhouette.UserAwareAction.async { implicit request =>
     
     // Standard GeoJSON download
