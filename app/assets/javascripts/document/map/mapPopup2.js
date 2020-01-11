@@ -118,7 +118,7 @@ define([
 
               linkText = (annotation.annotates.content_type.indexOf('IMAGE') > -1) ?
                 'JUMP TO IMAGE' :
-                'JUMP TO TEXT IN ' + $('.header-infobox h1').text(),
+                'JUMP TO TEXT IN ' + $('.sidebar>.menu>li.active span.label').text(),
 
               snippet =
                 (annotation.annotates.content_type.indexOf('TEXT') >= 0) ?

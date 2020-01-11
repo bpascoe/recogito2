@@ -54,6 +54,14 @@ require([
           $('span.annotation.place').each(function() {
             $(this).attr("id", $(this).attr("data-id"));
           });
+          // replace urls in the file list to our own place
+          var pattern = /(\/document\/[a-zA-Z0-9]+)\/part(\/[0-9]+)\/edit/;
+          $('.sidebar>.menu>li a').each(function(index,value){
+            url = $(this).attr('href');
+            if (url != "#") {
+              this.href = this.href.replace(pattern,'$1$2/text2map');
+            }
+          });
           // Mapping text location to map location
           $('span.annotation.place').on("click", function(event){
             // var annotation_id = event.target.annotation.annotation_id;
