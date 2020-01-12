@@ -91,6 +91,21 @@
                 <a href="@controllers.document.downloads.routes.DownloadsController.downloadKML(doc.id, false)" class="btn small"><span class="icon">&#xf019;</span> KML</a>
               </div>
             </li>
+
+            <li>
+              <div class="description">
+                <h3>KML by description</span></h3>
+                <p>
+                  Geo-located places as KML file, for viewing in Google Earth. You can also download a 
+                  <a href="@controllers.document.downloads.routes.DownloadsController.downloadKMLByDescription(doc.id, true)">slightly 
+                  modified alternative KML serialization</a> which is suited specifically for the 
+                  <a href="https://geobrowser.de.dariah.eu/" target="_blank">DARIAH GeoBrowser</a>.
+                </p>
+              </div>
+              <div class="button-container">
+                <a href="@controllers.document.downloads.routes.DownloadsController.downloadKMLByDescription(doc.id, false)" class="btn small"><span class="icon">&#xf019;</span> KML</a>
+              </div>
+            </li>
           </ul>
         </div>
       </div>
