@@ -50,7 +50,7 @@ define([
           });
         }
         // click annotation, go to the ith annotation in the popup
-        if (annotation_id.length>2) {
+        if (annotation_id && annotation_id.length>2) {
           $.each(annotations, function( index, value ) {
             if (annotation_id == value.annotation_id) {
               currentAnnotationIdx = index;
