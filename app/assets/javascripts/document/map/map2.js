@@ -108,8 +108,8 @@ define([
           return annotations;
         },
 
-        showCard = function(latlng) {
-          selectNearest(latlng, TOUCH_DISTANCE_THRESHOLD);
+        showCard = function(latlng, annotation_id="") {
+          selectNearest(latlng, TOUCH_DISTANCE_THRESHOLD, annotation_id);
         },
 
         /**
@@ -121,7 +121,7 @@ define([
          * but seems to work reasonably well even for lots of markers.
          *
          */
-        selectNearest = function(latlng, maxDistance) {
+        selectNearest = function(latlng, maxDistance, annotation_id) {
           var xy = self.leafletMap.latLngToContainerPoint(latlng),
               nearest = { distSq: 9007199254740992 }, // Distance to nearest initialied with Integer.MAX
               nearestXY, distPx,
@@ -149,7 +149,7 @@ define([
                 Math.pow((xy.y - nearestXY.y), 2));
 
             if (distPx < maxDistance) {
-              var popup = new MapPopup(nearest.marker, nearest.marker.place, getAnnotationsForPlace(nearest.marker.place));
+              var popup = new MapPopup(nearest.marker, nearest.marker.place, getAnnotationsForPlace(nearest.marker.place), annotation_id);
               self.add(popup);
             }
           }

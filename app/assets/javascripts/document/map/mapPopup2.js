@@ -8,7 +8,7 @@ define([
 
   var SLIDE_DURATION = 250;
 
-  var MapPopup = function(marker, place, annotations) {
+  var MapPopup = function(marker, place, annotations, annotation_id) {
 
     var element = jQuery(
           '<div class="popup">' +
@@ -44,6 +44,15 @@ define([
         if (partId.length>2) {
           $.each(annotations, function( index, value ) {
             if (partId == value.annotation_id) {
+              currentAnnotationIdx = index;
+              return false;
+            }
+          });
+        }
+        // click annotation, go to the ith annotation in the popup
+        if (annotation_id.length>2) {
+          $.each(annotations, function( index, value ) {
+            if (annotation_id == value.annotation_id) {
               currentAnnotationIdx = index;
               return false;
             }

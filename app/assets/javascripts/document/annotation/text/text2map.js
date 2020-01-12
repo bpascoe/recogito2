@@ -70,7 +70,7 @@ require([
             jQuery.each(response.items, function(index, item) {// loop to find which popup
               if (item.is_conflation_of[0].uri == event.target.annotation.bodies[1].uri) {
                 latlng = response.items[index].representative_point;
-                map.showCard({lng: latlng[0], lat: latlng[1]}); 
+                map.showCard({lng: latlng[0], lat: latlng[1]}, event.target.annotation.annotation_id); 
                 var marker = L.marker([latlng[1], latlng[0]],{}).addTo(map.leafletMap);
                 map.leafletMap.flyTo([latlng[1], latlng[0]], 10);//zoom = 10
                 return false;
@@ -82,7 +82,10 @@ require([
           if (partId.length>2) {
             $('span[data-id=' + partId + ']').click();
           }
-
+          /*$( window ).load(function() {
+            $('div.popup a.jump-to-text')[0].click();
+          });*/
+          
         },
 
         onLoadError = function(error) {
@@ -103,6 +106,7 @@ require([
     // });
   });
 });
+
 // // way two
 // require([
 //   'common/utils/placeUtils',
