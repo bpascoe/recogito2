@@ -38,8 +38,17 @@ define([
 
         btnPrev = element.find('.snippet-body .previous .icon'),
         btnNext = element.find('.snippet-body .next .icon'),
-
+        // if annotation_id in the url, go to the corresponding annotation
         currentAnnotationIdx = 0,
+        partId = window.location.hash.substring(1);
+        if (partId.length>2) {
+          $.each(annotations, function( index, value ) {
+            if (partId == value.annotation_id) {
+              currentAnnotationIdx = index;
+              return false;
+            }
+          });
+        }
 
         fetchingSnippet = false,
 
