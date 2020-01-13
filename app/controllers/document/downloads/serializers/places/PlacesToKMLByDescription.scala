@@ -6,6 +6,7 @@ import services.annotation.{AnnotationService, AnnotationBody}
 import services.entity.EntityType
 import services.entity.builtin.EntityService
 import storage.es.ES
+import java.net._
 
 trait PlacesToKMLByDescription extends BaseGeoSerializer {
 
@@ -16,11 +17,11 @@ trait PlacesToKMLByDescription extends BaseGeoSerializer {
       annotationService: AnnotationService, 
       ctx: ExecutionContext
   ) = getMappableFeatures(documentId).map { features => 
-
+    val host = InetAddress.getLocalHost.getHostName + ":9000/annotation2/"
     val kmlFeatures = features.map { f => 
       <Placemark>
         <name>{f.quotes.distinct.mkString(",")}</name>
-        <description>{}
+        <description>
           <h1>Hello I am {f.quotes.distinct.mkString(",")} </h1>
           <div id={documentId} class="tlcmap">
             <h3>Annotations</h3> {f.annotations.length}
@@ -28,11 +29,11 @@ trait PlacesToKMLByDescription extends BaseGeoSerializer {
             <h3>Names (Gazetteer)</h3> {f.titles.mkString(",")}
             <h3>Toponyms (Document)</h3> {f.quotes.distinct.mkString(",")}
           </div>
+
           <ul class="annotation-links">
-            { for (annotation <- f.annotations) {
-                {annotation}
-               <li><a href="#">Diogenes text 1 </a></li> 
-            }}
+            {f.annotations.map (annotation=> 
+              <li><a href={host + annotation.annotationId}>{host + annotation.annotationId}</a></li>
+            )}
           </ul>
 
         </description>
