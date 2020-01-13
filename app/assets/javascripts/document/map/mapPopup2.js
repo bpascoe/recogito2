@@ -153,6 +153,10 @@ define([
           // snippetLinkEl.attr('href', getContentLink(annotation));
           snippetLinkEl.attr('href', "#"+annotation.annotation_id);
 
+          if (partId.length>2) {
+            $('div.popup a.jump-to-text')[0].click();
+          }
+
           if (!slideDirection) {
             // No slide - just replace
             currentCard.html(snippet);

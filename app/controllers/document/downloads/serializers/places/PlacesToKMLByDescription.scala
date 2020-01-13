@@ -35,7 +35,6 @@ trait PlacesToKMLByDescription extends BaseGeoSerializer {
               <li><a href={host + annotation.annotationId}>{host + annotation.annotationId}</a></li>
             )}
           </ul>
-
         </description>
         
         { f.geometry match {
