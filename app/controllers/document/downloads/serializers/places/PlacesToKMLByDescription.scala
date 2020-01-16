@@ -17,28 +17,39 @@ trait PlacesToKMLByDescription extends BaseGeoSerializer {
       annotationService: AnnotationService, 
       ctx: ExecutionContext
   ) = getMappableFeatures(documentId).map { features => 
-    val host = InetAddress.getLocalHost.getHostName + ":9000/annotation2/"
+    val host = "http://" + InetAddress.getLocalHost.getHostName + ":9000/annotation2/"
+    val cdatastart = "<![CDATA["
+    val cdataend = "]]>"
     val kmlFeatures = features.map { f => 
       <Placemark>
         <name>{f.quotes.distinct.mkString(",")}</name>
         <description>
-          <h1>Hello I am {f.quotes.distinct.mkString(",")} </h1>
-          <div id={documentId} class="tlcmap">
-            <h3>Annotations</h3> {f.annotations.length}
+          <div id="{documentId}" class="tlcmap recogito2">
+          <h1>{f.quotes.distinct.mkString(",")} </h1>
+            <!-- <h3>Annotations</h3> {f.annotations.length}
             <h3>Place URIs</h3> {f.records.map(_.uri).mkString(", ")} 
             <h3>Names (Gazetteer)</h3> {f.titles.mkString(",")}
             <h3>Toponyms (Document)</h3> {f.quotes.distinct.mkString(",")}
-          </div>
-
           <ul class="annotation-links">
-            {f.annotations.map (annotation=> 
-              <li><a href={host + annotation.annotationId}>{host + annotation.annotationId}</a></li>
-            )}
-          </ul>
-        </description>
-        
-        { f.geometry match {
-          case geom: Polygon => 
+              {f.annotations.map (annotation=>
+                 <li><a href={host + annotation.annotationId}>{host + annotation.annotationId}</a></li>
+              )
+              }
+            </ul>-->
+            <h3>Instances in Text:</h3>
+              <p class="annotation-links">
+              {f.annotations.zipWithIndex.map {
+                case(annotation, count) => 
+                  <a href={host + annotation.annotationId}> {count + 1} </a>
+                  }
+                }
+              
+              </p>
+          </div>
+          </description>
+          
+          { f.geometry match {
+            case geom: Polygon => 
             <Polygon>
               <extrude>1</extrude>
               <altitudeMode>clampToGround</altitudeMode>
