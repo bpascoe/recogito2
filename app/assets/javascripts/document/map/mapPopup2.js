@@ -24,7 +24,7 @@ define([
               '<div class="snippet-footer">' +
                 '<span class="placeurl"></span>' +
                 '<span class="label"></span>' +
-                '<a class="jump-to-text"></a>' +
+                '<span class="jump-to-text"></span><a class="jump-to-text-btn"></a>' +
               '</div>' +
             '</div>' +
             '<div><table class="gazetteer-records"></table></div>' +
@@ -34,6 +34,7 @@ define([
         snippetTextEl  = element.find('.snippet-text'),
         snippetLabelEl = element.find('.label'),
         snippetLinkEl  = element.find('.jump-to-text'),
+        snippetLinkElBtn  = element.find('.jump-to-text-btn'),
         placeurl  = element.find('.placeurl'),
 
         btnPrev = element.find('.snippet-body .previous .icon'),
@@ -149,13 +150,22 @@ define([
           snippetLabelEl.html(label);
           snippetLinkEl.html(linkText);
           var url = getContentLink(annotation);
-          placeurl.html(window.location.origin + url.replace("/annotation/", "/annotation2/") )
+          placeurl.html(window.location.origin + url.replace("/annotation/", "/annotation2/") );
           // snippetLinkEl.attr('href', getContentLink(annotation));
-          snippetLinkEl.attr('href', "#"+annotation.annotation_id);
+          snippetLinkElBtn.attr('href', "#"+annotation.annotation_id);
 
           if (partId.length>2) {
-            $('div.popup a.jump-to-text')[0].click();
+            if ($('.sidebar>.menu>li').length > 1) {
+              $('div.popup .jump-to-text').click(function() {
+                if ($('.sidebar>.menu>li.active span.label').text() != $('.jump-to-text').text().substring(16)) {
+                  window.location.href = $('.placeurl').text();
+                  return false;
+                }
+
+              });
+            }
           }
+          $('div.popup a.jump-to-text-btn')[0].click();
 
           if (!slideDirection) {
             // No slide - just replace
@@ -181,6 +191,15 @@ define([
             currentCard.animate({ left: moveCurrentTo }, SLIDE_DURATION, 'linear', function() {
               currentCard.remove();
               fetchingSnippet = false;
+            });
+          }
+          if ($('.sidebar>.menu>li').length > 1) {
+            API.getAnnotation($('.jump-to-text-btn').attr("href").substring(1), true).done(function(data){
+                snippetLinkEl.html('JUMP TO TEXT IN ' + data.context.fileName);
+                if ($('.sidebar>.menu>li.active span.label').text() != data.context.fileName) {
+                  window.location.href = $('.placeurl').text();
+                  return false;
+                }
             });
           }
         },

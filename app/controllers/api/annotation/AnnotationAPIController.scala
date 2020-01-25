@@ -246,7 +246,7 @@ class AnnotationAPIController @Inject() (
             case _ => throw new RuntimeException("Attempt to retrieve text snippet for non-text doc part - should never happen")
           }
 
-          Json.obj("snippet" -> snippet.text, "char_offset" -> snippet.offset)
+          Json.obj("snippet" -> snippet.text, "char_offset" -> snippet.offset, "fileName" -> part.getTitle)
 
         case None =>
           Logger.warn("No text content found for filepart " + annotation.annotates.filepartId)
