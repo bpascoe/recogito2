@@ -128,7 +128,7 @@ excludeFilter in (Assets, LessKeys.less) := "_*.less"
 
 excludeFilter in (Assets, JshintKeys.jshint) := "*.js"
 
-pipelineStages := Seq(rjs, digest, gzip)
+// pipelineStages := Seq(rjs, digest, gzip)
 
 unmanagedJars in Runtime ++= Attributed.blankSeq((file("plugins/") ** "*.jar").get)
 

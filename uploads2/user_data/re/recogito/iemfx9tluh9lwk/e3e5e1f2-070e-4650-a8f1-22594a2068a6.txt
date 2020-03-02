@@ -1,0 +1,143 @@
+rdfs:label "Mogontiacum, Mainz" ;
+dcterms:description "Ancient city Mogontiacum, modern Mainz. Mainz, Stadt, Mainz, Kreisfreie Stadt, DE" ;
+dcterms:subject "city" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+dcterms:description "Ancient civitas Borbetomagus, modern Worms. Worms, Stadt, Worms, Kreisfreie Stadt, DE" ;
+dcterms:subject "civitas" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+rdfs:label "Noviomagus/Nemetae/Civitas Nemetum/Spira, Speyer" ;
+dcterms:description "Ancient civitas Noviomagus, modern Speyer. Speyer, Stadt, Speyer, Kreisfreie Stadt, DE" ;
+dcterms:subject "civitas" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+rdfs:label "Constantia, Konstanz" ;
+dcterms:description "Ancient town Constantia, modern Konstanz. Konstanz, Universit?tsstadt, Konstanz, DE" ;
+dcterms:subject "town" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+
+rdfs:label "Augusta Vindelicum/Aelia Augusta, Augsburg" ;
+dcterms:description "Ancient city Augusta Vindelicum, modern Augsburg. Augsburg, Augsburg, Kreisfreie Stadt, DE" ;
+dcterms:subject "city" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+rdfs:label "Castra Regina/Reginum/Regino, Regensburg" ;
+dcterms:description "Ancient fortress Castra Regina, modern Regensburg. Regensburg, Regensburg, Kreisfreie Stadt, DE" ;
+dcterms:subject "fortress" ;
+gn:countryCode "DE" ;
+dcterms:temporal "175/640" ;
+
+rdfs:label "Mogontiacum, Mainz" ;
+dcterms:description "Ancient city Mogontiacum, modern Mainz. Mainz, Stadt, Mainz, Kreisfreie Stadt, DE" ;
+dcterms:subject "city" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+dcterms:description "Ancient civitas Borbetomagus, modern Worms. Worms, Stadt, Worms, Kreisfreie Stadt, DE" ;
+dcterms:subject "civitas" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+rdfs:label "Noviomagus/Nemetae/Civitas Nemetum/Spira, Speyer" ;
+dcterms:description "Ancient civitas Noviomagus, modern Speyer. Speyer, Stadt, Speyer, Kreisfreie Stadt, DE" ;
+dcterms:subject "civitas" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+rdfs:label "Constantia, Konstanz" ;
+dcterms:description "Ancient town Constantia, modern Konstanz. Konstanz, Universit?tsstadt, Konstanz, DE" ;
+dcterms:subject "town" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+
+rdfs:label "Augusta Vindelicum/Aelia Augusta, Augsburg" ;
+dcterms:description "Ancient city Augusta Vindelicum, modern Augsburg. Augsburg, Augsburg, Kreisfreie Stadt, DE" ;
+dcterms:subject "city" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+rdfs:label "Castra Regina/Reginum/Regino, Regensburg" ;
+dcterms:description "Ancient fortress Castra Regina, modern Regensburg. Regensburg, Regensburg, Kreisfreie Stadt, DE" ;
+dcterms:subject "fortress" ;
+gn:countryCode "DE" ;
+dcterms:temporal "175/640" ;
+
+rdfs:label "Mogontiacum, Mainz" ;
+dcterms:description "Ancient city Mogontiacum, modern Mainz. Mainz, Stadt, Mainz, Kreisfreie Stadt, DE" ;
+dcterms:subject "city" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+dcterms:description "Ancient civitas Borbetomagus, modern Worms. Worms, Stadt, Worms, Kreisfreie Stadt, DE" ;
+dcterms:subject "civitas" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+rdfs:label "Noviomagus/Nemetae/Civitas Nemetum/Spira, Speyer" ;
+dcterms:description "Ancient civitas Noviomagus, modern Speyer. Speyer, Stadt, Speyer, Kreisfreie Stadt, DE" ;
+dcterms:subject "civitas" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+rdfs:label "Constantia, Konstanz" ;
+dcterms:description "Ancient town Constantia, modern Konstanz. Konstanz, Universit?tsstadt, Konstanz, DE" ;
+dcterms:subject "town" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+
+rdfs:label "Augusta Vindelicum/Aelia Augusta, Augsburg" ;
+dcterms:description "Ancient city Augusta Vindelicum, modern Augsburg. Augsburg, Augsburg, Kreisfreie Stadt, DE" ;
+dcterms:subject "city" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+rdfs:label "Castra Regina/Reginum/Regino, Regensburg" ;
+dcterms:description "Ancient fortress Castra Regina, modern Regensburg. Regensburg, Regensburg, Kreisfreie Stadt, DE" ;
+dcterms:subject "fortress" ;
+gn:countryCode "DE" ;
+dcterms:temporal "175/640" ;
+
+rdfs:label "Mogontiacum, Mainz" ;
+dcterms:description "Ancient city Mogontiacum, modern Mainz. Mainz, Stadt, Mainz, Kreisfreie Stadt, DE" ;
+dcterms:subject "city" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+dcterms:description "Ancient civitas Borbetomagus, modern Worms. Worms, Stadt, Worms, Kreisfreie Stadt, DE" ;
+dcterms:subject "civitas" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+rdfs:label "Noviomagus/Nemetae/Civitas Nemetum/Spira, Speyer" ;
+dcterms:description "Ancient civitas Noviomagus, modern Speyer. Speyer, Stadt, Speyer, Kreisfreie Stadt, DE" ;
+dcterms:subject "civitas" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+rdfs:label "Constantia, Konstanz" ;
+dcterms:description "Ancient town Constantia, modern Konstanz. Konstanz, Universit?tsstadt, Konstanz, DE" ;
+dcterms:subject "town" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+
+rdfs:label "Augusta Vindelicum/Aelia Augusta, Augsburg" ;
+dcterms:description "Ancient city Augusta Vindelicum, modern Augsburg. Augsburg, Augsburg, Kreisfreie Stadt, DE" ;
+dcterms:subject "city" ;
+gn:countryCode "DE" ;
+dcterms:temporal "-30/640" ;
+
+rdfs:label "Castra Regina/Reginum/Regino, Regensburg" ;
+dcterms:description "Ancient fortress Castra Regina, modern Regensburg. Regensburg, Regensburg, Kreisfreie Stadt, DE" ;
+dcterms:subject "fortress" ;
+gn:countryCode "DE" ;
+dcterms:temporal "175/640" ;    
