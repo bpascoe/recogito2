@@ -169,6 +169,35 @@ define([
          .done(function(annotations) {
            toolbar.initTimefilter(annotations);
            self.onAnnotationsLoaded(annotations);
+           // // geo lat lon
+          function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+          }
+          var selection = rangy.getSelection();
+          var range = rangy.createRange();
+          var text = $('#content').text();
+          var pattern = /([NSns]?(\s*)([-+]?)([\d]{1,2})((\.|(\°\ ))(\d+)([\.\']?)(\d+)([\°\'][\']?))(\s*)(\d+\.\d+\'\')?(\s*)([,]?[EWew]?)(\s*)([-+]?)([\d]{1,3})((\.|(\°\ )))(\s*)\d+((\.|(\'\ )))?\d+(\.)?\d+((\°|(\'\')|\')))/g;
+          text = text.replace(pattern,'<span class="selection">$1</span>')
+          $('#content').html(text)
+          $('.selection').each(function( index, value ) {
+            range.selectNodeContents($('.selection')[index])
+            selection.removeAllRanges();
+            selection.addRange(range);
+            selectedRange = selector.trimRange(selection.getRangeAt(0));
+            annotation = selector.rangeToAnnotationStub(selectedRange);
+            // onUpdateRelations(annotation);
+            bounds = selectedRange.nativeRange.getBoundingClientRect();
+            spans = highlighter.wrapRange(selectedRange);
+            // jQuery.each(spans, function(idx, span) { span.className = 'selection'; });
+            currentSelection = {
+             isNew      : true,
+             annotation : annotation,
+             bounds     : bounds,
+             spans      : spans
+            };
+            onCreateAnnotation(currentSelection);
+            $('.btn.action').first().click();
+          });
          })
          .then(relationsLayer.init)
          .then(loadIndicator.destroy)
