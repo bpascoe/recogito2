@@ -180,23 +180,25 @@ define([
           text = text.replace(pattern,'<span class="selection">$1</span>')
           $('#content').html(text)
           $('.selection').each(function( index, value ) {
-            range.selectNodeContents($('.selection')[index])
-            selection.removeAllRanges();
-            selection.addRange(range);
-            selectedRange = selector.trimRange(selection.getRangeAt(0));
-            annotation = selector.rangeToAnnotationStub(selectedRange);
-            // onUpdateRelations(annotation);
-            bounds = selectedRange.nativeRange.getBoundingClientRect();
-            spans = highlighter.wrapRange(selectedRange);
-            // jQuery.each(spans, function(idx, span) { span.className = 'selection'; });
-            currentSelection = {
-             isNew      : true,
-             annotation : annotation,
-             bounds     : bounds,
-             spans      : spans
-            };
-            onCreateAnnotation(currentSelection);
-            $('.btn.action').first().click();
+            if ($(this).parent().get( 0 ).tagName != 'SPAN'){
+              range.selectNodeContents($('.selection')[index])
+              selection.removeAllRanges();
+              selection.addRange(range);
+              selectedRange = selector.trimRange(selection.getRangeAt(0));
+              annotation = selector.rangeToAnnotationStub(selectedRange);
+              // onUpdateRelations(annotation);
+              bounds = selectedRange.nativeRange.getBoundingClientRect();
+              spans = highlighter.wrapRange(selectedRange);
+              // jQuery.each(spans, function(idx, span) { span.className = 'selection'; });
+              currentSelection = {
+               isNew      : true,
+               annotation : annotation,
+               bounds     : bounds,
+               spans      : spans
+              };
+              onCreateAnnotation(currentSelection);
+              $('.btn.action').first().click();
+            }
           });
          })
          .then(relationsLayer.init)
