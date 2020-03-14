@@ -175,7 +175,7 @@ define([
           }
           var selection = rangy.getSelection();
           var range = rangy.createRange();
-          var text = $('#content').text();
+          var text = $('#content').html();
           var pattern = /([NSns]?(\s*)([-+]?)([\d]{1,2})((\.|(\°\ ))(\d+)([\.\']?)(\d+)([\°\'][\']?))(\s*)(\d+\.\d+\'\')?(\s*)([,]?[EWew]?)(\s*)([-+]?)([\d]{1,3})((\.|(\°\ )))(\s*)\d+((\.|(\'\ )))?\d+(\.)?\d+((\°|(\'\')|\')))/g;
           text = text.replace(pattern,'<span class="selection">$1</span>')
           $('#content').html(text)
