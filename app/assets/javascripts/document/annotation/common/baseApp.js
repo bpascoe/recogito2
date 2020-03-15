@@ -101,6 +101,11 @@ define([
       this.highlighter.convertSelectionToAnnotation(selection);
     this.upsertAnnotation(selection.annotation);
   };
+  BaseApp.prototype.onCreateAnnotation2 = function(selection) {
+    if (selection.isNew)
+      this.highlighter.convertSelectionToAnnotation2(selection);
+    this.upsertAnnotation(selection.annotation);
+  };
 
   BaseApp.prototype.onCreateAnnotationBatch = function(selections) {
     var self = this,

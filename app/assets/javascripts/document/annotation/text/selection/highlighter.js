@@ -287,6 +287,10 @@ define([
 
           bindToElements(selection.annotation, selection.spans);
         },
+        convertSelectionToAnnotation2 = function(selection) {
+          updateStyles(selection.annotation, selection.spans);
+          bindToElements(selection.annotation, selection.spans);
+        },
 
         removeAnnotation = function(annotation) {
           var spans = jQuery('[data-id="' + annotation.annotation_id + '"]');
@@ -411,6 +415,7 @@ define([
 
     this.bindToElements = bindToElements;
     this.convertSelectionToAnnotation = convertSelectionToAnnotation;
+    this.convertSelectionToAnnotation2 = convertSelectionToAnnotation2;
     this.getAnnotationsAt = getAnnotationsAt;
     this.getAnnotationBefore = getAnnotationBefore;
     this.getAnnotationAfter = getAnnotationAfter;

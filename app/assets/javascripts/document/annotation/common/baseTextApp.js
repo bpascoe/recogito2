@@ -95,6 +95,14 @@ define([
           reapply.reapplyIfNeeded(selection.annotation);
         },
 
+        onCreateAnnotation2 = function(selection) {
+          // Store the annotation first
+          self.onCreateAnnotation2(selection);
+
+          // Then prompt the user if they want to re-apply across the doc
+          reapply.reapplyIfNeeded(selection.annotation);
+        },
+
         onUpdateAnnotation = function(annotationStub) {
           self.onUpdateAnnotation(annotationStub);
           reapply.reapplyIfNeeded(annotationStub);
@@ -157,6 +165,7 @@ define([
     relationsLayer.on('updateRelations', onUpdateRelations);
 
     editor.on('createAnnotation', onCreateAnnotation);
+    editor.on('createAnnotation2', onCreateAnnotation2);
     editor.on('updateAnnotation', onUpdateAnnotation);
     editor.on('deleteAnnotation', onDeleteAnnotation);
 
@@ -170,41 +179,52 @@ define([
            toolbar.initTimefilter(annotations);
            self.onAnnotationsLoaded(annotations);
            // // geo lat lon
-          function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-          }
-          var selection = rangy.getSelection();
-          var range = rangy.createRange();
           var text = $('#content').html();
           var pattern = /([NSns]?(\s*)([-+]?)([\d]{1,2})((\.|(\°\ ))(\d+)([\.\']?)(\d+)([\°\'][\']?))(\s*)(\d+\.\d+\'\')?(\s*)([,]?[EWew]?)(\s*)([-+]?)([\d]{1,3})((\.|(\°\ )))(\s*)\d+((\.|(\'\ )))?\d+(\.)?\d+((\°|(\'\')|\')))/g;
-          text = text.replace(pattern,'<span class="selection">$1</span>')
-          $('#content').html(text)
-          $('.selection').each(function( index, value ) {
-            if ($(this).parent().get( 0 ).tagName != 'SPAN'){
-              range.selectNodeContents($('.selection')[index])
-              selection.removeAllRanges();
-              selection.addRange(range);
-              selectedRange = selector.trimRange(selection.getRangeAt(0));
-              annotation = selector.rangeToAnnotationStub(selectedRange);
-              // onUpdateRelations(annotation);
-              bounds = selectedRange.nativeRange.getBoundingClientRect();
-              spans = highlighter.wrapRange(selectedRange);
-              // jQuery.each(spans, function(idx, span) { span.className = 'selection'; });
-              currentSelection = {
-               isNew      : true,
-               annotation : annotation,
-               bounds     : bounds,
-               spans      : spans
-              };
-              onCreateAnnotation(currentSelection);
-              $('.btn.action').first().click();
-            }
-          });
+          var pattern2 = /([NSns]?(\s*)([-+]?)([\d]{1,2})((\.|(\°\ ))(\d+)([\.\']?)(\d+)([\°\'][\']?))(\s*)(\d+\.\d+\'\')?(\s*)([,]?[EWew]?)(\s*)([-+]?)([\d]{1,3})((\.|(\°\ )))(\s*)\d+((\.|(\'\ )))?\d+(\.)?\d+((\°|(\'\')|\')))<\/span>/;
+          if (!pattern2.test(text)) {
+            text = text.replace(pattern,'<span class="selection">$1</span>')
+            $('#content').html(text);
+            $('.selection').each(function( index, value ) {
+              if ($(this).parent().get( 0 ).tagName != 'SPAN'){
+                var selection = rangy.getSelection();
+                var range = rangy.createRange();
+                range.selectNodeContents($('.selection')[index]);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                selectedRange = selector.trimRange(selection.getRangeAt(0));
+                var annotation = selector.rangeToAnnotationStub(selectedRange);
+                annotation.bodies.push({ type: 'PLACE', status: { value: 'UNVERIFIED' } });
+                // self.upsertAnnotation(annotation);
+                bounds = selectedRange.nativeRange.getBoundingClientRect();
+                spans = highlighter.wrapRange(selectedRange);
+                // jQuery.each(spans, function(idx, span) { span.className = 'selection'; });
+                currentSelection = {
+                 isNew      : true,
+                 annotation : annotation,
+                 bounds     : bounds,
+                 spans      : spans
+                };
+                onCreateAnnotation2(currentSelection);
+                // self.upsertAnnotation(annotation);
+                // $('.btn.action').first().click();
+              }
+            });
+          }
+          // text = $('#content').html();
+          // text = text.replace(/<span\s(?:class="selection")>(.*)<\/span\>/g,'$1');
+          // $('#content').html(text);
+          
          })
          .then(relationsLayer.init)
          .then(loadIndicator.destroy)
          .fail(self.onAnnotationsLoadError.bind(self)).then(loadIndicator.destroy);
     });
+    // if ($('.selection').length>0) {
+    //   text = $('#content').html();
+    //   text = text.replace(/<span\s(?:class="selection")>(.*)<\/span\>/g,'$1');
+    //   $('#content').html(text);
+    // }
   };
   App.prototype = Object.create(BaseApp.prototype);
 
