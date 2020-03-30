@@ -44,6 +44,11 @@ class DocumentService @Inject() (
     }
   }
 
+  def getDocsIdInFolder(documentId: String)(implicit ctx: ExecutionContext) = {
+    getDocsId(documentId)
+  }
+      
+
   /** Shorthand **/
   def listIds(folder: Option[UUID], loggedInAs: String)(implicit ctx: ExecutionContext) =
     folder match {

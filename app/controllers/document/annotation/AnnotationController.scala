@@ -16,6 +16,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{ControllerComponents, RequestHeader, Result}
 import scala.concurrent.{ExecutionContext, Future}
 import storage.uploads.Uploads
+import services.document.read.ReadFromFolderOps
 
 @Singleton
 class AnnotationController @Inject() (
@@ -88,6 +89,12 @@ class AnnotationController @Inject() (
     val loggedIn = request.identity
     
     val fPreferences = documents.getDocumentPreferences(documentId)
+    
+    // val docIds = documents.getDocsIdInFolder(documentId)//loggedIn.get.username
+    // // Logger.info(loggedIn.get.username)
+    // docIds foreach {
+    //   docId => println(docId)
+    // }
     
     val fRedirectedVia = request.flash.get("annotation") match {
       case Some(annotationId) => annotations.findById(UUID.fromString(annotationId)).map { _.map(_._1) }

@@ -137,7 +137,7 @@
         @for(part <- doc.fileparts) {
           @if(part == currentPart) {
             <li class="active">
-              <a href="#" onclick="return false;"><span class="label">@part.getTitle</span></a>
+              <a href="@controllers.document.annotation.routes.AnnotationController.showAnnotationView(doc.id, part.getSequenceNo)" onclick="return false;"><span class="label">@part.getTitle</span></a>
             </li>
           } else {
             <li>

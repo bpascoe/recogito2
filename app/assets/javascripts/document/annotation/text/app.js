@@ -22,5 +22,22 @@ require([
 
     new BaseTextApp(contentNode, highlighter, selector, phraseAnnotator);
   });
-
+var folderId = sessionStorage.getItem("folderId");
+if (folderId)
+  $.get( document.location.origin + "/api/directory/my/" + folderId, function(data) {
+    var items = data.items;
+    if (items.length > 1)
+      $.each(items,function(index,item){
+        var docId =item.id;
+        if (docId != document.location.pathname.split('/')[2]) 
+          $.get( document.location.origin + "/document/"+docId+"/part/1/edit", function(data) {
+            var lis = $($(data).find('ul.menu')[1]).find('li')
+            lis.removeClass('active');
+            lis.find('a').removeAttr('onclick');
+            $('.sidebar ul.menu').append(lis);
+          });
+      });
+      
+  });
+  
 });
