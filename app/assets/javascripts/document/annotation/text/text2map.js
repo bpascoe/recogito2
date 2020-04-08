@@ -56,7 +56,26 @@ require([
     // marker.addTo(map.leafletMap)
 
         /** Init the map with the annotations and fetch places **/
+        getAnnotations = function ( folderId ) {
+         var result = [];
+         $.ajax({url:document.location.origin + "/api/directory/my/" + folderId, type: 'get',async: false,success: function(data) {
+              var items = data.items;
+              if (items.length > 1)
+                $.each(items,function(index,item){
+                  var docId =item.id;
+                  if (docId != Config.documentId) 
+                    $.ajax( {url:document.location.origin + "/api/document/" + docId+"/annotations",
+                           type: 'get',async: false,success: function(data) {
+                      result = result.concat(data);
+                      }
+                    });
+                  });
+                }
+              });
+         return result;
+        },
         onAnnotationsLoaded = function(a) {
+          if (folderId) a = a.concat(getAnnotations( folderId));
           var annotations = new AnnotationView(a);
           map.setAnnotations(annotations.readOnly());
           return API.listPlacesInDocument(Config.documentId, 0, 2000);
