@@ -44,9 +44,9 @@ class DocumentService @Inject() (
     }
   }
 
-  def getDocsIdInFolder(documentId: String)(implicit ctx: ExecutionContext) = {
-    getDocsId(documentId)
-  }
+  // def getDocsIdInFolder(documentId: String)(implicit ctx: ExecutionContext) = {
+  //   getDocsId(documentId)
+  // }
       
 
   /** Shorthand **/

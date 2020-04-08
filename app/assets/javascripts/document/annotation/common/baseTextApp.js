@@ -182,7 +182,7 @@ define([
           var text = $('#content').html();
           var pattern = /([NSns]?(\s*)([-+]?)([\d]{1,2})((\.|(\°\ ))(\d+)([\.\']?)(\d+)([\°\'][\']?))(\s*)(\d+\.\d+\'\')?(\s*)([,]?[EWew]?)(\s*)([-+]?)([\d]{1,3})((\.|(\°\ )))(\s*)\d+((\.|(\'\ )))?\d+(\.)?\d+((\°|(\'\')|\')))/g;
           var pattern2 = /([NSns]?(\s*)([-+]?)([\d]{1,2})((\.|(\°\ ))(\d+)([\.\']?)(\d+)([\°\'][\']?))(\s*)(\d+\.\d+\'\')?(\s*)([,]?[EWew]?)(\s*)([-+]?)([\d]{1,3})((\.|(\°\ )))(\s*)\d+((\.|(\'\ )))?\d+(\.)?\d+((\°|(\'\')|\')))<\/span>/;
-          if (!pattern2.test(text)) {
+          if (pattern.test(text) && !pattern2.test(text)) {
             text = text.replace(pattern,'<span class="selection">$1</span>')
             $('#content').html(text);
             $('.selection').each(function( index, value ) {

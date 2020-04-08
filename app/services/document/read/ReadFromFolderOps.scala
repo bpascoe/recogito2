@@ -6,7 +6,7 @@ import services.{Page, SortOrder}
 import services.document.DocumentService
 import services.document.read.results.MyDocument
 import services.generated.Tables.{DOCUMENT, FOLDER_ASSOCIATION, SHARING_POLICY}
-import services.generated.tables.records.{DocumentRecord, SharingPolicyRecord, FolderAssociationRecord}
+import services.generated.tables.records.{DocumentRecord, SharingPolicyRecord}
 
 /** Helper functions that read documents from specific folders **/
 trait ReadFromFolderOps { self: DocumentService => 
@@ -30,11 +30,11 @@ trait ReadFromFolderOps { self: DocumentService =>
        .fetchOne(0, classOf[Int])
   }
 
-  def getDocsId(documentId: String) = db.query { sql => 
-    sql.select(DOCUMENT.ID).from(FOLDER_ASSOCIATION)
-      .where(FOLDER_ASSOCIATION.FOLDER_ID.equal(sql.select(FOLDER_ASSOCIATION.FOLDER_ID).from(FOLDER_ASSOCIATION).where(FOLDER_ASSOCIATION.DOCUMENT_ID.equal(documentId))))
-      .fetchOne(0)
-  }
+  // def getDocsId(documentId: String) = db.query { sql => 
+  //   sql.select(DOCUMENT.ID).from(FOLDER_ASSOCIATION)
+  //     .where(FOLDER_ASSOCIATION.FOLDER_ID.equal(sql.select(FOLDER_ASSOCIATION.FOLDER_ID).from(FOLDER_ASSOCIATION).where(FOLDER_ASSOCIATION.DOCUMENT_ID.equal(documentId))))
+  //     .fetchOne(0)
+  // }
 
   /** Lists documents in this folder, along with current user acess permissions, if any 
     * 
