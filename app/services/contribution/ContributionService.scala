@@ -13,6 +13,9 @@ import scala.language.reflectiveCalls
 import scala.util.Try
 import storage.es.ES
 import services.HasTryToEither
+import org.apache.commons.io.FileUtils
+import play.api.libs.json.{Format, JsValue, Json, JsObject}
+import java.io.{File, FileInputStream}
 
 @Singleton
 class ContributionService @Inject() (implicit val es: ES, val ctx: ExecutionContext) 
@@ -30,7 +33,7 @@ class ContributionService @Inject() (implicit val es: ES, val ctx: ExecutionCont
   }
 
   /** Inserts a contribution record into the index **/
-  def insertContribution(contribution: Contribution): Future[Boolean] =
+  def insertContribution(contribution: Contribution): Future[Boolean] = 
     es.client execute {
       indexInto(ES.RECOGITO / ES.CONTRIBUTION) source contribution
     } map {

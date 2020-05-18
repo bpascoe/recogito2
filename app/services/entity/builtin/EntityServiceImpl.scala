@@ -272,6 +272,12 @@ class EntityServiceImpl @Inject()(
       envelope <- aggregateCoverage(counts.map(_._1).toSeq.take(ES.MAX_CLAUSES))
     } yield (envelope)
   }
+  // 
+  override def listEntitiesInContribution(identifier: String): Future[Seq[IndexedEntity]] = {
+    es.client execute {
+      search(ES.RECOGITO / ES.ENTITY) query termQuery("is_conflation_of.source_authority" -> identifier)
+    } map { _.to[IndexedEntity] }
+  }
 
   override def searchEntitiesInDocument(query: String, docId: String, eType: Option[EntityType] = None,
     offset: Int = 0, limit: Int = ES.MAX_SIZE): Future[Page[IndexedEntity]] = ???

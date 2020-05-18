@@ -19,6 +19,8 @@ trait EntityService {
 
   def findByURI(uri: String): Future[Option[IndexedEntity]]
 
+  def listEntitiesInContribution(identifier: String): Future[Seq[IndexedEntity]]
+
   def findConnected(uris: Seq[String]): Future[Seq[IndexedEntity]]
 
   def searchEntities(
@@ -36,6 +38,7 @@ trait EntityService {
     offset : Int = 0,
     limit  : Int = ES.MAX_SIZE
   ): Future[Page[(IndexedEntity, Long)]]
+  
 
   def searchEntitiesInDocument(
     query  : String,

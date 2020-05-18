@@ -7,11 +7,12 @@ import javax.inject.{Inject, Singleton}
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json.Json
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, Await}
 import services.annotation.relation.RelationService
 import services.annotation.stats.AnnotationStatsService
 import services.entity.builtin.{EntityService, IndexedEntity}
 import storage.es.{ES, HasScrollProcessing}
+import scala.concurrent.duration._
 
 @Singleton
 class AnnotationService @Inject() (
@@ -91,6 +92,19 @@ class AnnotationService @Inject() (
         Some(response.to[(Annotation, Long)])
       else
         None
+    }
+    
+  def findByUnionId(unionId: String): Future[Seq[(Annotation, Long)]] =
+    es.client execute {
+      search(ES.RECOGITO / ES.ANNOTATION) query {
+        termQuery("bodies.reference.union_id" -> unionId)
+      } 
+    } map { _.to[(Annotation, Long)] }
+
+  def findByUnionIds(ids: Future[Seq[IndexedEntity]]) = 
+    ids.map { id => 
+      val idString = id.map(_.entity.unionId).toString
+      findByUnionId(idString)
     }
 
   def findByIds(ids: Seq[UUID]) =

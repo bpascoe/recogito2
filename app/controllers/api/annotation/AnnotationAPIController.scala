@@ -25,6 +25,15 @@ import services.image.ImageService
 import services.generated.tables.records.{DocumentRecord, DocumentFilepartRecord}
 import storage.uploads.Uploads
 
+import services.entity.builtin.importer.EntityImporterFactory
+import services.entity.{EntityType, EntityRecord, PlaceRecord, Name, LinkType, Link, Description}
+import services.entity.builtin.importer.crosswalks.geojson.lpf.LPFCrosswalk
+import services.annotation.Annotation
+import storage.es.ES
+import services.entity.builtin.EntityService
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+
 @Singleton
 class AnnotationAPIController @Inject() (
   val components: ControllerComponents,
@@ -32,6 +41,8 @@ class AnnotationAPIController @Inject() (
   val documents: DocumentService,
   val silhouette: Silhouette[Security.Env],
   val users: UserService,
+  val importerFactory: EntityImporterFactory,
+  val entity: EntityService,
   implicit val annotationService: AnnotationService,
   implicit val config: Configuration,
   implicit val mimeTypes: FileMimeTypes,
@@ -115,13 +126,16 @@ class AnnotationAPIController @Inject() (
             
             annotationStored <- annotationService.upsertAnnotation(annotation)
 
+            // contributionStored <- contributions.upsertContriGaze(computeContributions(annotation, previousVersion, document))
+
             success <- if (annotationStored)
                          contributions.insertContributions(computeContributions(annotation, previousVersion, document))
                        else
                          Future.successful(false)
             
           } yield success
-
+          // User add a place to Contribution gazetteer
+          upsertContriGaze(annotation)
           f.map(success => if (success) Ok(Json.toJson(annotation)) else InternalServerError)
         } else {
           // No write permissions
@@ -134,6 +148,19 @@ class AnnotationAPIController @Inject() (
         Future.successful(NotFound)
     })
   }}
+
+
+// add to user-added contribution gazetteer
+  def upsertContriGaze(annotation: Annotation) = {
+    val importer = importerFactory.createImporter(EntityType.PLACE)
+    val entityURIs = annotation.bodies.flatMap(_.uri).mkString(" ")
+    val place = Await.result(entity.findByURI(entityURIs), 1.seconds).get.entity
+    place.isConflationOf.map(record=>
+      importer.importRecord(record.copy(sourceAuthority = ES.CONTRIBUTION,lastSyncedAt = DateTime.now()))
+  )
+    // place.isConflationOf.map(record=>record.copy(lastSyncedAt = DateTime.now()))
+    // place.isConflationOf.map(record=>importer.importRecord(record))
+  }
 
   def bulkUpsert() = silhouette.UserAwareAction.async { implicit request => jsonOp[Seq[AnnotationStub]] { annotationStubs =>
     // We currently restrict to bulk upserts for a single document part only

@@ -25,6 +25,7 @@ import play.api.mvc.{AnyContent, ControllerComponents, Result}
 import play.api.http.{HttpEntity, FileMimeTypes}
 import scala.concurrent.{ExecutionContext, Future}
 import storage.uploads.Uploads
+import storage.es.ES
 
 case class FieldMapping(
   BASE_URL          : Option[String],
@@ -77,6 +78,7 @@ class DownloadsController @Inject() (
     with document.iob.PlaintextToIOB
     with document.spacy.PlaintextToSpacy
     with places.PlacesToGeoJSON
+    with places.PlacesToGeoLPFJSON
     with places.PlacesToKML
     with places.PlacesToKMLByDescription
     with places.PlacesToGeoBrowser
@@ -201,6 +203,51 @@ class DownloadsController @Inject() (
             exportGeoJSONGazetteer(doc, result.get).map { featureCollection =>
               Ok(Json.prettyPrint(featureCollection))
                 .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + documentId + ".json" })
+            }
+              
+          case error: JsError =>
+            Logger.warn("Attempt to download gazetteer but field mapping invalid: " + str + "\n" + error)
+            Future.successful(BadRequest)
+        }
+          
+      case None =>
+        Logger.warn("Attempt to download gazetteer without field mapping payload")
+        Future.successful(BadRequest)
+    }
+
+     documentReadResponse(documentId, request.identity, { case (docInfo, userAccessLevel) =>
+       if (asGazetteer)
+         // Download as gazetteer requires READ_ALL privileges
+         if (userAccessLevel.canReadAll)
+           downloadGazetteer(docInfo)
+         else
+           Future.successful(Forbidden)
+       else
+         // GeoJSON download only requires READ_DATA privileges
+         if (userAccessLevel.canReadData)
+           downloadPlaces
+         else
+           Future.successful(Forbidden)
+     })     
+  }
+// download user-added places
+  def downloadLPFContribution(identifier: String, asGazetteer: Boolean) = silhouette.UserAwareAction.async { implicit request =>
+    val documentId = identifier //
+    // Standard GeoJSON download
+    def downloadPlaces() =
+      placesToGeoLPFJSON(ES.CONTRIBUTION).map { featureCollection =>
+        Ok(Json.prettyPrint(featureCollection))
+          .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=contribution.lpf.json" })
+      }
+    
+    // Places + spreadsheet info, according to Pelagios gazetteer GeoJSON conventions
+    def downloadGazetteer(doc: ExtendedDocumentMetadata) = request.body.asFormUrlEncoded.flatMap(_.get("json").flatMap(_.headOption)) match {
+      case Some(str) =>
+        Json.fromJson[FieldMapping](Json.parse(str)) match {
+          case result: JsSuccess[FieldMapping] =>
+            exportGeoJSONGazetteer(doc, result.get).map { featureCollection =>
+              Ok(Json.prettyPrint(featureCollection))
+                .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=contribution.lpf.json" })
             }
               
           case error: JsError =>
