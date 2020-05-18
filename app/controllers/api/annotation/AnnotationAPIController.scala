@@ -26,7 +26,7 @@ import services.generated.tables.records.{DocumentRecord, DocumentFilepartRecord
 import storage.uploads.Uploads
 
 import services.entity.builtin.importer.EntityImporterFactory
-import services.entity.{EntityType, EntityRecord, PlaceRecord, Name, LinkType, Link, Description}
+import services.entity.{EntityType, EntityRecord, Name, LinkType, Link, Description}
 import services.entity.builtin.importer.crosswalks.geojson.lpf.LPFCrosswalk
 import services.annotation.Annotation
 import storage.es.ES
@@ -156,7 +156,7 @@ class AnnotationAPIController @Inject() (
     val entityURIs = annotation.bodies.flatMap(_.uri).mkString(" ")
     val place = Await.result(entity.findByURI(entityURIs), 1.seconds).get.entity
     place.isConflationOf.map(record=>
-      importer.importRecord(record.copy(sourceAuthority = ES.CONTRIBUTION,lastSyncedAt = DateTime.now()))
+      importer.importRecord(record.copy(sourceAuthority = ES.CONTRIBUTION, title = annotation.bodies.flatMap(_.value).mkString(" "), lastSyncedAt = DateTime.now()))
   )
     // place.isConflationOf.map(record=>record.copy(lastSyncedAt = DateTime.now()))
     // place.isConflationOf.map(record=>importer.importRecord(record))

@@ -34,9 +34,9 @@ trait PlacesToGeoLPFJSON extends BaseGeoLPFSerializer
     (JsPath \ "names").writeNullable[Seq[Name]] and
     (JsPath \ "geometry").write[JsObject] and
     // (JsPath \ "source_gazetteers").write[Seq[String]] and
-    // (JsPath \ "quotes").writeNullable[Seq[String]] and
     // (JsPath \ "tags").writeNullable[Seq[String]] and
     (JsPath \ "descriptions").writeNullable[Seq[Description]] and
+    (JsPath \ "quotes").writeNullable[Seq[String]] and
     (JsPath \ "source_gazetteers").write[Seq[String]] and
     (JsPath \ "lastSyncedAt").write[Seq[DateTime]] and
     (JsPath \ "contributors").write[Seq[String]]
@@ -54,6 +54,7 @@ trait PlacesToGeoLPFJSON extends BaseGeoLPFSerializer
         "geometries" -> f.geometry
       ),
       toOptSeq(f.records.flatMap(_.descriptions)),
+      toOptSeq(f.quotes),
       f.records.map(_.sourceAuthority),
       f.records.map(_.lastSyncedAt),
       f.annotations.flatMap(_.contributors)
