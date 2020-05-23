@@ -155,9 +155,11 @@ class AnnotationAPIController @Inject() (
   def upsertContriGaze(annotation: Annotation) = {
     val importer = importerFactory.createImporter(EntityType.PLACE)
     val entityURIs = annotation.bodies.flatMap(_.uri).mkString(" ")
-    val place = Await.result(entity.findByURI(entityURIs), 1.seconds).get.entity
-    place.isConflationOf.map(record=>
-      importer.importRecord(record.copy(sourceAuthority = ES.CONTRIBUTION, title = annotation.bodies.flatMap(_.value).mkString(" "), lastSyncedAt = DateTime.now())))
+    if (entityURIs.trim.nonEmpty) {
+      val place = Await.result(entity.findByURI(entityURIs), 1.seconds).get.entity
+      place.isConflationOf.map(record=>
+        importer.importRecord(record.copy(sourceAuthority = ES.CONTRIBUTION, title = annotation.bodies.flatMap(_.value).mkString(" "), lastSyncedAt = DateTime.now())))
+    }
   }
 // add new place to user-added contribution gazetteer (not exist ever)
   def createPlace() = silhouette.UserAwareAction.async { implicit request =>
