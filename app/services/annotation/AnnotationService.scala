@@ -101,13 +101,13 @@ class AnnotationService @Inject() (
       } 
     } map { _.to[(Annotation, Long)] }
 
-  def findByUnionIds(ids: Future[Seq[IndexedEntity]]) = 
-    ids.map { id => 
-      val idString = id.map(_.entity.unionId).toString
-      findByUnionId(idString)
-    }
+  // def findByUnionIds(ids: Future[Seq[IndexedEntity]]) = ???
+    // ids.map { id => 
+    //   val idString = id.map(_.entity.unionId).toString
+    //   findByUnionId(idString)
+    // }
 
-  def findByIds(ids: Seq[UUID]) =
+  def findByIds(ids: Seq[UUID]) = 
     Future.sequence {
       ids.map(id => findById(id).map(_.map(_._1)))
     }

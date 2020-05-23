@@ -36,28 +36,22 @@ trait BaseGeoLPFSerializer extends BaseSerializer {
   ): Future[Seq[AnnotatedPlaceFeatures]] = {
     // val fAnnotations = annotationService.findByDocId(documentId, 0, ES.MAX_SIZE)
     val fPlaces = entityService.listEntitiesInContribution(identifier)
-    // val unionIds = entityService.getUnionIds(identifier)
-    val fAnnotations = annotationService.findByUnionIds(fPlaces)
+    // val fAnnotations = annotationService.findByUnionIds(fPlaces)
         
     val f = for {
-      annotations <- Await.result(fAnnotations, 1.seconds)
+      // annotations <- fAnnotations
       places <- fPlaces
-    } yield (annotations.map(_._1), places)
+    } yield (places)
     
-    f.map { case (annotations, places) =>
-      // All place annotations on this document
-      // val placeAnnotations = annotations//.filter(_.bodies.map(_.hasType).contains(AnnotationBody.PLACE))  
-
+    f.map { case (places) =>
       // Each place in this document, along with all the annotations on this place and 
       // the specific entity records the annotations point to (within the place union record) 
       places.flatMap { e =>      
         val place = e.entity
         // val annotationsOnThisPlace = annotations
-        val annotationsOnThisPlace = annotations.filter { a =>
-          // All annotations that include place URIs of this place
-          val placeURIs = a.bodies.filter(_.hasType == AnnotationBody.PLACE).flatMap(_.uri)
-          !placeURIs.intersect(place.uris).isEmpty
-        }
+        val annotation = Await.result(annotationService.findByUnionId(place.unionId.toString), 1.seconds)
+
+        val annotationsOnThisPlace = annotation.map(_._1)
         // val placeURIs = annotationsOnThisPlace.flatMap(_.bodies).filter(_.hasType == AnnotationBody.PLACE).flatMap(_.uri)
         val referencedRecords = place.isConflationOf//.filter(g => placeURIs.contains(g.uri))
         

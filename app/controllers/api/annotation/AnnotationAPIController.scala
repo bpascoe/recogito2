@@ -33,6 +33,7 @@ import storage.es.ES
 import services.entity.builtin.EntityService
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
 
 @Singleton
 class AnnotationAPIController @Inject() (
@@ -150,16 +151,35 @@ class AnnotationAPIController @Inject() (
   }}
 
 
-// add to user-added contribution gazetteer
+// add to user-added contribution gazetteer (search in the gazetteer list)
   def upsertContriGaze(annotation: Annotation) = {
     val importer = importerFactory.createImporter(EntityType.PLACE)
     val entityURIs = annotation.bodies.flatMap(_.uri).mkString(" ")
     val place = Await.result(entity.findByURI(entityURIs), 1.seconds).get.entity
     place.isConflationOf.map(record=>
-      importer.importRecord(record.copy(sourceAuthority = ES.CONTRIBUTION, title = annotation.bodies.flatMap(_.value).mkString(" "), lastSyncedAt = DateTime.now()))
-  )
-    // place.isConflationOf.map(record=>record.copy(lastSyncedAt = DateTime.now()))
-    // place.isConflationOf.map(record=>importer.importRecord(record))
+      importer.importRecord(record.copy(sourceAuthority = ES.CONTRIBUTION, title = annotation.bodies.flatMap(_.value).mkString(" "), lastSyncedAt = DateTime.now())))
+  }
+// add new place to user-added contribution gazetteer (not exist ever)
+  def createPlace() = silhouette.UserAwareAction.async { implicit request =>
+    request.body.asJson match {
+      case Some(json) => {
+        val importer = importerFactory.createImporter(EntityType.PLACE)
+        val norURI = EntityRecord.normalizeURI((json \ "uri").as[String])
+        val title = (json \ "title").as[String]
+        val lat = (json \ "lat").as[Double]
+        val lon = (json \ "lon").as[Double]
+        val coord = new Coordinate(lon, lat)
+        val point = new GeometryFactory().createPoint(coord)
+        val time = DateTime.now()
+        val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq.empty[Description],Seq(Name(title)),Some(point),Some(coord),None,None,Seq.empty[String],None,Seq.empty[Link])
+        importer.importRecord(record)
+        Future.successful(Ok("success"))
+        // Future {Ok("success")}
+      }
+      case None =>
+        Logger.warn("Need to fill all necessary information")
+        Future.successful(BadRequest)
+    }
   }
 
   def bulkUpsert() = silhouette.UserAwareAction.async { implicit request => jsonOp[Seq[AnnotationStub]] { annotationStubs =>

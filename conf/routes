@@ -261,6 +261,8 @@ GET     /api/authorities/gazetteers                  controllers.api.entity.Auth
 GET     /api/place/search                            controllers.api.entity.PlaceAPIController.searchPlaces(q: String, offset: Int ?= 0, size: Int ?= 20, latlng: Option[String] ?= None, authorities: Option[String] ?= None)
 GET     /api/place/:uri                              controllers.api.entity.PlaceAPIController.findPlaceByURI(uri: String)
 
+POST    /api/gazetteer                              controllers.api.annotation.AnnotationAPIController.createPlace
+
 # ~~~ Tasks ~~~
 
 POST    /api/job                                     controllers.api.task.TaskAPIController.spawnJob

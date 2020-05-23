@@ -27,11 +27,11 @@ define([
         contentType: 'application/json'
       });
     },
-
-    storeAnnotationBatch : function(annotations) {
-      return jsRoutes.controllers.api.annotation.AnnotationAPIController.bulkUpsert().ajax({
+// user add place to gazetteer
+    addPlace2Gazetter : function(jsonData) {
+      return jsRoutes.controllers.api.annotation.AnnotationAPIController.createPlace().ajax({
         type: 'POST',
-        data: JSON.stringify(annotations),
+        data: JSON.stringify(jsonData),
         contentType: 'application/json'
       });
     },
