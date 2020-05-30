@@ -85,7 +85,7 @@ require([
         onPlacesLoaded = function(response) {
           map.setPlaces(response.items);
           // Mapping map location to text location
-          // annotation-id or filepart-id???????
+          // annotation-id or filepart-id
           $('span.annotation.place').each(function() {
             $(this).attr("id", $(this).attr("data-id"));
           });
@@ -117,9 +117,10 @@ require([
           if (partId.length>2) {
             $('span[data-id=' + partId + ']').click();
           }
-          /*$( window ).load(function() {
-            $('div.popup a.jump-to-text')[0].click();
-          });*/
+          // jump to text
+          // $('div.popup a.jump-to-text').click(function() {
+          //   $('div.popup a.jump-to-text-btn')[0].click();
+          // });
           
         },
 
