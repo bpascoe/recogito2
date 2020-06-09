@@ -24,29 +24,18 @@ trait PlacesToKMLByDescription extends BaseGeoSerializer {
       <Placemark>
         <name>{f.quotes.distinct.mkString(",")}</name>
         <description>
-          <div id="{documentId}" class="tlcmap recogito2">
-          <h1>{f.quotes.distinct.mkString(",")} </h1>
-            <!-- <h3>Annotations</h3> {f.annotations.length}
-            <h3>Place URIs</h3> {f.records.map(_.uri).mkString(", ")} 
-            <h3>Names (Gazetteer)</h3> {f.titles.mkString(",")}
-            <h3>Toponyms (Document)</h3> {f.quotes.distinct.mkString(",")}
-          <ul class="annotation-links">
-              {f.annotations.map (annotation=>
-                 <li><a href={host + annotation.annotationId}>{host + annotation.annotationId}</a></li>
-              )
-              }
-            </ul>-->
-            <h3>Instances in Text:</h3>
-              <p class="annotation-links">
-              {f.annotations.zipWithIndex.map {
-                case(annotation, count) => 
-                  <a href={host + annotation.annotationId}> {count + 1} </a>
-                  }
-                }
-              
-              </p>
-          </div>
-          </description>
+          {scala.xml.PCData("<div id=\""+{documentId}+"\""+" class=\"tlcmap recogito2\">"+
+            <table>+
+              <tr><td>ID</td><td>{f.records.map(_.uri).distinct.mkString(", ")}</td></tr>+
+              <tr><td>Title</td><td>{f.quotes.distinct.mkString(",")}</td></tr>+
+              <tr><td>Latitude</td><td>{f.geometry.getCentroid.getY}</td></tr>+
+              <tr><td>Longitude</td><td>{f.geometry.getCentroid.getX}</td></tr>+
+              <tr><td>CCode</td><td>{f.records.map(_.countryCode).distinct.mkString(", ")}</td></tr>+
+              <tr><td>Description</td><td>{f.records.flatMap(_.descriptions).map(_.description).mkString(", ")}</td></tr>+
+              <tr><td>Source</td><td>{f.annotations.map(_.contributors.mkString(", ")).distinct.mkString(", ")}</td></tr>+
+            </table>+
+            "</div>")}
+        </description>
           
           { f.geometry match {
             case geom: Polygon => 
