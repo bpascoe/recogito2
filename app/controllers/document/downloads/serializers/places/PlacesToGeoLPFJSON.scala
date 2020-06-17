@@ -45,7 +45,7 @@ trait PlacesToGeoLPFJSON extends BaseGeoLPFSerializer
       "Feature",
       Json.obj(
         "title" -> f.records.map(_.title).mkString(" "),
-        "ccodes" -> f.records.map(_.countryCode).mkString(" ")
+        "ccodes" -> f.records.flatMap(_.countryCode).map(_.code).mkString(" ")
       ),
       toOptSeq(f.records.flatMap(_.names)),
       // f.geometry,

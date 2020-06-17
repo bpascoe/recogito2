@@ -270,8 +270,8 @@ define([
               '<option value="ZM">Zambia</option>'+
               '<option value="ZW">Zimbabwe</option>'+
             '</select>'+
-            '<div style="padding-top:1px;"><input type="number"style="width:161.2px" class="timespanStart" placeholder="Timespan Start"></input></div>' +
-            '<div style="padding-top:1px;"><input type="number"style="width:161.2px" class="timespanEnd" placeholder="Timespan End"></input></div>' +
+            '<div style="padding-top:1px;"><input type="number"style="width:161.2px" class="from" placeholder="Timespan Start"></input></div>' +
+            '<div style="padding-top:1px;"><input type="number"style="width:161.2px" class="to" placeholder="Timespan End"></input></div>' +
             '<div style="padding-top:1px";><input type="text" class="description" placeholder="Description"></input></div>' +
             '<div style="padding-top:1px;"><input type="text" class="altNames" placeholder="Alternate Names"></input></div>' +
             '</div>'+
@@ -344,8 +344,12 @@ define([
           uri = addPlace.find(".uri").val(),
           lat = addPlace.find(".latitude").val(),
           lon = addPlace.find(".longitude").val(),
+          from = addPlace.find(".from").val(),
+          to = addPlace.find(".to").val(),
           ccode = addPlace.find("#country").val(),
-          jsonData = {'title':title, 'uri': uri, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'ccode': ccode};
+          altNames = addPlace.find(".altNames").val(),
+          description = addPlace.find(".description").val(),
+          jsonData = {'title':title, 'uri': uri, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'ccode': ccode, 'from': parseInt(from), 'to': parseInt(to),'description':description,'altNames':altNames};
       if (title && uri && lat && lon)
         API.addPlace2Gazetter(jsonData).done(function(result) {
          if (result) //header.showStatusSaved();

@@ -7,7 +7,7 @@ import controllers.api.annotation.stubs._
 import java.io.File
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
-import org.joda.time.DateTime
+import org.joda.time.{DateTime,DateTimeZone}
 import play.api.{Configuration, Logger}
 import play.api.http.FileMimeTypes
 import play.api.mvc.{AnyContent, ControllerComponents, Request, Result}
@@ -26,7 +26,7 @@ import services.generated.tables.records.{DocumentRecord, DocumentFilepartRecord
 import storage.uploads.Uploads
 
 import services.entity.builtin.importer.EntityImporterFactory
-import services.entity.{EntityType, EntityRecord, Name, LinkType, Link, Description}
+import services.entity.{EntityType, EntityRecord, Name,CountryCode, LinkType, Link, Description,TemporalBounds}
 import services.entity.builtin.importer.crosswalks.geojson.lpf.LPFCrosswalk
 import services.annotation.Annotation
 import storage.es.ES
@@ -158,7 +158,7 @@ class AnnotationAPIController @Inject() (
     if (entityURIs.trim.nonEmpty) {
       val place = Await.result(entity.findByURI(entityURIs), 1.seconds).get.entity
       place.isConflationOf.map(record=>
-        importer.importRecord(record.copy(sourceAuthority = ES.CONTRIBUTION, title = annotation.bodies.flatMap(_.value).mkString(" "), lastSyncedAt = DateTime.now())))
+        importer.importRecord(record.copy(sourceAuthority = ES.CONTRIBUTION, title = annotation.bodies.flatMap(_.value).mkString(" "),lastSyncedAt=DateTime.now(),lastChangedAt=Some(DateTime.now()))))
     }
   }
 // add new place to user-added contribution gazetteer (not exist ever)
@@ -173,7 +173,20 @@ class AnnotationAPIController @Inject() (
         val coord = new Coordinate(lon, lat)
         val point = new GeometryFactory().createPoint(coord)
         val time = DateTime.now()
-        val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq.empty[Description],Seq(Name(title)),Some(point),Some(coord),None,None,Seq.empty[String],None,Seq.empty[Link])
+        val from:Int  = (json \ "from").asOpt[Int].getOrElse(99999)
+        val to:Int  = (json \ "to").asOpt[Int].getOrElse(99999)
+        val temporal_bounds = if (from == 99999 || to == 99999) {None} else { Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(from, 1, 1).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(to, 1, 1).withTime(0, 0, 0, 0)))}
+        val ccode  = (json \ "ccode").asOpt[String].getOrElse("")
+        val ccode2 = if (ccode.size == 2) {Some(new CountryCode(ccode))} else {None}
+        val description  = (json \ "description").asOpt[String].getOrElse("")
+        val description2 = if (description.size > 0) {Seq(new Description(description))} else {Seq.empty[Description]}
+        val altNames  = (json \ "altNames").asOpt[String].getOrElse("")
+        val altNames2 = if (altNames.size > 0) {Seq(new Name(altNames))} else {Seq.empty[Name]}
+        
+        // val description = new Description((json \ "description").as[String])
+        // Seq(description)
+        val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,description2,altNames2,Some(point),Some(coord),ccode2,temporal_bounds,Seq.empty[String],None,Seq.empty[Link])
+        // val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq.empty[Description],Seq(Name(title)),Some(point),Some(coord),None,None,Seq.empty[String],None,Seq.empty[Link])
         importer.importRecord(record)
         Future.successful(Ok("success"))
         // Future {Ok("success")}
@@ -214,6 +227,8 @@ class AnnotationAPIController @Inject() (
                   
                   failed <- annotationService.upsertAnnotations(annotations)
                 } yield failed
+                // createPlace()
+                // for (annotation <- annotations) upsertContriGaze(annotation)
 
                 f.map { failed =>
                   if (failed.size == 0)

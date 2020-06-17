@@ -138,6 +138,23 @@ class DocumentController @Inject() (
       }
     })
   }
+  // get document title by document id and sequence id
+  // def getTitle(docId: String, count: Int) = silhouette.UserAwareAction.async { implicit request =>
+  //   documentReadResponse(documentId, request.identity, { case (doc, accesslevel) =>
+  //     // documentPartResponse(docId, partNo, request.identity, { case (document, currentPart, accesslevel) =>
+  //     Future {
+  //       if (accesslevel.canReadAll) {
+  //         scala.concurrent.blocking {
+  //           val documentDir = uploads.getDocumentDir(document.owner.getUsername, document.id).get
+  //           val file = new File(documentDir, currentPart.getFile)
+  //           OK()
+  //         }
+  //       } else {
+  //         Forbidden
+  //       }
+  //     }
+  //   })
+  // }
 
   def activityFeed(docId: String) = silhouette.UserAwareAction.async { implicit request => 
     documentReadResponse(docId, request.identity, { case (document, _) =>
