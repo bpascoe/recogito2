@@ -41,11 +41,11 @@ trait PlacesToGeoLPFJSON extends BaseGeoLPFSerializer
     (JsPath \ "lastSyncedAt").write[Seq[DateTime]] and
     (JsPath \ "contributors").write[Seq[String]]
   )(f => (
-      f.records.map(_.uri).mkString(" "),
+      f.records.map(_.uri).mkString(", "),
       "Feature",
       Json.obj(
-        "title" -> f.records.map(_.title).mkString(" "),
-        "ccodes" -> f.records.flatMap(_.countryCode).map(_.code).mkString(" ")
+        "title" -> f.records.map(_.title).mkString(", "),
+        "ccodes" -> f.records.flatMap(_.countryCode).map(_.code).mkString(", ")
       ),
       toOptSeq(f.records.flatMap(_.names)),
       // f.geometry,
@@ -57,7 +57,7 @@ trait PlacesToGeoLPFJSON extends BaseGeoLPFSerializer
       toOptSeq(f.quotes),
       f.records.map(_.sourceAuthority),
       f.records.map(_.lastSyncedAt),
-      f.annotations.flatMap(_.contributors)
+      f.annotations.map(_.contributors.mkString(", "))
     )
   )
 

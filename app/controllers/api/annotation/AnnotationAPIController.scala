@@ -173,8 +173,8 @@ class AnnotationAPIController @Inject() (
         val coord = new Coordinate(lon, lat)
         val point = new GeometryFactory().createPoint(coord)
         val time = DateTime.now()
-        val from:Int  = (json \ "from").asOpt[Int].getOrElse(99999)
-        val to:Int  = (json \ "to").asOpt[Int].getOrElse(99999)
+        val from  = (json \ "from").asOpt[Int].getOrElse(99999)
+        val to  = (json \ "to").asOpt[Int].getOrElse(99999)
         val temporal_bounds = if (from == 99999 || to == 99999) {None} else { Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(from, 1, 1).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(to, 1, 1).withTime(0, 0, 0, 0)))}
         val ccode  = (json \ "ccode").asOpt[String].getOrElse("")
         val ccode2 = if (ccode.size == 2) {Some(new CountryCode(ccode))} else {None}

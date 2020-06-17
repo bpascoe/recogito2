@@ -49,7 +49,7 @@ trait BaseGeoLPFSerializer extends BaseSerializer {
       places.flatMap { e =>      
         val place = e.entity
         // val annotationsOnThisPlace = annotations
-        val annotation = Await.result(annotationService.findByUnionId(place.unionId.toString), 1.seconds)
+        val annotation = Await.result(annotationService.findByUnionId(place.unionId.toString), 10.seconds)
 
         val annotationsOnThisPlace = annotation.map(_._1)
         // val placeURIs = annotationsOnThisPlace.flatMap(_.bodies).filter(_.hasType == AnnotationBody.PLACE).flatMap(_.uri)
