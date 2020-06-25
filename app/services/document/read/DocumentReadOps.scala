@@ -4,7 +4,7 @@ import collection.JavaConversions._
 import play.api.Logger
 import scala.concurrent.Future
 import services.{ContentType, PublicAccess, RuntimeAccessLevel, SharingLevel}
-import services.document.{DocumentService, ExtendedDocumentMetadata}
+import services.document.{DocumentService, ExtendedDocumentMetadata,ExtendedDocumentMetadata2}
 import services.document.read.results.MyDocument
 import services.generated.Tables._
 import services.generated.tables.records.{DocumentRecord, DocumentFilepartRecord, SharingPolicyRecord, UserRecord}
@@ -234,6 +234,42 @@ trait DocumentReadOps { self: DocumentService =>
     grouped.headOption.map { case (document, parts) =>
       val owner = records.head.into(classOf[UserRecord])      
       (ExtendedDocumentMetadata(document, parts.sortBy(_.getSequenceNo), owner), determineAccessLevel(document, sharingPolicies, loggedInUser))
+    }
+  }
+  def getExtendedMetas(
+    ids: Seq[String], loggedInUser: Option[String] = None
+  ): Future[Option[(Seq[ExtendedDocumentMetadata2], RuntimeAccessLevel)]] = db.query { sql =>
+    val records = loggedInUser match {
+      case Some(username) =>
+        // Retrieve with sharing policies that may apply
+        sql.selectFrom(DOCUMENT
+             .join(DOCUMENT_FILEPART).on(DOCUMENT.ID.equal(DOCUMENT_FILEPART.DOCUMENT_ID))
+             .join(USER).on(DOCUMENT.OWNER.equal(USER.USERNAME))
+             .leftJoin(SHARING_POLICY)
+               .on(DOCUMENT.ID.equal(SHARING_POLICY.DOCUMENT_ID))
+               .and(SHARING_POLICY.SHARED_WITH.equal(username)))
+          .where(DOCUMENT.ID.in(ids))
+          .fetchArray()
+      case None =>
+        // Anyonymous request - just retrieve parts and owner
+        sql.selectFrom(DOCUMENT
+             .join(DOCUMENT_FILEPART).on(DOCUMENT.ID.equal(DOCUMENT_FILEPART.DOCUMENT_ID))
+             .join(USER).on(DOCUMENT.OWNER.equal(USER.USERNAME)))
+           .where(DOCUMENT.ID.in(ids))
+           .fetchArray()
+
+    }
+
+    val grouped = groupLeftJoinResult(records, classOf[DocumentRecord], classOf[DocumentFilepartRecord])
+    // if (grouped.size > 1)
+    //   throw new RuntimeException("Got " + grouped.size + " DocumentRecords with the same ID: " + grouped.keys.map(_.getId).mkString(", "))
+
+    val sharingPolicies = records.map(_.into(classOf[SharingPolicyRecord])).filter(isNotNull(_)).distinct
+
+    // Return with parts sorted by sequence number
+    grouped.headOption.map { case (document, parts) =>
+      val owner = records.head.into(classOf[UserRecord])      
+      (Seq(ExtendedDocumentMetadata2(document, parts(0), owner)), determineAccessLevel(document, sharingPolicies, loggedInUser))
     }
   }
 

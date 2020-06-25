@@ -1,7 +1,7 @@
 package controllers
 
 import services.RuntimeAccessLevel
-import services.document.{ExtendedDocumentMetadata, DocumentService}
+import services.document.{ExtendedDocumentMetadata,ExtendedDocumentMetadata2, DocumentService}
 import services.generated.tables.records.{DocumentFilepartRecord, DocumentRecord}
 import services.user.{User, UserService}
 import play.api.Configuration
@@ -26,6 +26,30 @@ abstract class BaseAuthController(
     response: (ExtendedDocumentMetadata, RuntimeAccessLevel) => Result
   )(implicit ctx: ExecutionContext) = {
     documents.getExtendedMeta(docId, Some(user.username)).map(_ match {
+      case Some((doc, accesslevel)) => {
+        if (accesslevel.canReadData)
+          // As long as there are read rights we'll allow access here - the response
+          // method must handle more fine-grained access by itself
+          response(doc, accesslevel)
+        else
+          ForbiddenPage
+      }
+
+      case None =>
+        // No document with that ID found in DB
+        NotFoundPage
+    }).recover { case t =>
+      t.printStackTrace()
+      InternalServerError(t.getMessage)
+    }
+  }
+
+  protected def documentsResponse(
+    docIds: Seq[String],
+    user: User,
+    response: (Seq[ExtendedDocumentMetadata2], RuntimeAccessLevel) => Result
+  )(implicit ctx: ExecutionContext) = {
+    documents.getExtendedMetas(docIds, Some(user.username)).map(_ match {
       case Some((doc, accesslevel)) => {
         if (accesslevel.canReadData)
           // As long as there are read rights we'll allow access here - the response

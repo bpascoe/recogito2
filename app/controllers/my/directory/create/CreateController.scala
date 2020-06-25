@@ -139,7 +139,8 @@ class CreateController @Inject() (
     
       case Some((pendingUpload, fileparts)) =>
         val f = for {
-          (doc, docParts) <- uploads.importPendingUpload(pendingUpload, fileparts, folder)
+          // (doc, docParts) <- uploads.importPendingUpload(pendingUpload, fileparts, folder)
+          (doc, docParts,ids) <- uploads.importPendingUpload(pendingUpload, fileparts, folder)
           visibilitySuccess <- inheritVisibility(doc)
           collabSuccess <- inheritCollaborators(doc)
         } yield (doc, docParts, visibilitySuccess && collabSuccess)

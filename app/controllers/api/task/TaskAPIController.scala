@@ -35,22 +35,24 @@ class TaskAPIController @Inject() (
     request.body.asJson.map(json => Json.fromJson[JobDefinition](json)) match {
       case Some(result) if result.isSuccess =>
         val taskDefinition = result.get
-        documentResponse(taskDefinition.documents.head, request.identity, { case (docInfo, accesslevel) =>
-          if (accesslevel.canWrite)
+        documentsResponse(taskDefinition.documents, request.identity, { case (docInfo, accesslevel) =>
+          if (accesslevel.canWrite) {
+            val documents = docInfo.map(doc=>doc.document)
+            val fileparts = docInfo.map(doc=>doc.fileparts)
             taskDefinition.taskType match {  
               case TaskType("GEORESOLUTION") =>
                 val definition = Json.fromJson[TableGeoresolutionJobDefinition](request.body.asJson.get).get
-                georesolution.spawnJob(docInfo.document, docInfo.fileparts, definition)
+                georesolution.spawnJob2(documents, fileparts, definition)
                 Ok
 
               case TaskType("NER") =>
                 val definition = Json.fromJson[NERJobDefinition](request.body.asJson.get).get
-                val jobId = ner.spawnJob(docInfo.document, docInfo.fileparts, definition)
+                val jobId = ner.spawnJob2(documents, fileparts, definition)
                 jsonOk(Json.obj("job_id" -> jobId))
                 
               case t =>
                 BadRequest(Json.parse("{ \"error\": \"unsupported task type: " + t + "\" }"))
-            }
+            }}
           else
             Forbidden(Json.parse("{ \"error\": \"insufficient access privileges\"}"))
         })

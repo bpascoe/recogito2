@@ -256,41 +256,54 @@ class UploadService @Inject() (
     upload: UploadRecord, 
     fileparts: Seq[UploadFilepartRecord]
   ) = db.withTransaction { sql =>
-    val document = createDocumentFromUpload(upload)
-
-    // Import Document and DocumentFileparts 
-    sql.insertInto(DOCUMENT).set(document).execute()
-    
+    var tmp = new DocumentRecord
+    var ids = Seq.empty[String]
     val docFileparts = fileparts.zipWithIndex.map { case (part, idx) =>
-      val sequenceNo: Integer = Option(part.getSequenceNo).getOrElse(idx + 1)
-      new DocumentFilepartRecord(
+      upload.setTitle(part.getTitle)
+      val document = createDocumentFromUpload(upload)
+      tmp = document
+      sql.insertInto(DOCUMENT).set(document).execute()
+      // val sequenceNo: Integer = Option(part.getSequenceNo).getOrElse(idx + 1)
+      val p =new DocumentFilepartRecord(
         part.getId,
         document.getId,
         part.getTitle,
         part.getContentType,
         part.getFile,
-        sequenceNo,
+        1,//sequenceNo
         part.getSource)
-    }
-        
-    val inserts = docFileparts.map(p => sql.insertInto(DOCUMENT_FILEPART).set(p))    
-    sql.batch(inserts:_*).execute()
-    
-    // Move uploaded files from 'pending' to 'user-data' folder (disregard remote files)
-    fileparts.map(filepart => {
-      val isLocalFile = ContentType.withName(filepart.getContentType).map(_.isLocal).getOrElse(false)
+      sql.insertInto(DOCUMENT_FILEPART).set(p).execute()
+
+      val isLocalFile = ContentType.withName(part.getContentType).map(_.isLocal).getOrElse(false)
       if (isLocalFile) {
-        val source = new File(uploads.PENDING_UPLOADS_DIR, filepart.getFile).toPath
-        val destination = new File(uploads.getDocumentDir(upload.getOwner, document.getId, true).get, filepart.getFile).toPath
+        val source = new File(uploads.PENDING_UPLOADS_DIR, part.getFile).toPath
+        val destination = new File(uploads.getDocumentDir(upload.getOwner, document.getId, true).get, part.getFile).toPath
         Files.move(source, destination, StandardCopyOption.ATOMIC_MOVE)
       }
-    })
+      ids = ids :+ document.getId
+      p
+    }
+        
+    // val inserts = docFileparts.map(p => sql.insertInto(DOCUMENT_FILEPART).set(p))    
+    // sql.batch(inserts:_*).execute()
+    
+    // Move uploaded files from 'pending' to 'user-data' folder (disregard remote files)
+    // fileparts.map(filepart => {
+    //   val isLocalFile = ContentType.withName(filepart.getContentType).map(_.isLocal).getOrElse(false)
+    //   if (isLocalFile) {
+    //     val source = new File(uploads.PENDING_UPLOADS_DIR, filepart.getFile).toPath
+    //     val destination = new File(uploads.getDocumentDir(upload.getOwner, document.getId, true).get, filepart.getFile).toPath
+    //     Files.move(source, destination, StandardCopyOption.ATOMIC_MOVE)
+    //   }
+    // })
 
     // Delete Upload and UploadFilepart records from the staging area tables
     sql.deleteFrom(UPLOAD_FILEPART).where(UPLOAD_FILEPART.UPLOAD_ID.equal(upload.getId)).execute()
     sql.deleteFrom(UPLOAD).where(UPLOAD.ID.equal(upload.getId)).execute()
 
-    (document, docFileparts)
+    (tmp, docFileparts,ids)
+    // (tmp, docFileparts)
+    
   }
 
     /** Promotes a pending upload in the staging area to actual document **/
@@ -301,7 +314,8 @@ class UploadService @Inject() (
   ) = folder match {
     case Some(folderId) => for {
       t <- importDocumentAndParts(upload, fileparts)
-      _ <- folders.moveDocumentToFolder(t._1.getId, folderId)
+      // _ <- folders.moveDocumentToFolder(t._1.getId, folderId)
+      _ <- folders.moveDocumentsToFolder(t._3, folderId)
     } yield t
 
     case None => importDocumentAndParts(upload, fileparts)

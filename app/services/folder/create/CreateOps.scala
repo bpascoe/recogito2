@@ -37,6 +37,10 @@ trait CreateOps { self: FolderService =>
 
       insertAssociation(documentId, folderId, sql)
     }
+  def moveDocumentsToFolder(documentIds: Seq[String], folderId: UUID) = {
+    val docs = documentIds.map(documentId=>moveDocumentToFolder(documentId, folderId))
+    docs(0)
+  }
 
   def moveDocumentToRoot(documentId: String) = db.withTransaction { sql => 
     sql.deleteFrom(FOLDER_ASSOCIATION)

@@ -45,6 +45,11 @@ require([
                 lis.find('a').removeAttr('onclick');
                 $('.sidebar ul.menu').append(lis);
               });
+              // var lis = $('.sidebar ul.menu').find('li.active')
+              // lis.removeAttr('class');
+              // lis.find('a').removeAttr('onclick');
+              // lis.find('a').attr('href') = document.location.origin + "/document/"+docId+"/part/1/edit";
+              // $('.sidebar ul.menu').append(lis);
           });
           
       });
