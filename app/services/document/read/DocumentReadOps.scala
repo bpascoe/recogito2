@@ -259,18 +259,22 @@ trait DocumentReadOps { self: DocumentService =>
            .fetchArray()
 
     }
-
-    val grouped = groupLeftJoinResult(records, classOf[DocumentRecord], classOf[DocumentFilepartRecord])
+    // Logger.info(s"DocumentReadOps #records: ${records.length}")
+    // val grouped = groupLeftJoinResult(records, classOf[DocumentRecord], classOf[DocumentFilepartRecord])
+    val grouped = records.map(r => (r.into(classOf[DocumentRecord]), r.into(classOf[DocumentFilepartRecord])))
     // if (grouped.size > 1)
     //   throw new RuntimeException("Got " + grouped.size + " DocumentRecords with the same ID: " + grouped.keys.map(_.getId).mkString(", "))
-
+    // Logger.info(s"DocumentReadOps grouped: ${grouped.map { case (document, parts) =>parts.getId}.mkString(", ")}")
+    // Logger.info(s"DocumentReadOps grouped2: ${grouped2.map { case (document, parts) =>document.getId}.mkString(", ")}")
     val sharingPolicies = records.map(_.into(classOf[SharingPolicyRecord])).filter(isNotNull(_)).distinct
-
+    var doc = new DocumentRecord
     // Return with parts sorted by sequence number
-    grouped.headOption.map { case (document, parts) =>
-      val owner = records.head.into(classOf[UserRecord])      
-      (Seq(ExtendedDocumentMetadata2(document, parts(0), owner)), determineAccessLevel(document, sharingPolicies, loggedInUser))
-    }
+    val docInfo = grouped.map { case (document, part) =>
+      val owner = records.head.into(classOf[UserRecord])
+      doc = document    
+      ExtendedDocumentMetadata2(document, part, owner)
+    }.toSeq
+    Some(docInfo, determineAccessLevel(doc, sharingPolicies, loggedInUser))
   }
 
   /** List all documents in the owner's root folder **/

@@ -11,8 +11,8 @@ case class TaskRecordAggregate(taskRecords: Seq[TaskRecord]) {
   
   private def getDistinctField[T](filter: TaskRecord => T, errorMessage: String): T = {
     val fields = taskRecords.map(filter).distinct
-    if (fields.size != 1)
-      throw new RuntimeException("Invalid task record aggregation: " + errorMessage + " (" + fields.mkString(", ") + ")")
+    // if (fields.size != 1)
+    //   throw new RuntimeException("Invalid task record aggregation: " + errorMessage + " (" + fields.mkString(", ") + ")")
     fields.head
   }
 
