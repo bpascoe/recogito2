@@ -183,6 +183,17 @@ class AnnotationService @Inject() (
         termQuery("annotates.document_id" -> id)
       }
     }
+
+  /** All annotations on the given documents **/
+  def findByDocIds(documentIds: Seq[String], offset: Int = 0, limit: Int = ES.MAX_SIZE): Future[Seq[(Annotation, Long)]] = 
+    scrollIfNeeded {
+      search(ES.RECOGITO / ES.ANNOTATION) query {
+        boolQuery
+          should {
+            documentIds.map(id => termQuery("annotates.document_id" -> id))
+          }
+      }
+    }
   
   /** Retrieves all annotations on a given filepart **/
   def findByFilepartId(id: UUID, limit: Int = ES.MAX_SIZE): Future[Seq[(Annotation, Long)]] = 

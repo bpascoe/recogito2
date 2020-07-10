@@ -38,6 +38,13 @@ trait EntityService {
     offset : Int = 0,
     limit  : Int = ES.MAX_SIZE
   ): Future[Page[(IndexedEntity, Long)]]
+
+  def listEntitiesInDocuments(
+    docIds  : Seq[String],
+    eType  : Option[EntityType] = None,
+    offset : Int = 0,
+    limit  : Int = ES.MAX_SIZE
+  ): Future[Page[(IndexedEntity, Long)]]
   
 
   def searchEntitiesInDocument(

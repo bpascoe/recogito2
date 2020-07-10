@@ -115,6 +115,19 @@
                 <a href="@controllers.document.downloads.routes.DownloadsController.downloadKMLByDescription(doc.id, false)" class="btn small"><span class="icon">&#xf019;</span> KML</a>
               </div>
             </li>
+
+            <li>
+              <div class="description">
+                <h3>KML by description of current corpus</span></h3>
+                <p>
+                  Geo-located places as KML file, for viewing in Google Earth.
+                </p>
+              </div>
+              <div class="button-container">
+                <a onmouseover="$('.forFolderId').attr('href',$('.forFolderId').attr('href').replace('forFolderId', sessionStorage.folderId))" href="@controllers.document.downloads.routes.DownloadsController.downloadKMLCorpusByDescription(doc.id,"forFolderId", false)" class="btn small forFolderId"><span class="icon">&#xf019;</span> KML</a>
+              </div>
+            </li>
+
           </ul>
         </div>
       </div>

@@ -26,6 +26,9 @@ import play.api.http.{HttpEntity, FileMimeTypes}
 import scala.concurrent.{ExecutionContext, Future}
 import storage.uploads.Uploads
 import storage.es.ES
+import java.util.UUID
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 case class FieldMapping(
   BASE_URL          : Option[String],
@@ -81,6 +84,7 @@ class DownloadsController @Inject() (
     with places.PlacesToGeoLPFJSON
     with places.PlacesToKML
     with places.PlacesToKMLByDescription
+    with places.CorpusPlacesToKMLByDescription
     with places.PlacesToGeoBrowser
     with relations.RelationsToTriplesCSV
     with relations.RelationsToGephi
@@ -184,6 +188,26 @@ class DownloadsController @Inject() (
         Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.title}.kml" })
       }
     })
+  }
+
+  def downloadKMLCorpusByDescription(documentId: String, folderId: String, forGeoBrowser: Boolean) = silhouette.UserAwareAction.async { implicit request => 
+    if (folderId.isEmpty)
+      download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
+        val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else placesToKMLByDescription(documentId)
+        fXml.map { xml =>
+          Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.title}.kml" })
+        }
+      }) else {
+      val loggedIn = request.identity.map(_.username).get
+      val owner = loggedIn
+      val docIds = Await.result(documents.listIds(Some(UUID.fromString(folderId)), loggedIn),10.seconds)
+      download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
+        val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else courpusPlacesToKMLByDescription(docIds)
+        fXml.map { xml =>
+          Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.title}.kml" })
+        }
+      })
+    }
   }
 
   def downloadGeoJSON(documentId: String, asGazetteer: Boolean) = silhouette.UserAwareAction.async { implicit request =>

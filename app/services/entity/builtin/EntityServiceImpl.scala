@@ -201,6 +201,25 @@ class EntityServiceImpl @Inject()(
       parseTermsAggregation(terms)
     }
 
+  private def aggregateEntityIdsByDocIds(docIds: Seq[String]): Future[Map[String, Long]] =
+    es.client execute {
+      search (ES.RECOGITO / ES.ANNOTATION) query {
+        boolQuery
+          should {
+            docIds.map(id => termQuery("annotates.document_id" -> id))
+          }
+      } aggregations (
+        nestedAggregation("per_body", "bodies") subaggs (
+          termsAggregation("by_union_id") field("bodies.reference.union_id") size ES.MAX_SIZE
+        )
+      ) size 0
+    } map { response =>
+      val terms = response.aggregations
+        .getAs[InternalNested]("per_body")
+        .getAggregations.get[StringTerms]("by_union_id")
+      parseTermsAggregation(terms)
+    }
+
   /** Lists entities in a document.
     *
     * Since we don't use ES parent/child relations via an associative entity any more,
@@ -215,6 +234,39 @@ class EntityServiceImpl @Inject()(
     val startTime = System.currentTimeMillis
     
     val fAggregateIds = aggregateEntityIds(docId)
+
+    def resolveEntities(unionIds: Seq[String]): Future[Seq[IndexedEntity]] =
+      if (unionIds.isEmpty)
+        Future.successful(Seq.empty[IndexedEntity])
+      else
+        es.client execute {
+          multiget (
+            unionIds.map { id => get(id) from ES.RECOGITO / ES.ENTITY }
+          )
+        } map { _.items.map(_.to[IndexedEntity]) }
+
+    val f = for {
+      counts <- fAggregateIds
+      entities <- resolveEntities(counts.map(_._1).toSeq)
+    } yield (counts, entities)
+
+    f.map { case (counts, entities) =>
+      val took = System.currentTimeMillis - startTime
+
+      val zipped = counts.zip(entities).map { case ((unionId, count), entity) =>
+        (entity, count)
+      }.toSeq
+
+      Page(took, 0l, 0, ES.MAX_SIZE, zipped)
+    }
+  }
+
+  override def listEntitiesInDocuments(docIds: Seq[String], eType: Option[EntityType] = None,
+    offset: Int = 0, limit: Int = ES.MAX_SIZE): Future[Page[(IndexedEntity, Long)]] = {
+
+    val startTime = System.currentTimeMillis
+    
+    val fAggregateIds = aggregateEntityIdsByDocIds(docIds)
 
     def resolveEntities(unionIds: Seq[String]): Future[Seq[IndexedEntity]] =
       if (unionIds.isEmpty)
