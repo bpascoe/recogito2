@@ -59,6 +59,18 @@ class TaskService @Inject() (val db: DB, implicit val ctx: ExecutionContext) ext
     else
       None
   }
+
+  def findByNERedDocument(documentId: String) = db.query { sql =>
+    val records = 
+      sql.selectFrom(TASK).where(TASK.TASK_TYPE.equal("NER"))
+      .and(TASK.DOCUMENT_ID.equal(documentId))
+        .fetchArray().toSeq
+    
+    if (records.size > 0)
+      Some(TaskRecordAggregate(records))
+    else
+      None
+  }
   
   def deleteByJobId(id: UUID) = db.withTransaction { sql => 
     sql.deleteFrom(TASK)

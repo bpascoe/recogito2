@@ -269,6 +269,8 @@ POST    /api/gazetteer                              controllers.api.annotation.A
 POST    /api/job                                     controllers.api.task.TaskAPIController.spawnJob
 GET     /api/job                                     controllers.api.task.TaskAPIController.progressByDocument(id: String)
 GET     /api/job/:id                                 controllers.api.task.TaskAPIController.getJobProgress(id: java.util.UUID)
+GET     /api/isNERed/:id                                 controllers.api.task.TaskAPIController.isDocumentNERed(id: String)
+
 
 # ~~~ Plugins ~~~
 GET     /api/plugins/ner                             controllers.api.plugin.PluginAPIController.listNERPlugins

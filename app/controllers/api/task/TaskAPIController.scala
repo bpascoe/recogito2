@@ -84,5 +84,12 @@ class TaskAPIController @Inject() (
       case None => Future.successful(NotFound)
     })
   }
+
+  def isDocumentNERed(id: String) = silhouette.SecuredAction.async { implicit request =>    
+    tasks.findByNERedDocument(id).map {
+      case Some(taskRecord) => jsonOk(Json.toJson(taskRecord))
+      case None => NotFound
+    }
+  }
   
 }
