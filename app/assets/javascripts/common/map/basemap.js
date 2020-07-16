@@ -1,8 +1,8 @@
 define(['common/map/layerswitcher'], function(LayerSwitcher) {
 
-  var DEFAULT_ZOOM = 4,
+  var DEFAULT_ZOOM = 2,//zoom to see the world
 
-      DEFAULT_CENTER = new L.LatLng(37.98, 23.73);
+      DEFAULT_CENTER = new L.LatLng(15, 0);//zoom to see the world
 
   var BaseMap = function(element) {
 
