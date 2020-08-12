@@ -12,7 +12,6 @@ import services.annotation.relation.RelationService
 import services.annotation.stats.AnnotationStatsService
 import services.entity.builtin.{EntityService, IndexedEntity}
 import storage.es.{ES, HasScrollProcessing}
-import scala.concurrent.duration._
 
 @Singleton
 class AnnotationService @Inject() (

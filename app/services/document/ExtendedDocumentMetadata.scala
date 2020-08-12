@@ -42,6 +42,18 @@ case class ExtendedDocumentMetadata(document: DocumentRecord, fileparts: Seq[Doc
     PublicAccess.AccessLevel.withName(document.getPublicAccessLevel)
 
   lazy val clonedFrom: Option[String] = Option(document.getClonedFrom)
+
+  lazy val filename: Option[String] = Option(document.getFilename)
+
+  lazy val publicationPlace: Option[String] = Option(document.getPublicationPlace)
+
+  lazy val startDate: Option[String] = Option(document.getStartDate)
+
+  lazy val endDate: Option[String] = Option(document.getEndDate)
+
+  lazy val latitude: Option[String] = Option(document.getLatitude)
+
+  lazy val longitude: Option[String] = Option(document.getLongitude)
     
   // Shorthands
   lazy val isOpenToPublic =

@@ -7,6 +7,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 import storage.db.DB
+import java.sql.Timestamp
 
 /** Generic sort order symbol **/
 sealed class SortOrder
@@ -45,6 +46,11 @@ trait BaseService {
   /** Optional Ints need to be turned to Integer/null for JOOQ **/
   protected def optInt(i: Option[Int]): Integer = i match {
     case Some(i) => i
+    case None => null
+  }
+  /** Optional datetime need to be turned to null for JOOQ **/
+  protected def optDateTime(dt: Option[Timestamp]) = dt match {
+    case Some(dt) => dt
     case None => null
   }
 

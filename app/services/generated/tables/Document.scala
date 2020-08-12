@@ -67,14 +67,44 @@ class Document(alias : String, aliased : Table[DocumentRecord], parameters : Arr
 	val UPLOADED_AT : TableField[DocumentRecord, Timestamp] = createField("uploaded_at", org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), "")
 
 	/**
+	 * The column <code>public.document.filename</code>.
+	 */
+	val FILENAME : TableField[DocumentRecord, String] = createField("filename", org.jooq.impl.SQLDataType.CLOB.nullable(false), "")
+
+	/**
 	 * The column <code>public.document.title</code>.
 	 */
-	val TITLE : TableField[DocumentRecord, String] = createField("title", org.jooq.impl.SQLDataType.CLOB.nullable(false), "")
+	val TITLE : TableField[DocumentRecord, String] = createField("title", org.jooq.impl.SQLDataType.CLOB, "")
 
 	/**
 	 * The column <code>public.document.author</code>.
 	 */
 	val AUTHOR : TableField[DocumentRecord, String] = createField("author", org.jooq.impl.SQLDataType.CLOB, "")
+
+	/**
+	 * The column <code>public.document.publication_place</code>.
+	 */
+	val PUBLICATION_PLACE : TableField[DocumentRecord, String] = createField("publication_place", org.jooq.impl.SQLDataType.CLOB, "")
+
+	/**
+	 * The column <code>public.document.start_DAte</code>.
+	 */
+	val START_DATE : TableField[DocumentRecord, String] = createField("start_date", org.jooq.impl.SQLDataType.CLOB, "")
+
+	/**
+	 * The column <code>public.document.end_date</code>.
+	 */
+	val END_DATE : TableField[DocumentRecord, String] = createField("end_date", org.jooq.impl.SQLDataType.CLOB, "")
+
+	/**
+	 * The column <code>public.document.logitude</code>.
+	 */
+	val LONGITUDE : TableField[DocumentRecord, String] = createField("longitude", org.jooq.impl.SQLDataType.CLOB, "")
+
+	/**
+	 * The column <code>public.document.latitude</code>.
+	 */
+	val LATITUDE : TableField[DocumentRecord, String] = createField("latitude", org.jooq.impl.SQLDataType.CLOB, "")
 
 	/**
 	 * The column <code>public.document.date_numeric</code>.

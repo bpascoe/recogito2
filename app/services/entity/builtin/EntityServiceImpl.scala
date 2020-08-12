@@ -260,6 +260,28 @@ class EntityServiceImpl @Inject()(
       Page(took, 0l, 0, ES.MAX_SIZE, zipped)
     }
   }
+  // 
+  override def listIndexedEntitiesInDocument(docId: String, eType: Option[EntityType] = None): Future[Seq[IndexedEntity]] = {
+    val fAggregateIds = aggregateEntityIds(docId)
+
+    def resolveEntities(unionIds: Seq[String]): Future[Seq[IndexedEntity]] =
+      if (unionIds.isEmpty)
+        Future.successful(Seq.empty[IndexedEntity])
+      else
+        es.client execute {
+          multiget (
+            unionIds.map { id => get(id) from ES.RECOGITO / ES.ENTITY }
+          )
+        } map { _.items.map(_.to[IndexedEntity]) }
+
+    val f = for {
+      counts <- fAggregateIds
+      entities <- resolveEntities(counts.map(_._1).toSeq)
+    } yield (entities)
+
+    f
+
+  }
 
   override def listEntitiesInDocuments(docIds: Seq[String], eType: Option[EntityType] = None,
     offset: Int = 0, limit: Int = ES.MAX_SIZE): Future[Page[(IndexedEntity, Long)]] = {

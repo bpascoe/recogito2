@@ -34,6 +34,17 @@ import services.entity.builtin.EntityService
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
+import java.sql.Timestamp
+import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+import java.time.ZonedDateTime
+
+import java.nio.file.Paths
+import kantan.csv.CsvConfiguration
+import kantan.csv.CsvConfiguration.{Header, QuotePolicy}
+import kantan.csv.ops._
+import play.api.Configuration
+import storage.TempDir
 
 @Singleton
 class AnnotationAPIController @Inject() (
@@ -150,7 +161,85 @@ class AnnotationAPIController @Inject() (
     })
   }}
 
+  def loadCsvMetadata() = silhouette.UserAwareAction.async { implicit request =>
+    request.body.asJson match {
+      case Some(json) => {
+        val username = request.identity.get.username
+        val filename = (json \ "Filename").as[String]
+        val folderId = (json \ "folderId").as[String]
+        val docId = if (folderId.length>3) {Await.result(documents.getDocIdByTitle(filename,username, Some(UUID.fromString(folderId))), 1.seconds).getId
+        } else {Await.result(documents.getDocIdByTitle(filename,username, None), 1.seconds).getId}
+        if (docId.length > 3) {
+          val fromVal  = (json \ "StartDate").asOpt[Int].getOrElse(99999)
+          val toVal  = (json \ "EndDate").asOpt[Int].getOrElse(99999)
+          val from = if (fromVal == 99999) {null} else { new DateTime(DateTimeZone.UTC).withDate(fromVal, 1, 1).withTime(0, 0, 0, 0)}
+          val to = if (toVal == 99999) {null} else { new DateTime(DateTimeZone.UTC).withDate(toVal, 1, 1).withTime(0, 0, 0, 0)}
+          val temporal_bounds = if (from == 99999 && to == 99999) {None} else { Some(new TemporalBounds(from, to))}
+          val title  = (json \ "Title").asOpt[String]
+          val author  = (json \ "Author").asOpt[String]
+          val description  = (json \ "Description").asOpt[String]
+          val language  = (json \ "Language").asOpt[String]
+          val source  = (json \ "Source").asOpt[String]
+          val edition  = (json \ "Edition").asOpt[String]
+          val license  = (json \ "License").asOpt[String]
+          val attribution  = (json \ "Attribution").asOpt[String]
+          val pubPlace  = (json \ "PublicationPlace").asOpt[String]
+          val startDate = (json \ "StartDate").asOpt[String]
+          val endDate  = (json \ "EndDate").asOpt[String]
+          val latitude  = (json \ "Latitude").asOpt[String]
+          val longitude  = (json \ "Longitude").asOpt[String]
+          // val format = DateTimeFormatter.ofPattern("dd/MM/yyyy")//' 'HH:mm:ss
+          // val startDate = if ((json \ "StartDate").as[String].length<1) {null} else {Some(new Timestamp(new SimpleDateFormat("dd/MM/yyyy").parse((json \ "StartDate").as[String]).getTime()))}
+          // val endDate = if ((json \ "EndDate").as[String].length<1) {null} else {Some(new Timestamp(new SimpleDateFormat("dd/MM/yyyy").parse((json \ "EndDate").as[String]).getTime()))}
+          val row = documents.updateMetadata2(docId,title,author,description,language,source,edition,license,attribution,pubPlace,startDate,endDate,latitude,longitude)
+          // val entities = entity.listIndexedEntitiesInDocument(docId, Some(EntityType.PLACE))
+          val entities = entity.listIndexedEntitiesInDocument(docId, Some(EntityType.PLACE)).map { result =>
+            result.map(e=>e.copy(e.entity.copy(temporalBoundsUnion=temporal_bounds)))
+          }
+          entity.upsertEntities(Await.result(entities, 10.seconds))
+          Future.successful(Ok(username))
+        } else Future.successful(Ok("skip"))
+      }
+      case None => {
+        Logger.warn("Need necessary information in uploaded CSV file")
+        Future.successful(Ok("nothing"))}
+    }
+  }
+  def downloadCsvMetadata() = silhouette.UserAwareAction.async { implicit request =>
+    val username = request.identity.get.username
+    request.body.asJson match {
+      case Some(json) => {
+        val folderId = (json \ "folderId").as[String]
+        val docs = if (folderId.length>3) {Await.result(documents.getDocsInFolder(username, Some(UUID.fromString(folderId))), 1.seconds)
+        } else {Await.result(documents.getDocsInFolder(username, None), 1.seconds)}
+        val file = scala.concurrent.blocking {
+          val header = Seq("Filename", "Title", "Author", "Description", "Language", "Source", "Edition", "License", "Attribution", "StartDate", "EndDate", "PublicationPlace", "Latitude", "Longitude")
+          val tmp = tmpFile.create(Paths.get(TempDir.get(), s"${username}.csv"))
+          val underlying = tmp.path.toFile
+          val configs = CsvConfiguration(',', '"', QuotePolicy.Always, Header.Explicit(header))
+          // val toStr: String => String = str =>  if (s == null) "" else str
+          def toStr (r: String) = {
+            if (r == null) "" else r.asInstanceOf[String]
+          }
+          val writer = underlying.asCsvWriter[Seq[String]](configs)
+          docs.map { doc => 
+            // Future.successful(OK(item))
+            // val doc = item.into(classOf[DocumentRecord])
+            val row = Seq(toStr(doc.getFilename),toStr(doc.getTitle), toStr(doc.getAuthor), toStr(doc.getDescription), toStr(doc.getLanguage), toStr(doc.getSource), toStr(doc.getEdition), toStr(doc.getLicense), toStr(doc.getAttribution), toStr(doc.getStartDate), toStr(doc.getEndDate), toStr(doc.getPublicationPlace), toStr(doc.getLatitude), toStr(doc.getLongitude))
+            // val row =Seq(toStr(doc.getFilename))
+            writer.write(row)
+          }
+          writer.close() 
+          underlying
+         }
 
+        Future.successful(Ok.sendFile(file).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + username + ".csv" }))
+        }
+      case None => {
+        Logger.warn("Need necessary information in uploaded CSV file")
+        Future.successful(Ok("nothing"))}
+      }
+  }
 // add to user-added contribution gazetteer (search in the gazetteer list)
   def upsertContriGaze(annotation: Annotation) = {
     val importer = importerFactory.createImporter(EntityType.PLACE)

@@ -7,6 +7,9 @@ import services.generated.Tables.DOCUMENT
 import scala.concurrent.ExecutionContext
 import storage.db.DB
 import storage.uploads.Uploads
+import scala.concurrent.Future
+import services.generated.tables.records.DocumentRecord
+import services.generated.Tables.{FOLDER_ASSOCIATION}
 
 @Singleton
 class DocumentService @Inject() (
@@ -44,6 +47,36 @@ class DocumentService @Inject() (
     }
   }
 
+  def getDocIdByTitle(title: String, username: String, folder: Option[UUID])  = db.query { sql =>
+    
+    folder match {
+      case Some(folderId) => 
+        sql.select().from(DOCUMENT)
+          .join(FOLDER_ASSOCIATION).on(DOCUMENT.ID.equal(FOLDER_ASSOCIATION.DOCUMENT_ID))
+          .where(DOCUMENT.FILENAME.equal(title)
+            .and(DOCUMENT.OWNER.equal(username))
+            .and(FOLDER_ASSOCIATION.FOLDER_ID.equal(folderId)))
+          .limit(1)
+          .fetchOne().into(classOf[DocumentRecord])
+
+      case None => 
+        sql.select().from(DOCUMENT).where(DOCUMENT.FILENAME.equal(title).and(DOCUMENT.OWNER.equal(username))).limit(1).fetchOne().into(classOf[DocumentRecord])
+    }
+  }
+
+  def getDocsInFolder(username: String, folder: Option[UUID])  = db.query { sql =>
+    
+    folder match {
+      case Some(folderId) => 
+        sql.select().from(DOCUMENT)
+          .join(FOLDER_ASSOCIATION).on(DOCUMENT.ID.equal(FOLDER_ASSOCIATION.DOCUMENT_ID))
+          .where(FOLDER_ASSOCIATION.FOLDER_ID.equal(folderId).and(DOCUMENT.OWNER.equal(username)))
+          .fetchArray().toSeq.map{record=>record.into(classOf[DocumentRecord])}
+
+      case None => 
+        sql.selectFrom(DOCUMENT).where(DOCUMENT.OWNER.equal(username)).fetchArray().toSeq
+    }
+  }
   // def getDocsIdInFolder(documentId: String)(implicit ctx: ExecutionContext) = {
   //   getDocsId(documentId)
   // }

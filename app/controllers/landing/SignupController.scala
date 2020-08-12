@@ -103,7 +103,13 @@ class SignupController @Inject() (
       username,
       new Timestamp(new Date().getTime),
       "Welcome to Recogito",
+      "Welcome to Recogito",
       "Recogito Team",
+      null, // publication_place
+      null, // start_date
+      null, // end_date
+      null, // latitude
+      null, // longitude
       null, // date_numeric
       null, // date_freeform
       null, // description
