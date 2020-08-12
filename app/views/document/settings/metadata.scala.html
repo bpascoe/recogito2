@@ -15,9 +15,9 @@
     }
     <div class="inner">
       @helper.form(action = controllers.document.settings.routes.SettingsController.updateDocumentMetadata(doc.id), args = 'class -> "crud", 'autocomplete -> "off") {
+        @helper.inputText(metadataForm("filename"), args = '_label -> messages("common.document.filename"), '_help -> "", 'autocomplete -> "false")
         @helper.inputText(metadataForm("title"), args = '_label -> messages("common.document.title"), '_help -> "", 'autocomplete -> "false")
         @helper.inputText(metadataForm("author"), args = '_label -> messages("common.document.author"), '_help -> "", 'autocomplete -> "false")
-        @helper.inputText(metadataForm("date_freeform"), args = '_label -> messages("common.document.date"), '_help -> "", 'autocomplete -> "false")
         @helper.textarea(metadataForm("description"), args = '_label -> messages("common.document.description"), '_help -> "", 'autocomplete -> "false")
         @helper.inputText(metadataForm("language"), args = '_label -> messages("common.document.language"), '_help -> "", 'autocomplete -> "false")
         @helper.inputText(metadataForm("source"), args = '_label -> messages("common.document.source"), '_help -> "", 'autocomplete -> "false")
@@ -38,6 +38,11 @@
         @helper.textarea(metadataForm("attribution"), args = '_label -> messages("common.document.attribution"), '_help -> "", 'autocomplete -> "false",
           'placeholder -> "Extra attribution statement or license information")
         <dt></dt>
+        @helper.inputText(metadataForm("publication_place"), args = '_label -> messages("common.document.publicationPlace"), '_help -> "", 'autocomplete -> "false")
+        @helper.inputText(metadataForm("start_date"), args = '_label -> messages("common.document.startDate"), '_help -> "", 'autocomplete -> "false")
+        @helper.inputText(metadataForm("end_date"), args = '_label -> messages("common.document.endDate"), '_help -> "", 'autocomplete -> "false")
+        @helper.inputText(metadataForm("latitude"), args = '_label -> messages("common.document.latitude"), '_help -> "", 'autocomplete -> "false")
+        @helper.inputText(metadataForm("longitude"), args = '_label -> messages("common.document.longitude"), '_help -> "", 'autocomplete -> "false")
         <dd>
           <button type="submit" class="btn"/>@messages("common.buttons.save_changes")</button>
         </dd>
