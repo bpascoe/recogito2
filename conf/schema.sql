@@ -56,13 +56,19 @@ CREATE TABLE upload_filepart (
   sequence_no INTEGER
 );
 
--- users own (and can share) documents
+-- users own (and can share) documents, we add more fields (filename, start_date, end_date, logitude, latitude)
 CREATE TABLE document (
   id TEXT NOT NULL PRIMARY KEY,
   owner TEXT NOT NULL REFERENCES "user"(username),
   uploaded_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  title TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  title TEXT,
   author TEXT,
+  publication_place TEXT,
+  start_date TEXT,
+  end_date TEXT,
+  latitude TEXT,
+  longitude TEXT,
   date_numeric TIMESTAMP,
   date_freeform TEXT,
   description TEXT,

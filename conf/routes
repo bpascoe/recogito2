@@ -242,6 +242,8 @@ POST    /api/annotation/bulk                         controllers.api.annotation.
 DELETE  /api/annotation/bulk                         controllers.api.annotation.AnnotationAPIController.bulkDelete
 DELETE  /api/annotation/:id                          controllers.api.annotation.AnnotationAPIController.deleteAnnotation(id: java.util.UUID)
 
+POST     /api/document/loadCsv      controllers.api.annotation.AnnotationAPIController.loadCsvMetadata()
+POST     /api/document/downloadCsv   controllers.api.annotation.AnnotationAPIController.downloadCsvMetadata()
 GET     /api/document/:id/annotations                controllers.api.annotation.AnnotationAPIController.listAnnotationsInDocument(id: String)
 GET     /api/document/:id/part/:part/annotations     controllers.api.annotation.AnnotationAPIController.listAnnotationsInPart(id: String, part: Int)
 

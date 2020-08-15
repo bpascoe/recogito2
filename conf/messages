@@ -8,15 +8,20 @@ common.logged_in_as=Logged in as
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Common document-related labels
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+common.document.filename=Filename
 common.document.title=Title
 common.document.author=Author
-common.document.date=Date
 common.document.description=Description
 common.document.language=Language
 common.document.source=Source
 common.document.edition=Edition
 common.document.license=License
 common.document.attribution=Attribution
+common.document.publicationPlace=Publication Place
+common.document.startDate=Start Date
+common.document.endDate=End Date
+common.document.latitude=Latitude
+common.document.longitude=Longitude
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Common button labels

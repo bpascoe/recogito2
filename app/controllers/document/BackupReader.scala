@@ -63,8 +63,16 @@ trait BackupReader extends HasDate with HasBackupValidation { self: HasConfig =>
         owner,
         // Reuse upload timestamp from backup or set to 'now'
         new Timestamp((json \ "uploaded_at").asOpt[DateTime].getOrElse(new DateTime()).getMillis),
-        (json \ "title").as[String],
+        (json \ "filename").as[String],
+        (json \ "title").asOpt[String].getOrElse(null),
         (json \ "author").asOpt[String].getOrElse(null),
+        (json \ "publication_place").asOpt[String].getOrElse(null),
+        (json \ "start_date").asOpt[String].getOrElse(null),
+        (json \ "end_date").asOpt[String].getOrElse(null),
+        // new Timestamp((json \ "start_date").asOpt[DateTime].getOrElse(new DateTime()).getMillis),
+        // new Timestamp((json \ "end_date").asOpt[DateTime].getOrElse(new DateTime()).getMillis),
+        (json \ "latitude").asOpt[String].getOrElse(null),
+        (json \ "longitude").asOpt[String].getOrElse(null),
         null, // TODO date_numeric
         (json \ "date_freeform").asOpt[String].getOrElse(null),
         (json \ "description").asOpt[String].getOrElse(null),
@@ -84,7 +92,7 @@ trait BackupReader extends HasDate with HasBackupValidation { self: HasConfig =>
           // Reuse from backup or create a new one
           (obj \ "id").asOpt[UUID].getOrElse(UUID.randomUUID),
           documentId,
-          (obj \ "title").as[String],
+          (obj \ "filename").as[String],
           (obj \ "content_type").as[String],
           (obj \ "file").as[String],
           idx + 1,

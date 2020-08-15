@@ -7,6 +7,7 @@ import services.PublicAccess
 import services.document.{DocumentService, License, PartOrdering}
 import services.generated.tables.records.DocumentPreferencesRecord
 import services.generated.Tables.{DOCUMENT, DOCUMENT_FILEPART, DOCUMENT_PREFERENCES}
+import java.sql.Timestamp
 
 /** Various document update operations **/
 trait DocumentUpdateOps { self: DocumentService => 
@@ -14,27 +15,38 @@ trait DocumentUpdateOps { self: DocumentService =>
   /** Updates document metadata for the given document ID **/
   def updateMetadata(
     docId: String,
-    title: String,
+    filename: String,
+    title: Option[String],
     author: Option[String],
-    dateFreeform: Option[String], 
     description: Option[String],
     language: Option[String],
     source: Option[String],
     edition: Option[String],
     license: Option[String],
-    attribution: Option[String]
+    attribution: Option[String],
+    publicationPlace : Option[String],
+    startDate   : Option[String],
+    endDate     : Option[String],
+    latitude    : Option[String],
+    longitude   : Option[String]
   ): Future[Boolean] = db.withTransaction { sql =>  
       
     val q = sql.update(DOCUMENT)
-      .set(DOCUMENT.TITLE, title)
+      .set(DOCUMENT.FILENAME, filename)
+      .set(DOCUMENT.TITLE, optString(title))
       .set(DOCUMENT.AUTHOR, optString(author))
-      .set(DOCUMENT.DATE_FREEFORM, optString(dateFreeform))
+      // .set(DOCUMENT.DATE_FREEFORM, optString(dateFreeform))
       .set(DOCUMENT.DESCRIPTION, optString(description))
       .set(DOCUMENT.LANGUAGE, optString(language))
       .set(DOCUMENT.SOURCE, optString(source))
       .set(DOCUMENT.EDITION, optString(edition))
       .set(DOCUMENT.LICENSE, optString(license))
       .set(DOCUMENT.ATTRIBUTION, optString(attribution))
+      .set(DOCUMENT.PUBLICATION_PLACE, optString(publicationPlace))
+      .set(DOCUMENT.START_DATE, optString(startDate))
+      .set(DOCUMENT.END_DATE, optString(endDate))
+      .set(DOCUMENT.LATITUDE, optString(latitude))
+      .set(DOCUMENT.LONGITUDE, optString(longitude))
 
     // If the update sets the document to a non-open license, make sure is_public is set to false
     val hasNonOpenLicense = license.map(acronym =>
@@ -48,6 +60,46 @@ trait DocumentUpdateOps { self: DocumentService =>
          .execute()
       else
         q.where(DOCUMENT.ID.equal(docId)).execute()
+    
+    rowsAffected == 1
+  }
+
+  /** Updates document metadata for the given document ID **/
+  def updateMetadata2(
+    docId: String,
+    // filename: String,
+    title: Option[String],
+    author: Option[String],
+    description: Option[String],
+    language: Option[String],
+    source: Option[String],
+    edition: Option[String],
+    license: Option[String],
+    attribution: Option[String],
+    publicationPlace : Option[String],
+    startDate   : Option[String],
+    endDate     : Option[String],
+    latitude    : Option[String],
+    longitude   : Option[String]
+  ): Future[Boolean] = db.withTransaction { sql =>  
+      
+    val rowsAffected = sql.update(DOCUMENT)
+      // .set(DOCUMENT.FILENAME, filename)
+      .set(DOCUMENT.TITLE, optString(title))
+      .set(DOCUMENT.AUTHOR, optString(author))
+      // .set(DOCUMENT.DATE_FREEFORM, optString(dateFreeform))
+      .set(DOCUMENT.DESCRIPTION, optString(description))
+      .set(DOCUMENT.LANGUAGE, optString(language))
+      .set(DOCUMENT.SOURCE, optString(source))
+      .set(DOCUMENT.EDITION, optString(edition))
+      .set(DOCUMENT.LICENSE, optString(license))
+      .set(DOCUMENT.ATTRIBUTION, optString(attribution))
+      .set(DOCUMENT.PUBLICATION_PLACE, optString(publicationPlace))
+      .set(DOCUMENT.START_DATE, optString(startDate))
+      .set(DOCUMENT.END_DATE, optString(endDate))
+      .set(DOCUMENT.LATITUDE, optString(latitude))
+      .set(DOCUMENT.LONGITUDE, optString(longitude))
+      .where(DOCUMENT.ID.equal(docId)).execute()
     
     rowsAffected == 1
   }

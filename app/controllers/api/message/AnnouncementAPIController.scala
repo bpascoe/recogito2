@@ -56,7 +56,7 @@ class AnnouncementAPIController @Inject() (
     // Does the actual sending
     def send(sender: String, recipient: User, message: String) = {
       val text = MESSAGE_TEMPLATE
-        .replace("{{base}}", "http://recogito.pelagios.org")
+        .replace("{{base}}", "http://recogito.tlcmap.org")
         .replace("{{sender}}", sender)
         .replace("{{message}}", message)
 
@@ -64,7 +64,7 @@ class AnnouncementAPIController @Inject() (
       // TODO see if we can take this directly from the config file instead
       val email = Email(
         s"[Recogito] Message from user $sender",
-        "Recogito Team <noreply@pelagios.org>",
+        "Recogito Team <noreply@tlcmap.org>",
         Seq(users.decryptEmail(recipient.email)),
         bodyHtml = Some(text)
       )

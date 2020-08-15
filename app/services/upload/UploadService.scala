@@ -239,7 +239,13 @@ class UploadService @Inject() (
           upload.getOwner,
           upload.getCreatedAt,
           upload.getTitle,
+          upload.getTitle,
           upload.getAuthor,
+          null, // publication_place
+          null, // start_date
+          null, // end_date
+          null, // latitude
+          null, // longitude
           null, // TODO date_numeric
           upload.getDateFreeform,
           upload.getDescription,

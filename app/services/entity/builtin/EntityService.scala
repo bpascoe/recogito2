@@ -21,6 +21,8 @@ trait EntityService {
 
   def listEntitiesInContribution(identifier: String): Future[Seq[IndexedEntity]]
 
+  def listIndexedEntitiesInDocument(docId: String, eType: Option[EntityType] = None): Future[Seq[IndexedEntity]]
+
   def findConnected(uris: Seq[String]): Future[Seq[IndexedEntity]]
 
   def searchEntities(
