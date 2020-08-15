@@ -34,6 +34,7 @@
     <div class="header">
       <div class="inner">
         <span class="logo">
+		<img src="//tlcmap.org/img/tlcmaplogoWhiteBG.jpg" style="width: 80px; float: left; margin: 0 1em 0 0;">
           <img class="logo-recogito" src="@routes.Assets.versioned("images/logo-recogito.png")">
           <a href="https://pelagios.org" target="_blank">
             <img class="logo-network" src="@routes.Assets.versioned("images/logo-network.png")">
@@ -65,10 +66,12 @@
           </h2>
           <p>
             @messages("landing.index.jumbotron.blurb")
-          </p>
+          </p><p>
           <a href="@controllers.help.routes.HelpController.tutorial()">
             @messages("landing.index.jumbotron.learn_more")
-          </a>
+          </a>... 
+		  </p><p><a href="//tlcmap.org/guides/recogito/">TLCMap Enhancements...</a>
+		  </p>
         </div> <!-- jumbotron-left -->
 
         <div class="jumbotron-right">
