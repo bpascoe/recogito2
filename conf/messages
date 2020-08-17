@@ -37,10 +37,10 @@ landing.index.header.link.about=About
 landing.index.header.link.login=Log In
 
 # Jumbotron
-landing.index.jumbotron.tagline.1=Semantic Annotation
-landing.index.jumbotron.tagline.2=without the pointy brackets
-landing.index.jumbotron.blurb=Work on texts and images. Identify and mark named entities. Use your data in other tools or connect to other data on the Web. Without the need to learn code.
-landing.index.jumbotron.learn_more=Learn More
+landing.index.jumbotron.tagline.1=Places, people, maps and images.
+landing.index.jumbotron.tagline.2=(TLCMap instance of Recogito with new features.)
+landing.index.jumbotron.blurb=Identify and mark names and places in texts and images. Use your data in other tools or connect to other data on the Web.
+landing.index.jumbotron.learn_more=Recogito Tutorial
 
 landing.index.registration_form.placeholder.username=Pick a username
 landing.index.registration_form.placeholder.email=Your email address
