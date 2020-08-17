@@ -49,7 +49,7 @@ case class ConfiguredPresentation(
 
 object ConfiguredPresentation extends HasDate {
 
-  val DEFAULT_CONFIG = Seq("author", "title", "uploaded_at", "date_freeform")
+  val DEFAULT_CONFIG = Seq("author", "title", "uploaded_at", "date_freeform", "language", "filename","publication_place", "start_date","end_date","latitude","longitude")
 
   /** A helper to get the properties for the given doc from the list **/
   private def findProps(document: DocumentRecord, indexProps: Option[Map[String, IndexDerivedProperties]]) =
@@ -134,15 +134,21 @@ object ConfiguredPresentation extends HasDate {
 
     // Selectable DB properties
     (JsPath \ "author").writeNullable[String] and 
-    (JsPath \ "date_freeform").writeNullable[String] and
+    // (JsPath \ "date_freeform").writeNullable[String] and
     (JsPath \ "language").writeNullable[String] and
     (JsPath \ "source").writeNullable[String] and
     (JsPath \ "edition").writeNullable[String] and
-    (JsPath \ "shared_by").writeNullable[String] and
-    (JsPath \ "access_level").writeNullable[String] and
-    (JsPath \ "cloned_from").writeNullable[JsObject] and
-    (JsPath \ "has_clones").writeNullable[Int] and
-
+    // (JsPath \ "shared_by").writeNullable[String] and
+    // (JsPath \ "access_level").writeNullable[String] and
+    // (JsPath \ "cloned_from").writeNullable[JsObject] and
+    // (JsPath \ "has_clones").writeNullable[Int] and
+    (JsPath \ "filename").writeNullable[String] and
+    (JsPath \ "publication_place").writeNullable[String] and
+    (JsPath \ "start_date").writeNullable[String] and
+    (JsPath \ "end_date").writeNullable[String] and
+    (JsPath \ "latitude").writeNullable[String] and
+    (JsPath \ "longitude").writeNullable[String] and
+    
     // Selectable index properties
     (JsPath \ "last_edit_at").writeNullable[DateTime] and
     (JsPath \ "last_edit_by").writeNullable[String] and
@@ -161,17 +167,23 @@ object ConfiguredPresentation extends HasDate {
 
     // DB-based props, based on whether they are defined in the column config
     p.getDBProp[String]("author", p.document.getAuthor),
-    p.getDBProp[String]("date_freeform", p.document.getDateFreeform),
+    // p.getDBProp[String]("date_freeform", p.document.getDateFreeform),
     p.getDBProp[String]("language", p.document.getLanguage),
     p.getDBProp[String]("source", p.document.getSource),
     p.getDBProp[String]("edition", p.document.getEdition),
-    p.getOptDBProp[String]("shared_by", p.sharedVia.map(_.getSharedBy)),
-    p.getOptDBProp[String]("access_level", p.sharedVia.map(_.getAccessLevel)),
-    p.getOptDBProp[JsObject]("cloned_from", p.clonedFromUser.map { username => 
-      Json.obj("username" -> username, "id" -> p.document.getClonedFrom)
-    }),
-    p.getOptDBProp[Int]("has_clones", { if (p.hasClones > 0) Some(p.hasClones) else None }),
-
+    // p.getOptDBProp[String]("shared_by", p.sharedVia.map(_.getSharedBy)),
+    // p.getOptDBProp[String]("access_level", p.sharedVia.map(_.getAccessLevel)),
+    // p.getOptDBProp[JsObject]("cloned_from", p.clonedFromUser.map { username => 
+    //   Json.obj("username" -> username, "id" -> p.document.getClonedFrom)
+    // }),
+    // p.getOptDBProp[Int]("has_clones", { if (p.hasClones > 0) Some(p.hasClones) else None }),
+    p.getDBProp[String]("filename", p.document.getFilename),
+    p.getDBProp[String]("publication_place", p.document.getPublicationPlace),
+    p.getDBProp[String]("start_date", p.document.getStartDate),
+    p.getDBProp[String]("end_date", p.document.getEndDate),
+    p.getDBProp[String]("latitude", p.document.getLatitude),
+    p.getDBProp[String]("longitude", p.document.getLongitude),
+    
     // Index-based properties
     p.getIndexProp[DateTime]("last_edit_at", p.indexProps.lastEditAt),
     p.getIndexProp[String]("last_edit_by", p.indexProps.lastEditBy),
