@@ -97,14 +97,14 @@ class Document(alias : String, aliased : Table[DocumentRecord], parameters : Arr
 	val END_DATE : TableField[DocumentRecord, String] = createField("end_date", org.jooq.impl.SQLDataType.CLOB, "")
 
 	/**
-	 * The column <code>public.document.logitude</code>.
-	 */
-	val LONGITUDE : TableField[DocumentRecord, String] = createField("longitude", org.jooq.impl.SQLDataType.CLOB, "")
-
-	/**
 	 * The column <code>public.document.latitude</code>.
 	 */
 	val LATITUDE : TableField[DocumentRecord, String] = createField("latitude", org.jooq.impl.SQLDataType.CLOB, "")
+
+	/**
+	 * The column <code>public.document.logitude</code>.
+	 */
+	val LONGITUDE : TableField[DocumentRecord, String] = createField("longitude", org.jooq.impl.SQLDataType.CLOB, "")
 
 	/**
 	 * The column <code>public.document.date_numeric</code>.
