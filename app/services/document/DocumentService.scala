@@ -51,16 +51,16 @@ class DocumentService @Inject() (
     
     folder match {
       case Some(folderId) => 
-        sql.select().from(DOCUMENT)
+        sql.select(DOCUMENT.ID).from(DOCUMENT)
           .join(FOLDER_ASSOCIATION).on(DOCUMENT.ID.equal(FOLDER_ASSOCIATION.DOCUMENT_ID))
           .where(DOCUMENT.FILENAME.equal(title)
             .and(DOCUMENT.OWNER.equal(username))
             .and(FOLDER_ASSOCIATION.FOLDER_ID.equal(folderId)))
           .limit(1)
-          .fetchOne().into(classOf[DocumentRecord])
+          .fetchOne(0, classOf[String])
 
       case None => 
-        sql.select().from(DOCUMENT).where(DOCUMENT.FILENAME.equal(title).and(DOCUMENT.OWNER.equal(username))).limit(1).fetchOne().into(classOf[DocumentRecord])
+        sql.select(DOCUMENT.ID).from(DOCUMENT).where(DOCUMENT.FILENAME.equal(title).and(DOCUMENT.OWNER.equal(username))).limit(1).fetchOne(0, classOf[String])
     }
   }
 

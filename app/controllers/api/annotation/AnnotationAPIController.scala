@@ -166,43 +166,44 @@ class AnnotationAPIController @Inject() (
       case Some(json) => {
         val username = request.identity.get.username
         val filename = (json \ "Filename").as[String]
-        val folderId = (json \ "folderId").as[String]
-        val docId = if (folderId.length>3) {Await.result(documents.getDocIdByTitle(filename,username, Some(UUID.fromString(folderId))), 1.seconds).getId
-        } else {Await.result(documents.getDocIdByTitle(filename,username, None), 1.seconds).getId}
-        if (docId.length > 3) {
-          val fromVal  = (json \ "StartDate").asOpt[Int].getOrElse(99999)
-          val toVal  = (json \ "EndDate").asOpt[Int].getOrElse(99999)
-          val from = if (fromVal == 99999) {null} else { new DateTime(DateTimeZone.UTC).withDate(fromVal, 1, 1).withTime(0, 0, 0, 0)}
-          val to = if (toVal == 99999) {null} else { new DateTime(DateTimeZone.UTC).withDate(toVal, 1, 1).withTime(0, 0, 0, 0)}
-          val temporal_bounds = if (from == 99999 && to == 99999) {None} else { Some(new TemporalBounds(from, to))}
-          val title  = (json \ "Title").asOpt[String]
-          val author  = (json \ "Author").asOpt[String]
-          val description  = (json \ "Description").asOpt[String]
-          val language  = (json \ "Language").asOpt[String]
-          val source  = (json \ "Source").asOpt[String]
-          val edition  = (json \ "Edition").asOpt[String]
-          val license  = (json \ "License").asOpt[String]
-          val attribution  = (json \ "Attribution").asOpt[String]
-          val pubPlace  = (json \ "PublicationPlace").asOpt[String]
-          val startDate = (json \ "StartDate").asOpt[String]
-          val endDate  = (json \ "EndDate").asOpt[String]
-          val latitude  = (json \ "Latitude").asOpt[String]
-          val longitude  = (json \ "Longitude").asOpt[String]
-          // val format = DateTimeFormatter.ofPattern("dd/MM/yyyy")//' 'HH:mm:ss
-          // val startDate = if ((json \ "StartDate").as[String].length<1) {null} else {Some(new Timestamp(new SimpleDateFormat("dd/MM/yyyy").parse((json \ "StartDate").as[String]).getTime()))}
-          // val endDate = if ((json \ "EndDate").as[String].length<1) {null} else {Some(new Timestamp(new SimpleDateFormat("dd/MM/yyyy").parse((json \ "EndDate").as[String]).getTime()))}
-          val row = documents.updateMetadata2(docId,title,author,description,language,source,edition,license,attribution,pubPlace,startDate,endDate,latitude,longitude)
-          // val entities = entity.listIndexedEntitiesInDocument(docId, Some(EntityType.PLACE))
-          val entities = entity.listIndexedEntitiesInDocument(docId, Some(EntityType.PLACE)).map { result =>
-            result.map(e=>e.copy(e.entity.copy(temporalBoundsUnion=temporal_bounds)))
-          }
-          entity.upsertEntities(Await.result(entities, 10.seconds))
-          Future.successful(Ok(username))
-        } else Future.successful(Ok("skip"))
+        if (filename.length>3) {
+          val folderId = (json \ "folderId").as[String]
+          val docId = if (folderId.length>3) {Await.result(documents.getDocIdByTitle(filename,username, Some(UUID.fromString(folderId))), 1.seconds)
+          } else {Await.result(documents.getDocIdByTitle(filename,username, None), 1.seconds)}
+          if (docId != null) {
+            val fromVal  = (json \ "StartDate").asOpt[Int].getOrElse(99999)
+            val toVal  = (json \ "EndDate").asOpt[Int].getOrElse(99999)
+            val from = if (fromVal == 99999) {null} else { new DateTime(DateTimeZone.UTC).withDate(fromVal, 1, 1).withTime(0, 0, 0, 0)}
+            val to = if (toVal == 99999) {null} else { new DateTime(DateTimeZone.UTC).withDate(toVal, 1, 1).withTime(0, 0, 0, 0)}
+            val temporal_bounds = if (from == 99999 && to == 99999) {None} else { Some(new TemporalBounds(from, to))}
+            val title  = (json \ "Title").asOpt[String]
+            val author  = (json \ "Author").asOpt[String]
+            val description  = (json \ "Description").asOpt[String]
+            val language  = (json \ "Language").asOpt[String]
+            val source  = (json \ "Source").asOpt[String]
+            val edition  = (json \ "Edition").asOpt[String]
+            val license  = (json \ "License").asOpt[String]
+            val attribution  = (json \ "Attribution").asOpt[String]
+            val pubPlace  = (json \ "PublicationPlace").asOpt[String]
+            val startDate = (json \ "StartDate").asOpt[String]
+            val endDate  = (json \ "EndDate").asOpt[String]
+            val latitude  = (json \ "Latitude").asOpt[String]
+            val longitude  = (json \ "Longitude").asOpt[String]
+            // val format = DateTimeFormatter.ofPattern("dd/MM/yyyy")//' 'HH:mm:ss
+            // val startDate = if ((json \ "StartDate").as[String].length<1) {null} else {Some(new Timestamp(new SimpleDateFormat("dd/MM/yyyy").parse((json \ "StartDate").as[String]).getTime()))}
+            // val endDate = if ((json \ "EndDate").as[String].length<1) {null} else {Some(new Timestamp(new SimpleDateFormat("dd/MM/yyyy").parse((json \ "EndDate").as[String]).getTime()))}
+            val row = documents.updateMetadata2(docId,title,author,description,language,source,edition,license,attribution,pubPlace,startDate,endDate,latitude,longitude)
+            // val entities = entity.listIndexedEntitiesInDocument(docId, Some(EntityType.PLACE))
+            val entities = entity.listIndexedEntitiesInDocument(docId, Some(EntityType.PLACE)).map { result =>
+              result.map(e=>e.copy(e.entity.copy(temporalBoundsUnion=temporal_bounds)))
+            }
+            entity.upsertEntities(Await.result(entities, 10.seconds))
+            Future.successful(Ok(filename+" success"))
+          } else Future.successful(Ok(filename+" not in the current corpus"))
+        } else Future.successful(Ok("Empty filename"))
       }
       case None => {
-        Logger.warn("Need necessary information in uploaded CSV file")
-        Future.successful(Ok("nothing"))}
+        Future.successful(Ok("Empty CSV file"))}
     }
   }
   def downloadCsvMetadata() = silhouette.UserAwareAction.async { implicit request =>
