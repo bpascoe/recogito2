@@ -6,9 +6,13 @@
     <title>Recogito</title>
   <link href="/assets/javascripts/ui/static/css/workspace.7a0a8534.chunk.css" rel="stylesheet"></head>
   <style type="text/css">
-    .load_csv{margin-left: 8px;}
+    .load_csv{margin-left: 8px;margin-right: 8px;}
+    div.ui-dialog{color: #3c763d;background-color: #dff0d8;padding:10px;}
+    .ui-dialog-titlebar-close{float:right;}
+    .ui-dialog-titlebar{color: black;font-size:20;}
   </style>
   @Html(webJarsUtil.script("1.12.0/jquery.min.js"))
+  @Html(webJarsUtil.script("jquery-ui.min.js"))
   <body>
     <div id="app"></div>
     <input id="csvBtn" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display:none">
@@ -49,6 +53,8 @@
         // console.log("test: "+e.target.files[0].name);
         if (e.target.files != undefined) {
           var reader = new FileReader();
+          var status = jQuery('<div class="status" title="Metadata import status:"></div>');
+          $("#app").append(status);
           reader.onload = function(e) {
             // var docHeader = ['Filename', 'Title', 'Author', 'Description', 'Language', 'Source', 'Edition', 'License', 'Attribution', 'StartDate', 'EndDate', 'PublicationPlace', 'Latitude', 'Longitude'];
             // var Header = ['Filename', 'StartDate', 'EndDate'];
@@ -62,16 +68,20 @@
                   doc[header[j]] = row[j];
                 }
                 $.ajax({type: 'POST', url:document.location.origin + "/api/document/loadCsv", data: JSON.stringify(doc),contentType: 'application/json'}).done(function(data) {
-                    console.log( "Data Loaded: " + data );
+                    // console.log( "Data Loaded: " + data );
+                    $(".status").append("<p> "+($(".status").find("p").length+1)+". "+data);
                   });
-                // $.post( document.location.origin + "/api/document/loadCsv", JSON.stringify(doc))
-                // .done(function( data ) {
-                //   console.log( "Data Loaded: " + data );
-                // });
               }
             }
+            $(".status").dialog({autoOpen: false,
+                    maxWidth:400,maxHeight: 500,
+                    width: 350,height: 400,
+                    close: function(event, ui) {location.reload();
+             }});
           };
           reader.readAsText(e.target.files.item(0));
+          $(".status").dialog();
+          $("div.ui-dialog").css({overflow:"auto"})
         }
       });
     });
