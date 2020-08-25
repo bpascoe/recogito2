@@ -254,6 +254,10 @@ define(function() {
 
   return {
 
+    getCountries : function() {
+      return countries;
+    },
+
     getName : function(countryCode) {
       return countries[countryCode];
     }

@@ -1,282 +1,28 @@
 define([
   'document/annotation/common/editor/sections/place/cards/baseCard','common/config',
-  'common/api','document/annotation/common/page/header','common/flagstrap'], function(Card, Config, API, Header,Flagstrap) {
+  'common/api','document/annotation/common/page/header','common/flagstrap','common/ui/countries'], function(Card, Config, API, Header,Flagstrap,Countries) {
   
   var NoMatchCard = function(containerEl, verificationStatus, lastModified) {
     var header = new Header();
     // TODO cover the case of yellow place status'es - different message + place overlay
 
-    var noMatch = jQuery('<div class="no-match">' +
-              '<div class="label"></div>' +
-              '<button class="btn tiny change" title="Use advanced search to find a match">Search</button> ' +
-              '<button class="btn tiny flag icon" title="Flag this place as unidentified">&#xf11d;</button> ' +
-              '<button class="btn tiny delete icon" title="Not a place - remove">&#xf014;</button>' +
-            '</div>'),
-        addPlace = jQuery('<div class="add-place" style="margin-right: 4px;float: right;z-index: 3;margin-top: -140px;position: relative;">' +
-            '<div style="padding-top:1px";><input type="text" class="title" placeholder="Place Name" required value="'+$('#main .selection').text()+'"></input></div>' +
-            '<div style="padding-top:1px;"><input type="text" class="uri" placeholder="URI" required></input></div>' +
-            '<div style="padding-top:1px;"><input type="number"style="width:161.2px" class="latitude" placeholder="Latitude" required></input></div>' +
-            '<div style="padding-top:1px;"><input type="number"style="width:161.2px" class="longitude" placeholder="Longitude" required></input></div>' +
-            '<div class="moreOptions" style="display:none;">'+
-            '<select id="country" name="country" style="width:165.2px;padding-top:1px;">'+
-              '<option value="">Select country</option>'+
-              '<option value="AF">Afghanistan</option>'+
-              '<option value="AX">Åland Islands</option>'+
-              '<option value="AL">Albania</option>'+
-              '<option value="DZ">Algeria</option>'+
-              '<option value="AS">American Samoa</option>'+
-              '<option value="AD">Andorra</option>'+
-              '<option value="AO">Angola</option>'+
-              '<option value="AI">Anguilla</option>'+
-              '<option value="AQ">Antarctica</option>'+
-              '<option value="AG">Antigua and Barbuda</option>'+
-              '<option value="AR">Argentina</option>'+
-              '<option value="AM">Armenia</option>'+
-              '<option value="AW">Aruba</option>'+
-              '<option value="AU">Australia</option>'+
-              '<option value="AT">Austria</option>'+
-              '<option value="AZ">Azerbaijan</option>'+
-              '<option value="BS">Bahamas</option>'+
-              '<option value="BH">Bahrain</option>'+
-              '<option value="BD">Bangladesh</option>'+
-              '<option value="BB">Barbados</option>'+
-              '<option value="BY">Belarus</option>'+
-              '<option value="BE">Belgium</option>'+
-              '<option value="BZ">Belize</option>'+
-              '<option value="BJ">Benin</option>'+
-              '<option value="BM">Bermuda</option>'+
-              '<option value="BT">Bhutan</option>'+
-              '<option value="BO">Bolivia, Plurinational State of</option>'+
-              '<option value="BQ">Bonaire, Sint Eustatius and Saba</option>'+
-              '<option value="BA">Bosnia and Herzegovina</option>'+
-              '<option value="BW">Botswana</option>'+
-              '<option value="BV">Bouvet Island</option>'+
-              '<option value="BR">Brazil</option>'+
-              '<option value="IO">British Indian Ocean Territory</option>'+
-              '<option value="BN">Brunei Darussalam</option>'+
-              '<option value="BG">Bulgaria</option>'+
-              '<option value="BF">Burkina Faso</option>'+
-              '<option value="BI">Burundi</option>'+
-              '<option value="KH">Cambodia</option>'+
-              '<option value="CM">Cameroon</option>'+
-              '<option value="CA">Canada</option>'+
-              '<option value="CV">Cape Verde</option>'+
-              '<option value="KY">Cayman Islands</option>'+
-              '<option value="CF">Central African Republic</option>'+
-              '<option value="TD">Chad</option>'+
-              '<option value="CL">Chile</option>'+
-              '<option value="CN">China</option>'+
-              '<option value="CX">Christmas Island</option>'+
-              '<option value="CC">Cocos (Keeling) Islands</option>'+
-              '<option value="CO">Colombia</option>'+
-              '<option value="KM">Comoros</option>'+
-              '<option value="CG">Congo</option>'+
-              '<option value="CD">Congo, the Democratic Republic of the</option>'+
-              '<option value="CK">Cook Islands</option>'+
-              '<option value="CR">Costa Rica</option>'+
-              '<option value="CI">Côte d\'Ivoire</option>'+
-              '<option value="HR">Croatia</option>'+
-              '<option value="CU">Cuba</option>'+
-              '<option value="CW">Curaçao</option>'+
-              '<option value="CY">Cyprus</option>'+
-              '<option value="CZ">Czech Republic</option>'+
-              '<option value="DK">Denmark</option>'+
-              '<option value="DJ">Djibouti</option>'+
-              '<option value="DM">Dominica</option>'+
-              '<option value="DO">Dominican Republic</option>'+
-              '<option value="EC">Ecuador</option>'+
-              '<option value="EG">Egypt</option>'+
-              '<option value="SV">El Salvador</option>'+
-              '<option value="GQ">Equatorial Guinea</option>'+
-              '<option value="ER">Eritrea</option>'+
-              '<option value="EE">Estonia</option>'+
-              '<option value="ET">Ethiopia</option>'+
-              '<option value="FK">Falkland Islands (Malvinas)</option>'+
-              '<option value="FO">Faroe Islands</option>'+
-              '<option value="FJ">Fiji</option>'+
-              '<option value="FI">Finland</option>'+
-              '<option value="FR">France</option>'+
-              '<option value="GF">French Guiana</option>'+
-              '<option value="PF">French Polynesia</option>'+
-              '<option value="TF">French Southern Territories</option>'+
-              '<option value="GA">Gabon</option>'+
-              '<option value="GM">Gambia</option>'+
-              '<option value="GE">Georgia</option>'+
-              '<option value="DE">Germany</option>'+
-              '<option value="GH">Ghana</option>'+
-              '<option value="GI">Gibraltar</option>'+
-              '<option value="GR">Greece</option>'+
-              '<option value="GL">Greenland</option>'+
-              '<option value="GD">Grenada</option>'+
-              '<option value="GP">Guadeloupe</option>'+
-              '<option value="GU">Guam</option>'+
-              '<option value="GT">Guatemala</option>'+
-              '<option value="GG">Guernsey</option>'+
-              '<option value="GN">Guinea</option>'+
-              '<option value="GW">Guinea-Bissau</option>'+
-              '<option value="GY">Guyana</option>'+
-              '<option value="HT">Haiti</option>'+
-              '<option value="HM">Heard Island and McDonald Islands</option>'+
-              '<option value="VA">Holy See (Vatican City State)</option>'+
-              '<option value="HN">Honduras</option>'+
-              '<option value="HK">Hong Kong</option>'+
-              '<option value="HU">Hungary</option>'+
-              '<option value="IS">Iceland</option>'+
-              '<option value="IN">India</option>'+
-              '<option value="ID">Indonesia</option>'+
-              '<option value="IR">Iran, Islamic Republic of</option>'+
-              '<option value="IQ">Iraq</option>'+
-              '<option value="IE">Ireland</option>'+
-              '<option value="IM">Isle of Man</option>'+
-              '<option value="IL">Israel</option>'+
-              '<option value="IT">Italy</option>'+
-              '<option value="JM">Jamaica</option>'+
-              '<option value="JP">Japan</option>'+
-              '<option value="JE">Jersey</option>'+
-              '<option value="JO">Jordan</option>'+
-              '<option value="KZ">Kazakhstan</option>'+
-              '<option value="KE">Kenya</option>'+
-              '<option value="KI">Kiribati</option>'+
-              '<option value="KP">Korea, Democratic People\'s Republic of</option>'+
-              '<option value="KR">Korea, Republic of</option>'+
-              '<option value="KW">Kuwait</option>'+
-              '<option value="KG">Kyrgyzstan</option>'+
-              '<option value="LA">Lao People\'s Democratic Republic</option>'+
-              '<option value="LV">Latvia</option>'+
-              '<option value="LB">Lebanon</option>'+
-              '<option value="LS">Lesotho</option>'+
-              '<option value="LR">Liberia</option>'+
-              '<option value="LY">Libya</option>'+
-              '<option value="LI">Liechtenstein</option>'+
-              '<option value="LT">Lithuania</option>'+
-              '<option value="LU">Luxembourg</option>'+
-              '<option value="MO">Macao</option>'+
-              '<option value="MK">Macedonia, the former Yugoslav Republic of</option>'+
-              '<option value="MG">Madagascar</option>'+
-              '<option value="MW">Malawi</option>'+
-              '<option value="MY">Malaysia</option>'+
-              '<option value="MV">Maldives</option>'+
-              '<option value="ML">Mali</option>'+
-              '<option value="MT">Malta</option>'+
-              '<option value="MH">Marshall Islands</option>'+
-              '<option value="MQ">Martinique</option>'+
-              '<option value="MR">Mauritania</option>'+
-              '<option value="MU">Mauritius</option>'+
-              '<option value="YT">Mayotte</option>'+
-              '<option value="MX">Mexico</option>'+
-              '<option value="FM">Micronesia, Federated States of</option>'+
-              '<option value="MD">Moldova, Republic of</option>'+
-              '<option value="MC">Monaco</option>'+
-              '<option value="MN">Mongolia</option>'+
-              '<option value="ME">Montenegro</option>'+
-              '<option value="MS">Montserrat</option>'+
-              '<option value="MA">Morocco</option>'+
-              '<option value="MZ">Mozambique</option>'+
-              '<option value="MM">Myanmar</option>'+
-              '<option value="NA">Namibia</option>'+
-              '<option value="NR">Nauru</option>'+
-              '<option value="NP">Nepal</option>'+
-              '<option value="NL">Netherlands</option>'+
-              '<option value="NC">New Caledonia</option>'+
-              '<option value="NZ">New Zealand</option>'+
-              '<option value="NI">Nicaragua</option>'+
-              '<option value="NE">Niger</option>'+
-              '<option value="NG">Nigeria</option>'+
-              '<option value="NU">Niue</option>'+
-              '<option value="NF">Norfolk Island</option>'+
-              '<option value="MP">Northern Mariana Islands</option>'+
-              '<option value="NO">Norway</option>'+
-              '<option value="OM">Oman</option>'+
-              '<option value="PK">Pakistan</option>'+
-              '<option value="PW">Palau</option>'+
-              '<option value="PS">Palestinian Territory, Occupied</option>'+
-              '<option value="PA">Panama</option>'+
-              '<option value="PG">Papua New Guinea</option>'+
-              '<option value="PY">Paraguay</option>'+
-              '<option value="PE">Peru</option>'+
-              '<option value="PH">Philippines</option>'+
-              '<option value="PN">Pitcairn</option>'+
-              '<option value="PL">Poland</option>'+
-              '<option value="PT">Portugal</option>'+
-              '<option value="PR">Puerto Rico</option>'+
-              '<option value="QA">Qatar</option>'+
-              '<option value="RE">Réunion</option>'+
-              '<option value="RO">Romania</option>'+
-              '<option value="RU">Russian Federation</option>'+
-              '<option value="RW">Rwanda</option>'+
-              '<option value="BL">Saint Barthélemy</option>'+
-              '<option value="SH">Saint Helena, Ascension and Tristan da Cunha</option>'+
-              '<option value="KN">Saint Kitts and Nevis</option>'+
-              '<option value="LC">Saint Lucia</option>'+
-              '<option value="MF">Saint Martin (French part)</option>'+
-              '<option value="PM">Saint Pierre and Miquelon</option>'+
-              '<option value="VC">Saint Vincent and the Grenadines</option>'+
-              '<option value="WS">Samoa</option>'+
-              '<option value="SM">San Marino</option>'+
-              '<option value="ST">Sao Tome and Principe</option>'+
-              '<option value="SA">Saudi Arabia</option>'+
-              '<option value="SN">Senegal</option>'+
-              '<option value="RS">Serbia</option>'+
-              '<option value="SC">Seychelles</option>'+
-              '<option value="SL">Sierra Leone</option>'+
-              '<option value="SG">Singapore</option>'+
-              '<option value="SX">Sint Maarten (Dutch part)</option>'+
-              '<option value="SK">Slovakia</option>'+
-              '<option value="SI">Slovenia</option>'+
-              '<option value="SB">Solomon Islands</option>'+
-              '<option value="SO">Somalia</option>'+
-              '<option value="ZA">South Africa</option>'+
-              '<option value="GS">South Georgia and the South Sandwich Islands</option>'+
-              '<option value="SS">South Sudan</option>'+
-              '<option value="ES">Spain</option>'+
-              '<option value="LK">Sri Lanka</option>'+
-              '<option value="SD">Sudan</option>'+
-              '<option value="SR">Suriname</option>'+
-              '<option value="SJ">Svalbard and Jan Mayen</option>'+
-              '<option value="SZ">Swaziland</option>'+
-              '<option value="SE">Sweden</option>'+
-              '<option value="CH">Switzerland</option>'+
-              '<option value="SY">Syrian Arab Republic</option>'+
-              '<option value="TW">Taiwan, Province of China</option>'+
-              '<option value="TJ">Tajikistan</option>'+
-              '<option value="TZ">Tanzania, United Republic of</option>'+
-              '<option value="TH">Thailand</option>'+
-              '<option value="TL">Timor-Leste</option>'+
-              '<option value="TG">Togo</option>'+
-              '<option value="TK">Tokelau</option>'+
-              '<option value="TO">Tonga</option>'+
-              '<option value="TT">Trinidad and Tobago</option>'+
-              '<option value="TN">Tunisia</option>'+
-              '<option value="TR">Turkey</option>'+
-              '<option value="TM">Turkmenistan</option>'+
-              '<option value="TC">Turks and Caicos Islands</option>'+
-              '<option value="TV">Tuvalu</option>'+
-              '<option value="UG">Uganda</option>'+
-              '<option value="UA">Ukraine</option>'+
-              '<option value="AE">United Arab Emirates</option>'+
-              '<option value="GB">United Kingdom</option>'+
-              '<option value="US">United States</option>'+
-              '<option value="UM">United States Minor Outlying Islands</option>'+
-              '<option value="UY">Uruguay</option>'+
-              '<option value="UZ">Uzbekistan</option>'+
-              '<option value="VU">Vanuatu</option>'+
-              '<option value="VE">Venezuela, Bolivarian Republic of</option>'+
-              '<option value="VN">Viet Nam</option>'+
-              '<option value="VG">Virgin Islands, British</option>'+
-              '<option value="VI">Virgin Islands, U.S.</option>'+
-              '<option value="WF">Wallis and Futuna</option>'+
-              '<option value="EH">Western Sahara</option>'+
-              '<option value="YE">Yemen</option>'+
-              '<option value="ZM">Zambia</option>'+
-              '<option value="ZW">Zimbabwe</option>'+
-            '</select>'+
-            '<div style="padding-top:1px;"><input type="number"style="width:161.2px" class="from" placeholder="Timespan Start"></input></div>' +
-            '<div style="padding-top:1px;"><input type="number"style="width:161.2px" class="to" placeholder="Timespan End"></input></div>' +
-            '<div style="padding-top:1px";><input type="text" class="description" placeholder="Description"></input></div>' +
-            '<div style="padding-top:1px;"><input type="text" class="altNames" placeholder="Alternate Names"></input></div>' +
-            '</div>'+
-            '<button style="float:right;line-height:14px;" class="btn tiny icon btnMoreOption" tilte="Add more features">&#xf067;</button>'+
-            '<div><button class="btn-add-place">Manually add place here</button></div>' +
+    var addPlace = jQuery('<div class="wrapper wrapper--w680 add-place"><div class="card card-1"><div class="card-body">' +
+            '<b class="title">Create Place </b><span style="font-size:12px; color:gray;">Fileds with * are required</span>'+
+            '<div class="input-group"><input class="input--style-1 title2" type="text" placeholder="Place Name*" value="'+$('#main .selection').text()+'" required></div>'+
+            '<div class="input-group"><input class="input--style-1 uri" type="text" placeholder="URI"></div>'+
+            '<div class="input-group"><input class="input--style-1 latitude" type="text" placeholder="Latitude*" required></div>'+
+            '<div class="input-group"><input class="input--style-1 longitude" type="text" placeholder="Longitude*" required></div>'+
+            '<div class="input-group"><div class="rs-select2 js-select-simple select--no-search">'+
+             '<select name="country"><option disabled="disabled" selected="selected">Country</option></select>'+
+             '<div class="select-dropdown"></div></div></div>'+
+            '<div class="input-group"><input class="input--style-1 description" type="text" placeholder="Description"></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker from" type="text" placeholder="Timespan Start"><i class="zmdi zmdi-calendar-note input-icon js-btn-calendar"></i></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker2 to" type="text" placeholder="Timespan End"><i class="zmdi zmdi-calendar-note input-icon js-btn-calendar2"></i></div>'+
+            '<div class="input-group"><input class="input--style-1 altNames" type="text" placeholder="Alternate Names"></div>'+
+            '<div class="p-t-20"><button class="btn btn--radius btn--red btn-cancel-place">Cancel</button>'+
+            '<button class="btn btn--radius btn--green add-place-submit">Submit</button></div>'+
+            '</div></div></div>'+
+            // '<div><button class="btn-add-place">Create Place</button></div>' +
           '</div>'),
         // addButton = jQuery('<button class="btn tiny toggle" style="z-index: 3;position: fixed;margin-top: -24px;">Add palce manually</button>'),
         element = (Config.writeAccess) ? jQuery(
@@ -286,6 +32,7 @@ define([
               '<button class="btn tiny change" title="Use advanced search to find a match">Search</button> ' +
               '<button class="btn tiny flag icon" title="Flag this place as unidentified">&#xf11d;</button> ' +
               '<button class="btn tiny delete icon" title="Not a place - remove">&#xf014;</button>' +
+              '<button class="btn tiny btn-add-place" title="Create place" style="margin-left:2px;">Create Place</button>' +
             '</div>' +
           '</div>') : jQuery(
           // Simplified version for read-only mode
@@ -315,7 +62,7 @@ define([
         render = function() {
           containerEl.html(element);
           // containerEl.after(addButton);
-          containerEl.after(addPlace);
+          // $("#main").after(addPlace);
           if (verificationStatus && verificationStatus.value === 'NOT_IDENTIFIABLE')
             setFlagged();
           else
@@ -327,7 +74,10 @@ define([
           btnFlag.remove();
           containerEl.append(overlayFlagged);
         };
-
+        $.each(Countries.getCountries() , function(index, val) {
+          var options = addPlace.find('select').prop('options');
+          options[options.length] = new Option(val, index);
+        });
     this.render = render;
     this.setFlagged = setFlagged;
 
@@ -335,12 +85,27 @@ define([
 
     render();
 
-    addPlace.on('click', '.btnMoreOption', function() {
-      $(".moreOptions").toggle();
+    element.on('click', '.btn-add-place', function() {
+      // addPlace.find(".page-wrapper").get(0).style.display = "block";
+      
+      // $(".annotation-editor-popup-inner .cancel").click();
+      $(".annotation-editor-popup").hide();
+      $("#main").after(addPlace);
+      $(".add-place" ).dialog();
+      // datepicker
+      $(".from" ).datepicker({
+        changeMonth: true,
+        changeYear: true
+      });
+      $(".to" ).datepicker({
+        changeMonth: true,
+        changeYear: true
+      });
     });
+    $('.add-place').dialog({autoOpen: false,title: 'Create Place'});
 
-    addPlace.on('click', '.btn-add-place', function() {
-      var title = addPlace.find(".title").val(),
+    addPlace.on('click', '.add-place-submit', function() {
+      var title = addPlace.find(".title2").val(),
           uri = addPlace.find(".uri").val(),
           lat = addPlace.find(".latitude").val(),
           lon = addPlace.find(".longitude").val(),
@@ -349,7 +114,7 @@ define([
           ccode = addPlace.find("#country").val(),
           altNames = addPlace.find(".altNames").val(),
           description = addPlace.find(".description").val(),
-          jsonData = {'title':title, 'uri': uri, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'ccode': ccode, 'from': parseInt(from), 'to': parseInt(to),'description':description,'altNames':altNames};
+          jsonData = {'title':title2, 'uri': uri, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'ccode': ccode, 'from': parseInt(from), 'to': parseInt(to),'description':description,'altNames':altNames};
       if (title && uri && lat && lon)
         API.addPlace2Gazetter(jsonData).done(function(result) {
          if (result) //header.showStatusSaved();
@@ -360,6 +125,18 @@ define([
       else 
         alert("All information should be filled")
       });
+    
+    addPlace.on( "click", ".btn-cancel-place", function() {
+      $(".ui-dialog").remove();
+      $(".annotation-editor-popup").show();
+    });
+    $(document).mouseup(function(e){
+      var container = $(".ui-dialog");
+      if(!container.is(e.target) && container.has(e.target).length === 0){
+          container.hide();
+          // $(".annotation-editor-popup").show();
+      }
+    });
   };
   NoMatchCard.prototype = Object.create(Card.prototype);
 

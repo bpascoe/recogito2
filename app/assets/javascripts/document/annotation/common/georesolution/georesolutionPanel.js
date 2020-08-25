@@ -36,6 +36,10 @@ define([
                           '<button class="outline-icon nostyle">&#xe842;</button>' +
                           '<span class="label">Flag this place</span>' +
                         '</span>' +
+                        '<span class="create-place">' +
+                          '<i style="font-size:24px" class="far">+</i>' +
+                          '<span class="label">Create place</span>' +
+                        '</span>' +
                       '</div>' +
                       '<button class="nostyle outline-icon cancel">&#xe897;</button>' +
                     '</div>' +
@@ -345,6 +349,14 @@ define([
     map.add(shapeLayer);
 
     resultContainer.scroll(onScroll);
+
+    $(".create-place").click
+    element.on( "click", ".create-place", function() {
+      if ($(".btn-add-place").length) {
+        $(".btn-add-place").click();
+        element.hide();
+      }
+    });
 
     btnFlag.click(onFlag);
     btnCancel.click(close);
