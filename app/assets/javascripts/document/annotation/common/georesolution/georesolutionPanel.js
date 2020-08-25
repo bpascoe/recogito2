@@ -37,7 +37,7 @@ define([
                           '<span class="label">Flag this place</span>' +
                         '</span>' +
                         '<span class="create-place">' +
-                          '<i style="font-size:24px" class="far">+</i>' +
+                          '<b style="font-size:24px;margin-left:10px;margin-right:5px;">+</b>' +
                           '<span class="label">Create place</span>' +
                         '</span>' +
                       '</div>' +
@@ -355,6 +355,44 @@ define([
       if ($(".btn-add-place").length) {
         $(".btn-add-place").click();
         element.hide();
+      } else {
+        var addPlace = jQuery('<div class="wrapper wrapper--w680 add-place"><div class="card card-1"><div class="card-body">' +
+            '<b class="title">Create Place </b><span style="font-size:12px; color:gray;">Fileds with * are required</span>'+
+            '<div class="input-group"><input class="input--style-1 title2" type="text" placeholder="Place Name*" value="'+$('#main .selection').text()+'" required></div>'+
+            '<div class="input-group"><input class="input--style-1 uri" type="text" placeholder="URI"></div>'+
+            '<div class="input-group"><input class="input--style-1 latitude" type="text" placeholder="Latitude*" required></div>'+
+            '<div class="input-group"><input class="input--style-1 longitude" type="text" placeholder="Longitude*" required></div>'+
+            '<div class="input-group"><div class="rs-select2 js-select-simple select--no-search">'+
+             '<select name="country"><option disabled="disabled" selected="selected">Country</option></select>'+
+             '<div class="select-dropdown"></div></div></div>'+
+            '<div class="input-group"><input class="input--style-1 description" type="text" placeholder="Description"></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker from" type="text" placeholder="Timespan Start"><i class="zmdi zmdi-calendar-note input-icon js-btn-calendar"></i></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker2 to" type="text" placeholder="Timespan End"><i class="zmdi zmdi-calendar-note input-icon js-btn-calendar2"></i></div>'+
+            '<div class="input-group"><input class="input--style-1 altNames" type="text" placeholder="Alternate Names"></div>'+
+            '<div class="p-t-20"><button class="btn btn--radius btn--red btn-cancel-place">Cancel</button>'+
+            '<button class="btn btn--radius btn--green add-place-submit">Submit</button></div>'+
+            '</div></div></div>'+
+            // '<div><button class="btn-add-place">Create Place</button></div>' +
+          '</div>');
+        $.each(Countries.getCountries() , function(index, val) {
+          var options = addPlace.find('select').prop('options');
+          options[options.length] = new Option(val, index);
+        });
+        element.on('click', '.btn-add-place', function() {
+          $(".annotation-editor-popup").hide();
+          $("#main").after(addPlace);
+          $(".add-place" ).dialog();
+          // datepicker
+          $(".from" ).datepicker({
+            changeMonth: true,
+            changeYear: true
+          });
+          $(".to" ).datepicker({
+            changeMonth: true,
+            changeYear: true
+          });
+        });
+        $('.add-place').dialog({autoOpen: false,title: 'Create Place'});
       }
     });
 
