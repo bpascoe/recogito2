@@ -1,6 +1,7 @@
 define([
   'document/annotation/common/editor/sections/place/cards/baseCard','common/config',
-  'common/api','document/annotation/common/page/header','common/flagstrap','common/ui/countries'], function(Card, Config, API, Header,Flagstrap,Countries) {
+  'common/api','document/annotation/common/page/header','common/flagstrap',
+  'common/ui/countries','document/annotation/common/editor/sections/place/placeSection'], function(Card, Config, API, Header,Flagstrap,Countries,PlaceSection) {
   
   var NoMatchCard = function(containerEl, verificationStatus, lastModified) {
     var header = new Header();
@@ -114,11 +115,11 @@ define([
           ccode = addPlace.find("#country").val(),
           altNames = addPlace.find(".altNames").val(),
           description = addPlace.find(".description").val(),
-          jsonData = {'title':title2, 'uri': uri, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'ccode': ccode, 'from': parseInt(from), 'to': parseInt(to),'description':description,'altNames':altNames};
-      if (title && uri && lat && lon)
+          jsonData = {'title':title, 'uri': uri, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'ccode': ccode, 'from': parseInt(from), 'to': parseInt(to),'description':description,'altNames':altNames};
+      if (title && lat && lon)
         API.addPlace2Gazetter(jsonData).done(function(result) {
-         if (result) //header.showStatusSaved();
-           $('.ok').click();
+         if (result) {$(".ui-dialog").remove();$('.ok').click();} 
+         //header.showStatusSaved();
         }).fail(function(error) {
          header.showSaveError(error);
         });
@@ -133,6 +134,7 @@ define([
     $(document).mouseup(function(e){
       var container = $(".ui-dialog");
       if(!container.is(e.target) && container.has(e.target).length === 0){
+          if (!$("#ui-datepicker-div").is(e.target) && $("#ui-datepicker-div").has(e.target).length === 0)
           container.hide();
           // $(".annotation-editor-popup").show();
       }

@@ -278,11 +278,11 @@ class AnnotationAPIController @Inject() (
         val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,description2,altNames2,Some(point),Some(coord),ccode2,temporal_bounds,Seq.empty[String],None,Seq.empty[Link])
         // val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq.empty[Description],Seq(Name(title)),Some(point),Some(coord),None,None,Seq.empty[String],None,Seq.empty[Link])
         importer.importRecord(record)
-        Future.successful(Ok("success"))
+        Future.successful(Ok("Success"))
         // Future {Ok("success")}
       }
       case None =>
-        Logger.warn("Need to fill all necessary information")
+        // Logger.warn("Need to fill all necessary information")
         Future.successful(BadRequest)
     }
   }
