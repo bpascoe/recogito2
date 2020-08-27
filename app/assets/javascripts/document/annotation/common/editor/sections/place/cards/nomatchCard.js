@@ -95,10 +95,12 @@ define([
       $(".add-place" ).dialog();
       // datepicker
       $(".from" ).datepicker({
+        dateFormat: 'dd/mm/yy',
         changeMonth: true,
         changeYear: true
       });
       $(".to" ).datepicker({
+        dateFormat: 'dd/mm/yy',
         changeMonth: true,
         changeYear: true
       });

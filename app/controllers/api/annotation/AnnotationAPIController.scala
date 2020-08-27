@@ -263,9 +263,13 @@ class AnnotationAPIController @Inject() (
         val coord = new Coordinate(lon, lat)
         val point = new GeometryFactory().createPoint(coord)
         val time = DateTime.now()
-        val from  = (json \ "from").asOpt[Int].getOrElse(99999)
-        val to  = (json \ "to").asOpt[Int].getOrElse(99999)
-        val temporal_bounds = if (from == 99999 || to == 99999) {None} else { Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(from, 1, 1).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(to, 1, 1).withTime(0, 0, 0, 0)))}
+        val from  = (json \ "from").asOpt[String].getOrElse("")
+        val to  = (json \ "to").asOpt[String].getOrElse("")
+        val temporal_bounds = if (from == "" || to == "") {None} else { 
+          val fromvalues = from.split("/") // dd/mm/yy
+          val tovalues = to.split("/") 
+          Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromvalues(2).toInt, fromvalues(1).toInt, fromvalues(0).toInt).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(tovalues(2).toInt, tovalues(1).toInt, tovalues(0).toInt).withTime(0, 0, 0, 0)))
+        }
         val ccode  = (json \ "ccode").asOpt[String].getOrElse("")
         val ccode2 = if (ccode.size == 2) {Some(new CountryCode(ccode))} else {None}
         val description  = (json \ "description").asOpt[String].getOrElse("")
