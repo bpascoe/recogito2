@@ -351,7 +351,7 @@ define([
         var marker = L.marker([lat, lng]).addTo(markerLayer);
         $(".searchMark").remove();
         $(marker._icon).addClass('searchMark');
-        marker.bindPopup("<p>Latitude, longitude is: <p>" + lat + ", " + lng +"<p><button class='btn-ok-mark'>Add</button>")
+        marker.bindPopup("<p>Latitude is: " + lat + "<p>Longitude is: " + lng +"<p><button class='btn-ok-mark'>Add</button>")
         .openPopup();
         return false;
     };

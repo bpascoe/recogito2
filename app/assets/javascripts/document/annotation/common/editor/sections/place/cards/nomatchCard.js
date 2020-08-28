@@ -17,8 +17,8 @@ define([
              '<select name="country"><option disabled="disabled" selected="selected">Country</option></select>'+
              '<div class="select-dropdown"></div></div></div>'+
             '<div class="input-group"><input class="input--style-1 description" type="text" placeholder="Description"></div>'+
-            '<div class="input-group"><input class="input--style-1 js-datepicker from" type="text" placeholder="Timespan Start yyyy/mm/dd"><i class="zmdi zmdi-calendar-note input-icon js-btn-calendar"></i></div>'+
-            '<div class="input-group"><input class="input--style-1 js-datepicker2 to" type="text" placeholder="Timespan End yyyy/mm/dd"><i class="zmdi zmdi-calendar-note input-icon js-btn-calendar2"></i></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker from" type="text" placeholder="Timespan Start yyyy-mm-dd"></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker2 to" type="text" placeholder="Timespan End yyyy-mm-dd"></div>'+
             '<div class="input-group"><input class="input--style-1 altNames" type="text" placeholder="Alternate Names"></div>'+
             '<div class="p-t-20"><button class="btn btn--radius btn--red btn-cancel-place">Cancel</button>'+
             '<button class="btn btn--radius btn--green add-place-submit">Submit</button></div>'+
@@ -95,24 +95,24 @@ define([
       $(".add-place" ).dialog();
       // datepicker
       $(".from" ).datepicker({
-        forceParse: false,
-        dateFormat: 'yy/mm/dd',
+        dateFormat: 'yy-mm-dd',
         changeMonth: true,
         changeYear: true,
         showOn: "button",
         buttonImage: "https://jqueryui.com/resources/demos/datepicker/images/calendar.gif",
         buttonImageOnly: true,
-        buttonText: "Select date"
+        buttonText: "Select date",
+        forceParse: false
       });
       $(".to" ).datepicker({
-        forceParse: false,
-        dateFormat: 'yy/mm/dd',
+        dateFormat: 'yy-mm-dd',
         changeMonth: true,
         changeYear: true,
         showOn: "button",
         buttonImage: "https://jqueryui.com/resources/demos/datepicker/images/calendar.gif",
         buttonImageOnly: true,
-        buttonText: "Select date"
+        buttonText: "Select date",
+        forceParse: false
       });
     });
     $('.add-place').dialog({autoOpen: false,title: 'Create Place'});
