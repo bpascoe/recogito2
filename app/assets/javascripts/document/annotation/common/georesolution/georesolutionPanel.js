@@ -347,6 +347,23 @@ define([
 
     map.add(markerLayer);
     map.add(shapeLayer);
+    var updateMarker = function(lat, lng) {
+        var marker = L.marker([lat, lng]).addTo(markerLayer);
+        $(".searchMark").remove();
+        $(marker._icon).addClass('searchMark');
+        marker.bindPopup("<p>Latitude, longitude is: <p>" + lat + ", " + lng +"<p><button class='btn-ok-mark'>Add</button>")
+        .openPopup();
+        return false;
+    };
+    map.leafletMap.on('click', function(e) {
+        updateMarker(e.latlng.lat, e.latlng.lng);
+        $(".leaflet-popup-content .btn-ok-mark").on('click', function() {
+          $(".btn-add-place").click();
+          $(".clicktrap").remove();
+          $('.latitude').val(e.latlng.lat);
+          $('.longitude').val(e.latlng.lng);
+        });
+    });
 
     resultContainer.scroll(onScroll);
 
