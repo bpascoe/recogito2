@@ -23,7 +23,7 @@ require([
     new BaseTextApp(contentNode, highlighter, selector, phraseAnnotator);
   });
 var folderId = sessionStorage.getItem("folderId");
-if (folderId)
+if (folderId) {
   $.get( document.location.origin + "/api/directory/my/" + folderId, function(data) {
     var items = data.items;
     if (items.length > 1)
@@ -42,7 +42,13 @@ if (folderId)
           // lis.find('a').attr('href') = document.location.origin + "/document/"+docId+"/part/1/edit";
           // $('.sidebar ul.menu').append(lis);
       });
-      
   });
+  // add breadcrumbs
+  var breadcrumbs = sessionStorage.getItem("breadcrumbs");
+  $(".root").attr("href",window.location.origin+"#");
+  JSON.parse(breadcrumbs).map(function(e) {
+    $(".root").append(" &gt; <a class='folder' href="+window.location.origin+"#"+e.id+">"+e.title+"</a>");
+  });
+}
   
 });

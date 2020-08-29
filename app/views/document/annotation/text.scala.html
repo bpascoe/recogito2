@@ -51,6 +51,7 @@
   <body>
     @views.html.document.iconbar(doc.document, currentUser, accessLevel, "edit")
     <div class="header-infobox">
+      <div class="breadcrumbs"><h2><a class="root">My Documents</a></h2></div>
       <h1>
         @doc.author.map(_ + ": ")@doc.title
         @views.html.document.annotation._clonedFrom(doc, clonedFrom)
