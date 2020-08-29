@@ -367,7 +367,6 @@ define([
 
     resultContainer.scroll(onScroll);
 
-    $(".create-place").click
     element.on( "click", ".create-place", function() {
       if ($(".btn-add-place").length) {
         $(".btn-add-place").click();
