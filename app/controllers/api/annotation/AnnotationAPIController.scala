@@ -266,8 +266,8 @@ class AnnotationAPIController @Inject() (
         val from  = (json \ "from").asOpt[String].getOrElse("")
         val to  = (json \ "to").asOpt[String].getOrElse("")
         val temporal_bounds = if (from == "" || to == "") {None} else { 
-          val fromvalues = from.split("/") // dd/mm/yy
-          val tovalues = to.split("/") 
+          val fromvalues = from.split("-") // yy-mm-dd
+          val tovalues = to.split("-") 
           Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromvalues(0).toInt, fromvalues(1).toInt, fromvalues(2).toInt).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(tovalues(0).toInt, tovalues(1).toInt, tovalues(2).toInt).withTime(0, 0, 0, 0)))
         }
         val ccode  = (json \ "ccode").asOpt[String].getOrElse("")
@@ -282,6 +282,9 @@ class AnnotationAPIController @Inject() (
         val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,description2,altNames2,Some(point),Some(coord),ccode2,temporal_bounds,Seq.empty[String],None,Seq.empty[Link])
         // val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq.empty[Description],Seq(Name(title)),Some(point),Some(coord),None,None,Seq.empty[String],None,Seq.empty[Link])
         importer.importRecord(record)
+
+        // annotationStored <- annotationService.upsertAnnotation(annotation)
+                       
         Future.successful(Ok("Success"))
         // Future {Ok("success")}
       }

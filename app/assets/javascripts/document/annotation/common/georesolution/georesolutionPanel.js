@@ -359,7 +359,7 @@ define([
         updateMarker(e.latlng.lat, e.latlng.lng);
         $(".leaflet-popup-content .btn-ok-mark").on('click', function() {
           $(".btn-add-place").click();
-          $(".clicktrap").remove();
+          $(".clicktrap").hide();
           $('.latitude').val(e.latlng.lat);
           $('.longitude').val(e.latlng.lng);
         });
