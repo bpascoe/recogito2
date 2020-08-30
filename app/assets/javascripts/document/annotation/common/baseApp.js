@@ -57,6 +57,15 @@ define([
 
          // Merge server-provided properties (id, timestamps, etc.) into the annotation
          jQuery.extend(annotationStub, annotation);
+         // sessionStorage.setItem("annotationStub",JSON.stringify(annotationStub));
+         // var sessAnnotation = JSON.parse(sessionStorage.getItem("annotationStub"));
+        // if (annotationStub) {
+        //   API.addAnnotation2ES(annotationStub).done(function(result) {
+        //     console.log(result);
+        //     if (result) sessionStorage.removeItem("annotationStub");
+        //   });
+        // }
+
          self.highlighter.refreshAnnotation(annotationStub);
        })
        .fail(function(error) {

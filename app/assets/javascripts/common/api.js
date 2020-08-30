@@ -20,6 +20,14 @@ define([
       return jsRoutes.controllers.api.annotation.AnnotationAPIController.listAnnotationsInPart(docId, partNo).ajax();
     },
 
+    addAnnotation2ES : function(annotation) {
+      return jsRoutes.controllers.api.annotation.AnnotationAPIController.addAnnotation2ES().ajax({
+        type: 'POST',
+        data: JSON.stringify(annotation),
+        contentType: 'application/json'
+      });
+    },
+
     storeAnnotation : function(annotation) {
       return jsRoutes.controllers.api.annotation.AnnotationAPIController.createAnnotation().ajax({
         type: 'POST',

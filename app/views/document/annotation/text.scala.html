@@ -159,10 +159,18 @@
 
     <div id="bulk-annotation" />
 
+    <script type="text/javascript">
+      $(document).on('click', '.annotation.place.UNVERIFIED', function(){
+        console.log('test');
+        $(".btn.delete").click();
+        $(".category.place").click();
+      });
+    </script>
     <script type="text/javascript" src="@routes.Assets.versioned("build/bulkannotation.js")"></script>
     @helper.javascriptRouter("jsRoutes")(
       controllers.api.annotation.routes.javascript.AnnotationAPIController.listAnnotationsInPart,
       controllers.api.annotation.routes.javascript.AnnotationAPIController.createAnnotation,
+      controllers.api.annotation.routes.javascript.AnnotationAPIController.addAnnotation2ES,
       controllers.api.annotation.routes.javascript.AnnotationAPIController.createPlace,
       controllers.api.annotation.routes.javascript.AnnotationAPIController.deleteAnnotation,
       controllers.api.annotation.routes.javascript.AnnotationAPIController.bulkUpsert,

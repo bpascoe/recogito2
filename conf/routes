@@ -265,6 +265,7 @@ GET     /api/place/search                            controllers.api.entity.Plac
 GET     /api/place/:uri                              controllers.api.entity.PlaceAPIController.findPlaceByURI(uri: String)
 
 POST    /api/gazetteer                              controllers.api.annotation.AnnotationAPIController.createPlace
+POST    /api/addAnnotation2ES                              controllers.api.annotation.AnnotationAPIController.addAnnotation2ES
 
 # ~~~ Tasks ~~~
 

@@ -121,6 +121,33 @@ class AnnotationAPIController @Inject() (
     }
   }
 
+  def addAnnotation2ES() = silhouette.UserAwareAction.async { implicit request => jsonOp[AnnotationStub] { annotationStub =>
+    val username = request.identity.get.username
+    documents.getDocumentRecordById(annotationStub.annotates.documentId, Some(username)).flatMap(_ match {
+      case Some((document, accesslevel)) => {
+        if (accesslevel.canWrite) {
+          val annotation = annotationStub.toAnnotation(username)
+          val f = for {
+            previousVersion <- annotationService.findById(annotation.annotationId).map(_.map(_._1))
+            isValidUpdate <- isValidUpdate(annotation, previousVersion)
+            if (isValidUpdate)
+            annotationStored <- annotationService.upsertAnnotation(annotation)
+
+            success <- if (annotationStored)
+                         contributions.insertContributions(computeContributions(annotation, previousVersion, document))
+                       else
+                         Future.successful(false)
+          } yield success
+          f.map(success => if (success) Ok(Json.toJson(annotation)) else InternalServerError)
+        } else {
+          Future.successful(Forbidden)
+        }
+      }
+      case None =>
+        Future.successful(NotFound)
+    })
+  }}
+
   def createAnnotation() = silhouette.UserAwareAction.async { implicit request => jsonOp[AnnotationStub] { annotationStub =>
     val username = request.identity.get.username
 

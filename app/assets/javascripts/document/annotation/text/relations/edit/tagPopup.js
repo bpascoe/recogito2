@@ -97,13 +97,14 @@ define([
 
         onDelete = function() {
           element.hide();
+          if (connection) {
+            if (connection.isStored())
+              that.fireEvent('delete', connection);
+            else // Delete on a new connection = cancel
+              that.fireEvent('cancel', connection);
 
-          if (connection.isStored())
-            that.fireEvent('delete', connection);
-          else // Delete on a new connection = cancel
-            that.fireEvent('cancel', connection);
-
-          connection.destroy();
+            connection.destroy();
+          }
 
           return false;
         },

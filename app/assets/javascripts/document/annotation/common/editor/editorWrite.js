@@ -185,6 +185,13 @@ define([
               else
                 self.fireEvent('createAnnotation', self.currentSelection);
             }
+            // var sessAnnotation = JSON.parse(sessionStorage.getItem("annotationStub"));
+            // if (sessAnnotation) {
+            //   API.addAnnotation2ES(sessAnnotation).done(function(result) {
+            //     console.log(result);
+            //     if (result) sessionStorage.removeItem("annotationStub");
+            //   });
+            // }
           } else {
             selectionHandler.clearSelection();
           }
