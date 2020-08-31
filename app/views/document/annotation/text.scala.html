@@ -161,9 +161,10 @@
 
     <script type="text/javascript">
       $(document).on('click', '.annotation.place.UNVERIFIED', function(){
-        console.log('test');
-        $(".btn.delete").click();
-        $(".category.place").click();
+        if ($(".btn.change").length) {
+          $(".btn.delete").click();
+          $(".category.place").click();
+        }
       });
     </script>
     <script type="text/javascript" src="@routes.Assets.versioned("build/bulkannotation.js")"></script>

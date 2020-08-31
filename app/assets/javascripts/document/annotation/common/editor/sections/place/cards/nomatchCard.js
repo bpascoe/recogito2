@@ -131,6 +131,7 @@ define([
       if (title && lat && lon)
         API.addPlace2Gazetter(jsonData).done(function(result) {
          if (result) {
+          sessionStorage.setItem("uri", uri);
           $(".ui-dialog").remove();
           $('.ok').click();
         } 

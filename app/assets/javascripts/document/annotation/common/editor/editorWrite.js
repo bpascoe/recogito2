@@ -182,8 +182,16 @@ define([
               // No ID? New annotation from fresh selection - CREATE if not empty
               if (AnnotationUtils.isEmpty(currentAnnotation))
                 selectionHandler.clearSelection();
-              else
+              else {
                 self.fireEvent('createAnnotation', self.currentSelection);
+                // var sessAnnotation = JSON.parse(sessionStorage.getItem("annotationStub"));
+                // if (sessAnnotation) {
+                //   // sessAnnotation.bodies[1].status.value = "VERIFIED";
+                //   sessAnnotation.bodies[1] = {"type":"PLACE","status":{"value":"VERIFIED"},"uri":sessionStorage.getItem("uri")};
+                //   self.fireEvent('updateAnnotation', sessAnnotation);
+                //   sessionStorage.removeItem("annotationStub");
+                // }
+              }
             }
             // var sessAnnotation = JSON.parse(sessionStorage.getItem("annotationStub"));
             // if (sessAnnotation) {

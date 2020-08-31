@@ -50,6 +50,7 @@ define([
     self.header.showStatusSaving();
     API.storeAnnotation(annotationStub)
        .done(function(annotation) {
+         annotation.bodies[1] = {"type":"PLACE","status":{"value":"VERIFIED"},"uri":sessionStorage.getItem("uri")};
          self.annotations.addOrReplace(annotation);
          self.header.incrementAnnotationCount();
          self.header.updateContributorInfo(Config.me);
