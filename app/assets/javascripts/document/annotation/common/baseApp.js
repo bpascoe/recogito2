@@ -50,7 +50,15 @@ define([
     self.header.showStatusSaving();
     API.storeAnnotation(annotationStub)
        .done(function(annotation) {
-         annotation.bodies[1] = {"type":"PLACE","status":{"value":"VERIFIED"},"uri":sessionStorage.getItem("uri")};
+         
+        if (sessionStorage.getItem("title")) {
+          annotation.bodies[1].status = {"value":"VERIFIED"};
+          annotation.bodies[1].uri = sessionStorage.getItem("uri");
+          API.storeAnnotation(annotation);
+          sessionStorage.removeItem("title");
+          sessionStorage.removeItem("uri");
+        }
+       
          self.annotations.addOrReplace(annotation);
          self.header.incrementAnnotationCount();
          self.header.updateContributorInfo(Config.me);
@@ -66,8 +74,8 @@ define([
         //     if (result) sessionStorage.removeItem("annotationStub");
         //   });
         // }
-
          self.highlighter.refreshAnnotation(annotationStub);
+
        })
        .fail(function(error) {
          self.header.showSaveError(error);

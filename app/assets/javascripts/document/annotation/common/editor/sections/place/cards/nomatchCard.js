@@ -132,6 +132,7 @@ define([
         API.addPlace2Gazetter(jsonData).done(function(result) {
          if (result) {
           sessionStorage.setItem("uri", uri);
+          sessionStorage.setItem("title", title);
           $(".ui-dialog").remove();
           $('.ok').click();
         } 

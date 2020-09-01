@@ -273,9 +273,12 @@ class AnnotationAPIController @Inject() (
     val importer = importerFactory.createImporter(EntityType.PLACE)
     val entityURIs = annotation.bodies.flatMap(_.uri).mkString(" ")
     if (entityURIs.trim.nonEmpty) {
-      val place = Await.result(entity.findByURI(entityURIs), 1.seconds).get.entity
-      place.isConflationOf.map(record=>
-        importer.importRecord(record.copy(sourceAuthority = ES.CONTRIBUTION, title = annotation.bodies.flatMap(_.value).mkString(" "),lastSyncedAt=DateTime.now(),lastChangedAt=Some(DateTime.now()))))
+      val ent = Await.result(entity.findByURI(entityURIs), 1.seconds)
+      if (ent != None) {
+        val place = ent.get.entity
+        place.isConflationOf.map(record=>
+          importer.importRecord(record.copy(sourceAuthority = ES.CONTRIBUTION, title = annotation.bodies.flatMap(_.value).mkString(" "),lastSyncedAt=DateTime.now(),lastChangedAt=Some(DateTime.now()))))
+      }
     }
   }
 // add new place to user-added contribution gazetteer (not exist ever)

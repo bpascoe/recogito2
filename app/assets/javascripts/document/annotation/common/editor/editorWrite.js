@@ -155,7 +155,7 @@ define([
         onOK = function() {
           var reply = replyField.getBody(), selection,
               currentAnnotation = self.currentSelection.annotation,
-              hasChanged = self.updatedAnchor || reply || self.sectionList.hasChanged();
+              hasChanged = self.updatedAnchor || reply || self.sectionList.hasChanged() || sessionStorage.getItem("title");
 
           if (hasChanged || annotationMode.mode === 'QUICK') {
             // Commit anchor changes
@@ -184,27 +184,25 @@ define([
                 selectionHandler.clearSelection();
               else {
                 self.fireEvent('createAnnotation', self.currentSelection);
-                // var sessAnnotation = JSON.parse(sessionStorage.getItem("annotationStub"));
-                // if (sessAnnotation) {
-                //   // sessAnnotation.bodies[1].status.value = "VERIFIED";
-                //   sessAnnotation.bodies[1] = {"type":"PLACE","status":{"value":"VERIFIED"},"uri":sessionStorage.getItem("uri")};
-                //   self.fireEvent('updateAnnotation', sessAnnotation);
-                //   sessionStorage.removeItem("annotationStub");
+                // // Now the place is not new, confirm
+                // if (sessionStorage.getItem("title")) {
+                //  currentAnnotation.bodies[1].status = {"value":"VERIFIED"};
+                //  currentAnnotation.bodies[1].uri = sessionStorage.getItem("uri");
+                //  sessionStorage.removeItem("uri");
+                //  sessionStorage.removeItem("title");
                 // }
+                // self.fireEvent('updateAnnotation', currentAnnotation);
+                // var sessAnnotation = JSON.parse(sessionStorage.getItem("annotationStub"));
+                
               }
             }
-            // var sessAnnotation = JSON.parse(sessionStorage.getItem("annotationStub"));
-            // if (sessAnnotation) {
-            //   API.addAnnotation2ES(sessAnnotation).done(function(result) {
-            //     console.log(result);
-            //     if (result) sessionStorage.removeItem("annotationStub");
-            //   });
-            // }
+
           } else {
             selectionHandler.clearSelection();
           }
 
           self.close();
+
         },
 
         /** Shortcut: triggers OK and moves the editor to the next annotation **/
