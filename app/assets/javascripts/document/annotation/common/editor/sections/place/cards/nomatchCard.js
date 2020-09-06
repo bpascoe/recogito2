@@ -14,7 +14,7 @@ define([
             '<div class="input-group"><input class="input--style-1 latitude" type="text" placeholder="Latitude*" required></div>'+
             '<div class="input-group"><input class="input--style-1 longitude" type="text" placeholder="Longitude*" required></div>'+
             '<div class="input-group"><div class="rs-select2 js-select-simple select--no-search">'+
-             '<select name="country"><option disabled="disabled" selected="selected">Country</option></select>'+
+             '<select name="country" id="country"><option>Country</option></select>'+
              '<div class="select-dropdown"></div></div></div>'+
             '<div class="input-group"><input class="input--style-1 description" type="text" placeholder="Description"></div>'+
             '<div class="input-group"><input class="input--style-1 js-datepicker from" type="text" placeholder="Timespan Start yyyy-mm-dd"></div>'+
@@ -117,6 +117,13 @@ define([
     });
     $('.add-place').dialog({autoOpen: false,title: 'Create Place'});
 
+    function uuidv4() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
     addPlace.on('click', '.add-place-submit', function() {
       var title = addPlace.find(".title2").val(),
           uri = addPlace.find(".uri").val(),
@@ -126,8 +133,10 @@ define([
           to = addPlace.find(".to").val(),
           ccode = addPlace.find("#country").val(),
           altNames = addPlace.find(".altNames").val(),
-          description = addPlace.find(".description").val(),
-          jsonData = {'title':title, 'uri': uri, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'ccode': ccode, 'from': parseInt(from), 'to': parseInt(to),'description':description,'altNames':altNames};
+          description = addPlace.find(".description").val();
+
+      if (!uri) uri = "http://www.tlcmap.net.au/" + uuidv4();
+      var jsonData = {'title':title, 'uri': uri, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'ccode': ccode, 'from': from, 'to': to,'description':description,'altNames':altNames};
       if (title && lat && lon)
         API.addPlace2Gazetter(jsonData).done(function(result) {
          if (result) {

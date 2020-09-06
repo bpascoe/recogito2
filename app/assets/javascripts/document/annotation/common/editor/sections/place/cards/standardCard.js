@@ -24,6 +24,7 @@ define([
               '<span class="to2" style="display:none"></span>' +
               '<span class="latitude2" style="display:none"></span>' +
               '<span class="longitude2" style="display:none"></span>' +
+              '<span class="ccode" style="display:none"></span>' +
               '<div class="last-modified">' +
                 '<a class="by"></a>' +
                 '<span class="at"></span>' +
@@ -84,7 +85,7 @@ define([
           if (record.temporal_bounds)
             dateEl.html(Formatting.yyyyMMddToYear(record.temporal_bounds.from) + ' - ' +
               Formatting.yyyyMMddToYear(record.temporal_bounds.to));
-          
+
           if (record.temporal_bounds) {
             element.find('.from2').html(record.temporal_bounds.from);
             element.find('.to2').html(record.temporal_bounds.to);
@@ -93,6 +94,7 @@ define([
             element.find('.latitude2').html(record.representative_point[0]);
             element.find('.longitude2').html(record.representative_point[1]);
           }
+          element.find('.ccode').html(record.country_code);
 
           if (verificationStatus.value === 'UNVERIFIED') {
             lastModifiedEl.hide();
