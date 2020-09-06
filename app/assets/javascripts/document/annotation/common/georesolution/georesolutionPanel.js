@@ -200,7 +200,6 @@ define([
                   Formatting.yyyyMMddToYear(record.temporal_bounds.to));
               else
                 template.find('.date').hide();
-
               popup.find('.popup-choices table').append(template);
 
               if (recordId.shortcode) return recordId.shortcode;
@@ -374,17 +373,17 @@ define([
       } else {
         var addPlace = jQuery('<div class="wrapper wrapper--w680 add-place"><div class="card card-1"><div class="card-body">' +
             '<b class="title">Create Place </b><span style="font-size:12px; color:gray;">Fileds with * are required</span>'+
-            '<div class="input-group"><input class="input--style-1 title2" type="text" placeholder="Place Name*" value="'+$('#main .selection').text()+'" required></div>'+
-            '<div class="input-group"><input class="input--style-1 uri" type="text" placeholder="URI"></div>'+
-            '<div class="input-group"><input class="input--style-1 latitude" type="text" placeholder="Latitude*" required></div>'+
-            '<div class="input-group"><input class="input--style-1 longitude" type="text" placeholder="Longitude*" required></div>'+
+            '<div class="input-group"><input class="input--style-1 title2" type="text" placeholder="Place Name*" value="'+$('.info-text .title').text()+'" required></div>'+
+            '<div class="input-group"><input class="input--style-1 uri" type="text" placeholder="URI" value="'+$('.info-text .uris a').attr("href")+'"></div>'+
+            '<div class="input-group"><input class="input--style-1 latitude" type="text" placeholder="Latitude*" required value="'+$('.info-text .latitude2').text()+'"></div>'+
+            '<div class="input-group"><input class="input--style-1 longitude" type="text" placeholder="Longitude*" required value="'+$('.info-text .longitude2').text()+'"></div>'+
             '<div class="input-group"><div class="rs-select2 js-select-simple select--no-search">'+
              '<select name="country"><option disabled="disabled" selected="selected">Country</option></select>'+
              '<div class="select-dropdown"></div></div></div>'+
-            '<div class="input-group"><input class="input--style-1 description" type="text" placeholder="Description"></div>'+
-            '<div class="input-group"><input class="input--style-1 js-datepicker from" type="text" placeholder="Timespan Start"><i class="zmdi zmdi-calendar-note input-icon js-btn-calendar"></i></div>'+
-            '<div class="input-group"><input class="input--style-1 js-datepicker2 to" type="text" placeholder="Timespan End"><i class="zmdi zmdi-calendar-note input-icon js-btn-calendar2"></i></div>'+
-            '<div class="input-group"><input class="input--style-1 altNames" type="text" placeholder="Alternate Names"></div>'+
+            '<div class="input-group"><input class="input--style-1 description" type="text" placeholder="Description" value="'+$('.info-text .description').text()+'"></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker from" type="text" placeholder="Timespan Start yyyy-mm-dd" value="'+$('.info-text .from2').text()+'"></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker2 to" type="text" placeholder="Timespan End yyyy-mm-dd" value="'+$('.info-text .to2').text()+'"></div>'+
+            '<div class="input-group"><input class="input--style-1 altNames" type="text" placeholder="Alternate Names" value="'+$('.info-text .names').text()+'"></div>'+
             '<div class="p-t-20"><button class="btn btn--radius btn--red btn-cancel-place">Cancel</button>'+
             '<button class="btn btn--radius btn--green add-place-submit">Submit</button></div>'+
             '</div></div></div>'+
@@ -394,21 +393,72 @@ define([
           var options = addPlace.find('select').prop('options');
           options[options.length] = new Option(val, index);
         });
-        element.on('click', '.btn-add-place', function() {
-          $(".annotation-editor-popup").hide();
-          $("#main").after(addPlace);
-          $(".add-place" ).dialog();
-          // datepicker
-          $(".from" ).datepicker({
-            changeMonth: true,
-            changeYear: true
-          });
-          $(".to" ).datepicker({
-            changeMonth: true,
-            changeYear: true
-          });
+        $(".clicktrap").hide();
+        $(".annotation-editor-popup").hide();
+        $("#main").after(addPlace);
+        $(".add-place" ).dialog();
+        // datepicker
+        $(".from" ).datepicker({
+          dateFormat: 'yy-mm-dd',
+          changeMonth: true,
+          changeYear: true,
+          showOn: "button",
+          buttonImage: "https://jqueryui.com/resources/demos/datepicker/images/calendar.gif",
+          buttonImageOnly: true,
+          buttonText: "Select date",
+          forceParse: false
+        });
+        $(".to" ).datepicker({
+          dateFormat: 'yy-mm-dd',
+          changeMonth: true,
+          changeYear: true,
+          showOn: "button",
+          buttonImage: "https://jqueryui.com/resources/demos/datepicker/images/calendar.gif",
+          buttonImageOnly: true,
+          buttonText: "Select date",
+          forceParse: false
         });
         $('.add-place').dialog({autoOpen: false,title: 'Create Place'});
+        addPlace.on('click', '.add-place-submit', function() {
+          var title = addPlace.find(".title2").val(),
+              uri = addPlace.find(".uri").val(),
+              lat = addPlace.find(".latitude").val(),
+              lon = addPlace.find(".longitude").val(),
+              from = addPlace.find(".from").val(),
+              to = addPlace.find(".to").val(),
+              ccode = addPlace.find("#country").val(),
+              altNames = addPlace.find(".altNames").val(),
+              description = addPlace.find(".description").val(),
+              jsonData = {'title':title, 'uri': uri, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'ccode': ccode, 'from': parseInt(from), 'to': parseInt(to),'description':description,'altNames':altNames};
+          if (title && lat && lon)
+            API.addPlace2Gazetter(jsonData).done(function(result) {
+             if (result) {
+              sessionStorage.setItem("uri", uri);
+              sessionStorage.setItem("title", title);
+              $(".ui-dialog").remove();
+              $('.ok').click();
+            } 
+             //header.showStatusSaved();
+            }).fail(function(error) {
+             header.showSaveError(error);
+            });
+          else 
+            alert("All information should be filled")
+          });
+        
+        addPlace.on( "click", ".btn-cancel-place", function() {
+          $(".ui-dialog").remove();
+          $(".annotation-editor-popup").show();
+        });
+        // remove add place dialog if click no in the dialog
+        $(document).mouseup(function(e){
+          var container = $(".ui-dialog");
+          if(!container.is(e.target) && container.has(e.target).length === 0){
+              if (!$("#ui-datepicker-div").is(e.target) && $("#ui-datepicker-div").has(e.target).length === 0)
+              container.hide();
+              // $(".annotation-editor-popup").show();
+          }
+        });
       }
     });
 
