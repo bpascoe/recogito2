@@ -59,9 +59,9 @@
             // var docHeader = ['Filename', 'Title', 'Author', 'Description', 'Language', 'Source', 'Edition', 'License', 'Attribution', 'StartDate', 'EndDate', 'PublicationPlace', 'Latitude', 'Longitude'];
             // var Header = ['Filename', 'StartDate', 'EndDate'];
             var lines = e.target.result.split('\r\n');
-            var header = lines[0].split(",");
+            var header = lines[0].replace(/\"/g, "").split(",");
             for (var i = 1; i < lines.length; ++i) {
-              var row = CSVtoArray(lines[i]);
+              var row = CSVtoArray(lines[i]);//.replace(/\"/g, "")
               if (row.length > 1 && row[0].length>2) {
                 var doc = {folderId: sessionStorage.folderId}
                 for (var j = 0; j < row.length; ++j) {
@@ -69,7 +69,8 @@
                 }
                 $.ajax({type: 'POST', url:document.location.origin + "/api/document/loadCsv", data: JSON.stringify(doc),contentType: 'application/json'}).done(function(data) {
                     // console.log( "Data Loaded: " + data );
-                    $(".status").append("<p> "+($(".status").find("p").length+1)+". "+data);
+                    if (data) $(".status").append("<p> "+($(".status").find("p").length+1)+". "+data);
+                    else $(".status").append("<p> "+($(".status").find("p").length+1)+". " + row[0] + " update successfully, but not its annotations.");
                   });
               }
             }

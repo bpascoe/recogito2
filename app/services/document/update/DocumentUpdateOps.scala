@@ -101,7 +101,7 @@ trait DocumentUpdateOps { self: DocumentService =>
       .set(DOCUMENT.LONGITUDE, optString(longitude))
       .where(DOCUMENT.ID.equal(docId)).execute()
     
-    rowsAffected == 1
+    rowsAffected > 0
   }
 
   /** Updates the public_access_level field with the given value (or null) **/
