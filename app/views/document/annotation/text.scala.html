@@ -160,6 +160,7 @@
     <div id="bulk-annotation" />
 
     <script type="text/javascript">
+      $(".root").attr("href",window.location.origin+"#");
       $(document).on('click', '.annotation.place.UNVERIFIED', function(){
         if ($(".btn.change").length) {
           $(".btn.delete").click();

@@ -198,11 +198,13 @@ class AnnotationAPIController @Inject() (
           val docId = if (folderId.length>3) {Await.result(documents.getDocIdByTitle(filename,username, Some(UUID.fromString(folderId))), 1.seconds)
           } else {Await.result(documents.getDocIdByTitle(filename,username, None), 1.seconds)}
           if (docId != null) {
-            val fromVal  = (json \ "StartDate").asOpt[Int].getOrElse(99999)
-            val toVal  = (json \ "EndDate").asOpt[Int].getOrElse(99999)
-            val from = if (fromVal == 99999) {null} else { new DateTime(DateTimeZone.UTC).withDate(fromVal, 1, 1).withTime(0, 0, 0, 0)}
-            val to = if (toVal == 99999) {null} else { new DateTime(DateTimeZone.UTC).withDate(toVal, 1, 1).withTime(0, 0, 0, 0)}
-            val temporal_bounds = if (from == 99999 && to == 99999) {None} else { Some(new TemporalBounds(from, to))}
+            val from  = (json \ "StartDate").asOpt[String].getOrElse("")
+            val to  = (json \ "EndDate").asOpt[String].getOrElse("")
+            val temporal_bounds = if (from == "" || to == "") {None} else { 
+              val fromvalues = from.split("/") // dd-mm-yy
+              val tovalues = to.split("/") 
+              Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromvalues(2).toInt, fromvalues(1).toInt, fromvalues(0).toInt).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(tovalues(2).toInt, tovalues(1).toInt, tovalues(0).toInt).withTime(0, 0, 0, 0)))
+            }
             val title  = (json \ "Title").asOpt[String]
             val author  = (json \ "Author").asOpt[String]
             val description  = (json \ "Description").asOpt[String]
@@ -212,13 +214,10 @@ class AnnotationAPIController @Inject() (
             val license  = (json \ "License").asOpt[String]
             val attribution  = (json \ "Attribution").asOpt[String]
             val pubPlace  = (json \ "PublicationPlace").asOpt[String]
-            val startDate = (json \ "StartDate").asOpt[String]
-            val endDate  = (json \ "EndDate").asOpt[String]
             val latitude  = (json \ "Latitude").asOpt[String]
             val longitude  = (json \ "Longitude").asOpt[String]
-            // val format = DateTimeFormatter.ofPattern("dd/MM/yyyy")//' 'HH:mm:ss
-            // val startDate = if ((json \ "StartDate").as[String].length<1) {null} else {Some(new Timestamp(new SimpleDateFormat("dd/MM/yyyy").parse((json \ "StartDate").as[String]).getTime()))}
-            // val endDate = if ((json \ "EndDate").as[String].length<1) {null} else {Some(new Timestamp(new SimpleDateFormat("dd/MM/yyyy").parse((json \ "EndDate").as[String]).getTime()))}
+            val startDate  = (json \ "StartDate").asOpt[String]
+            val endDate  = (json \ "EndDate").asOpt[String]
             val row = documents.updateMetadata2(docId,title,author,description,language,source,edition,license,attribution,pubPlace,startDate,endDate,latitude,longitude)
             // val entities = entity.listIndexedEntitiesInDocument(docId, Some(EntityType.PLACE))
             val entities = entity.listIndexedEntitiesInDocument(docId, Some(EntityType.PLACE)).map { result =>
