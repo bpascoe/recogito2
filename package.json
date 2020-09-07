@@ -28,7 +28,7 @@
     "eslint-plugin-import": "2.13.0",
     "jsx-loader": "0.13.2",
     "lodash": "^4.17.13",
-    "webpack": "^4.12.2",
+    "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10"
   },
   "engines": {

@@ -56,7 +56,7 @@ CREATE TABLE upload_filepart (
   sequence_no INTEGER
 );
 
--- users own (and can share) documents, we add more fields (filename, start_date, end_date, logitude, latitude)
+-- users own (and can share) documents, we add more fields (filename, start_date, end_date, longitude, latitude)
 CREATE TABLE document (
   id TEXT NOT NULL PRIMARY KEY,
   owner TEXT NOT NULL REFERENCES "user"(username),

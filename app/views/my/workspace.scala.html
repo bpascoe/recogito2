@@ -25,7 +25,7 @@
         var elem = $(this);
         var docId = elem.attr("href").split("/")[1];
         $.get( document.location.origin + "/api/isNERed/"+docId, function(data) {
-          if (data) elem.css({"background-color": "yellow", "font-size": "110%"});
+          if (data) elem.css({"background-color": "rgba(17, 173, 17, 0.3)", "font-size": "110%"});
         });
       }); 
     }

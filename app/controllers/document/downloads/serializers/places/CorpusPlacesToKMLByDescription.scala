@@ -10,7 +10,7 @@ import java.net._
 
 trait CorpusPlacesToKMLByDescription extends BaseGeoSerializer {
 
-  def courpusPlacesToKMLByDescription(
+  def corpusPlacesToKMLByDescription(
     docIds: Seq[String]
   )(implicit 
       entityService: EntityService, 
@@ -24,18 +24,7 @@ trait CorpusPlacesToKMLByDescription extends BaseGeoSerializer {
       <Placemark>
         <name>{f.quotes.distinct.mkString(",")}</name>
         <description>
-          {scala.xml.PCData("<div class=\"tlcmap recogito2\">"+
-            <table>
-              <tr><td>ID</td><td>{f.records.map(_.uri).distinct.mkString(", ")}</td></tr>
-              <tr><td>Title</td><td>{f.titles.mkString(",")}</td></tr>
-              <tr><td>Latitude</td><td>{f.geometry.getCentroid.getY}</td></tr>
-              <tr><td>Longitude</td><td>{f.geometry.getCentroid.getX}</td></tr>
-              <tr><td>CCode</td><td>{f.records.flatMap(_.countryCode).map(_.code).distinct.mkString(", ")}</td></tr>
-              <tr><td>Description</td><td>{f.records.flatMap(_.descriptions).map(_.description).mkString(", ")}</td></tr>
-              <tr><td>Contributor</td><td>{f.annotations.map(_.contributors.mkString(", ")).distinct.mkString(", ")}</td></tr>
-              <tr><td>Source</td><td>{f.records.map(_.sourceAuthority).distinct.mkString(", ")}</td></tr>
-            </table>+
-            "</div>")}
+			{scala.xml.PCData(buildKMLStringCorpus(f, host))}
         </description>
           
           { f.geometry match {
@@ -67,5 +56,43 @@ trait CorpusPlacesToKMLByDescription extends BaseGeoSerializer {
       </Document>
     </kml>
   } 
+
+// Scala xml handling within a map is deeply frustrating. 
+// It seems this is a commonly experienced problem: https://github.com/scala/bug/issues/3368
+// You try CDATA, you try quotes, you try interpolation, you try literal, you try adding a comma, whatever you do it breaks something else, you get it printing out names of objects, you get errors on quotes, you can't escape quotes, it encodes entities when you don't want it to, etc etc etc.
+// Even if I try to skip all that and just loop the data and build a string, when I pass that back out, it still encodes the CDATA, and turns out unworkable.
+// The only thing that seems to work is if ever you need CDATA, pass the required data to a method that is interpolated into the XML wrapped in the scala.xml.PCData() method.
+
+  def buildKMLStringCorpus (f: AnnotatedPlaceFeature, host: String) : String = {
+
+	var outCdata: String = "";
+
+		outCdata = outCdata + """
+			<div class="tlcmap recogito2">
+			<table>
+              <tr><td>ID</td><td><a href="""" + f.records.map(_.uri).distinct.mkString(", ") + """">""" + f.records.map(_.uri).distinct.mkString(", ") + """</a></td></tr>
+              <tr><td>Title</td><td>""" + f.titles.mkString(",") + """</td></tr>
+              <tr><td>Latitude</td><td>""" + f.geometry.getCentroid.getY + """</td></tr>
+              <tr><td>Longitude</td><td>""" + f.geometry.getCentroid.getX + """</td></tr>
+              <tr><td>CCode</td><td>""" + f.records.flatMap(_.countryCode).map(_.code).distinct.mkString(", ") + """</td></tr>
+              <tr><td>Description</td><td>""" + f.records.flatMap(_.descriptions).map(_.description).mkString(", ") + """</td></tr>
+              <tr><td>Contributor</td><td>""" + f.annotations.map(_.contributors.mkString(", ")).distinct.mkString(", ") + """</td></tr>
+              <tr><td>Source</td><td>""" + f.records.map(_.sourceAuthority).distinct.mkString(", ") + """</td></tr>
+            </table>
+			<h3>Occurences in Text:</h3>
+              <p class="annotation-links">
+			  """
+			  
+            f.annotations.zipWithIndex.map {
+                case(annotation, count) => 
+                  outCdata = outCdata + """<a href="""" + host + annotation.annotationId + """">""" + {count + 1} + """</a>, """
+            }
+			outCdata = outCdata.replaceAll(", $", ""); // remove the trailing comma
+			outCdata = outCdata + """
+              </p>
+			</div>
+		"""
+	return outCdata;
+  }
 
 }

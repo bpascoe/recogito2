@@ -202,9 +202,9 @@ class DownloadsController @Inject() (
       val owner = loggedIn
       val docIds = Await.result(documents.listIds(Some(UUID.fromString(folderId)), loggedIn),10.seconds)
       download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
-        val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else courpusPlacesToKMLByDescription(docIds)
+        val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else corpusPlacesToKMLByDescription(docIds)
         fXml.map { xml =>
-          Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.title}.kml" })
+          Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${folderId}.kml" })
         }
       })
     }
