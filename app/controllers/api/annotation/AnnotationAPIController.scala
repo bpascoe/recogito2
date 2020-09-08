@@ -188,6 +188,27 @@ class AnnotationAPIController @Inject() (
     })
   }}
 
+  def formatDateString (date: String) = {
+    val dateArray = date.split("-")
+    if (date(0) == '-') {
+      if (dateArray.size == 4) {
+        (("-"+dateArray(1)).toInt,dateArray(2).toInt,dateArray(3).toInt)
+      } else if (dateArray.size == 3) {
+        (("-"+dateArray(1)).toInt,dateArray(2).toInt,1)
+      } else {
+        (("-"+dateArray(1)).toInt,1,1)
+      }
+    } else {
+      if (dateArray.size == 3) {
+        (dateArray(0).toInt,dateArray(1).toInt,dateArray(2).toInt)
+      } else if (dateArray.size == 2) {
+        (dateArray(0).toInt,dateArray(1).toInt,1)
+      } else {
+        (dateArray(0).toInt, 1, 1)
+      }
+    }
+  }
+
   def loadCsvMetadata() = silhouette.UserAwareAction.async { implicit request =>
     request.body.asJson match {
       case Some(json) => {
@@ -201,9 +222,9 @@ class AnnotationAPIController @Inject() (
             val from  = (json \ "StartDate").asOpt[String].getOrElse("")
             val to  = (json \ "EndDate").asOpt[String].getOrElse("")
             val temporal_bounds = if (from == "" || to == "") {None} else { 
-              val fromvalues = from.split("-") // dd-mm-yy
-              val tovalues = to.split("-") 
-              Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromvalues(0).toInt, fromvalues(1).toInt, fromvalues(2).toInt).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(tovalues(0).toInt, tovalues(1).toInt, tovalues(2).toInt).withTime(0, 0, 0, 0)))
+              val (fromYear, fromMonth, fromDay) = formatDateString(from) // yy-mm-dd
+              val (toYear, toMonth, toDay) = formatDateString(to)
+              Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromYear, fromMonth, fromDay).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(toYear, toMonth, toDay).withTime(0, 0, 0, 0)))
             }
             val title  = (json \ "Title").asOpt[String]
             val author  = (json \ "Author").asOpt[String]
@@ -295,9 +316,9 @@ class AnnotationAPIController @Inject() (
         val from  = (json \ "from").asOpt[String].getOrElse("")
         val to  = (json \ "to").asOpt[String].getOrElse("")
         val temporal_bounds = if (from == "" || to == "") {None} else { 
-          val fromvalues = from.split("-") // yy-mm-dd
-          val tovalues = to.split("-") 
-          Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromvalues(0).toInt, fromvalues(1).toInt, fromvalues(2).toInt).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(tovalues(0).toInt, tovalues(1).toInt, tovalues(2).toInt).withTime(0, 0, 0, 0)))
+          val (fromYear, fromMonth, fromDay) = formatDateString(from) // yy-mm-dd
+          val (toYear, toMonth, toDay) = formatDateString(to)
+          Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromYear, fromMonth, fromDay).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(toYear, toMonth, toDay).withTime(0, 0, 0, 0)))
         }
         val ccode  = (json \ "ccode").asOpt[String].getOrElse("")
         val ccode2 = if (ccode.size == 2) {Some(new CountryCode(ccode))} else {None}
