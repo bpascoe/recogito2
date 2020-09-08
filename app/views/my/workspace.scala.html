@@ -67,10 +67,9 @@
                 for (var j = 0; j < row.length; ++j) {
                   doc[header[j]] = row[j];
                 }
-                $.ajax({type: 'POST', url:document.location.origin + "/api/document/loadCsv", data: JSON.stringify(doc),contentType: 'application/json'}).done(function(data) {
-                    // console.log( "Data Loaded: " + data );
+                $.ajax({type: 'POST', url:document.location.origin + "/api/document/loadCsv", data: JSON.stringify(doc),contentType: 'application/json'}).always(function(data) {
+                    // console.log( data + " " + textStatus );
                     if (data) $(".status").append("<p> "+($(".status").find("p").length+1)+". "+data);
-                    else $(".status").append("<p> "+($(".status").find("p").length+1)+". " + row[0] + " update successfully, but not its annotations.");
                   });
               }
             }

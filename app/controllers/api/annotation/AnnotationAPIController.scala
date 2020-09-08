@@ -201,9 +201,9 @@ class AnnotationAPIController @Inject() (
             val from  = (json \ "StartDate").asOpt[String].getOrElse("")
             val to  = (json \ "EndDate").asOpt[String].getOrElse("")
             val temporal_bounds = if (from == "" || to == "") {None} else { 
-              val fromvalues = from.split("/") // dd-mm-yy
-              val tovalues = to.split("/") 
-              Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromvalues(2).toInt, fromvalues(1).toInt, fromvalues(0).toInt).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(tovalues(2).toInt, tovalues(1).toInt, tovalues(0).toInt).withTime(0, 0, 0, 0)))
+              val fromvalues = from.split("-") // dd-mm-yy
+              val tovalues = to.split("-") 
+              Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromvalues(0).toInt, fromvalues(1).toInt, fromvalues(2).toInt).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(tovalues(0).toInt, tovalues(1).toInt, tovalues(2).toInt).withTime(0, 0, 0, 0)))
             }
             val title  = (json \ "Title").asOpt[String]
             val author  = (json \ "Author").asOpt[String]
