@@ -137,6 +137,27 @@ require([
 
     // 'Edit part metadata' button handler
     partList.on('click', 'button', onOpenPartEditor);
+    // add date picker for start_date and end_date
+    $("#start_date" ).datepicker({
+      dateFormat: 'yy-mm-dd',
+      changeMonth: true,
+      changeYear: true,
+      showOn: "button",
+      buttonImage: "https://jqueryui.com/resources/demos/datepicker/images/calendar.gif",
+      buttonImageOnly: true,
+      buttonText: "Select date",
+      forceParse: false
+    });
+    $("#end_date" ).datepicker({
+      dateFormat: 'yy-mm-dd',
+      changeMonth: true,
+      changeYear: true,
+      showOn: "button",
+      buttonImage: "https://jqueryui.com/resources/demos/datepicker/images/calendar.gif",
+      buttonImageOnly: true,
+      buttonText: "Select date",
+      forceParse: false
+    });
   });
 
 });
