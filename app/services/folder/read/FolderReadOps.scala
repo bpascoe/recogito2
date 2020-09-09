@@ -43,6 +43,11 @@ trait FolderReadOps { self: FolderService =>
     Option(record).map(toFolderAndPolicy)
   }
 
+  def getFolderName(id: UUID) = db.query { sql => 
+    sql.select(FOLDER.TITLE).from(FOLDER)
+         .where(FOLDER.ID.equal(id)).fetchOne(0, classOf[String])
+  }
+
   /** Returns the requested folders (if they exist), along with the sharing  
     * policies for the given user, if any
     */

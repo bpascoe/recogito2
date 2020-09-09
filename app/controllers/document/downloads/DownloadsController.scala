@@ -10,6 +10,7 @@ import javax.inject.{Inject, Singleton}
 import services.{ContentType, RuntimeAccessLevel}
 import services.annotation.AnnotationService
 import services.document.{ExtendedDocumentMetadata, DocumentService}
+import services.folder.FolderService
 import services.entity.builtin.EntityService
 import services.user.UserService
 import org.apache.jena.riot.RDFFormat
@@ -66,6 +67,7 @@ class DownloadsController @Inject() (
   implicit val uploads: Uploads,
   implicit val annotations: AnnotationService,
   implicit val documents: DocumentService,
+  implicit val folders: FolderService,
   implicit val entities: EntityService,
   implicit val webjars: WebJarsUtil,
   implicit val ctx: ExecutionContext
@@ -176,7 +178,7 @@ class DownloadsController @Inject() (
     download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
       val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else placesToKML(documentId)
       fXml.map { xml =>
-        Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.title}.kml" })
+        Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.filename.getOrElse(doc.title)}.kml" })
       }
     })
   }
@@ -185,7 +187,7 @@ class DownloadsController @Inject() (
     download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
       val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else placesToKMLByDescription(documentId)
       fXml.map { xml =>
-        Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.title}.kml" })
+        Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.filename.getOrElse(doc.title)}.kml" })
       }
     })
   }
@@ -195,7 +197,7 @@ class DownloadsController @Inject() (
       download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
         val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else placesToKMLByDescription(documentId)
         fXml.map { xml =>
-          Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.title}.kml" })
+          Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.filename.getOrElse(doc.title)}.kml" })
         }
       }) else {
       val loggedIn = request.identity.map(_.username).get
@@ -204,7 +206,8 @@ class DownloadsController @Inject() (
       download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
         val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else corpusPlacesToKMLByDescription(docIds)
         fXml.map { xml =>
-          Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${folderId}.kml" })
+          var folderName = Await.result(folders.getFolderName(UUID.fromString(folderId)), 2.seconds)
+          Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${folderName}.kml" })
         }
       })
     }
