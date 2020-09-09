@@ -144,6 +144,7 @@ define([
           sessionStorage.setItem("title", title);
           $(".ui-dialog").remove();
           $('.ok').click();
+          $(".add-place").remove();
         } 
          //header.showStatusSaved();
         }).fail(function(error) {
