@@ -47,6 +47,20 @@
       return a;
     };
     // load csv metadata
+    function validateDate(dateString) {
+      var reg = /^-?\d*[-\/]?\d*[-\/]?\d*$/;
+      if (!reg.test(dateString)) return false;// only digits,-, and / are valid
+      else if (!isNaN(dateString) || !dateString) return true;
+      else if (dateString.indexOf("/")>=0) {
+        var dateArr = dateString.split("/");
+        var tmp = dateArr[0];
+        dateArr[0] = dateArr[dateArr.length-1];
+        dateArr[dateArr.length-1] = tmp;
+        return dateArr.join("-");
+      } else if (dateString.indexOf("-")>=0) {
+        return dateString;
+      } else return false;
+    }
     $(".load_csv").click(function(){
       $("#csvBtn").click();
       $("#csvBtn").change(function(e){
@@ -67,12 +81,18 @@
                 for (var j = 0; j < row.length; ++j) {
                   doc[header[j]] = row[j];
                 }
+                if (validateDate(doc['StartDate']) && validateDate(doc['EndDate']))
                 $.ajax({type: 'POST', url:document.location.origin + "/api/document/loadCsv", data: JSON.stringify(doc),contentType: 'application/json'}).done(function(data) {
                     // console.log( data + " " + textStatus );
                     if (data) $(".status").append("<p> "+($(".status").find("p").length+1)+". "+data);
                   }).fail(function(jqXHR, textStatus) {
-                    $(".status").append("<p> "+($(".status").find("p").length+1)+". "+"Update annotations failed, please use the right date format (yyyy-mm-dd)");
+                    $(".status").append("<p> "+($(".status").find("p").length+1)+". " +JSON.parse(this.data).Filename+": update annotations failed, please use the right date format (yyyy-mm-dd)");
                   });
+                 else {
+                  $(".status").append("<p> "+($(".status").find("p").length+1)+". " +row[0]+": invalid date format, please use the right date format (yyyy-mm-dd or dd/mm/yyyy)");
+                }
+              } else if (row.length > 0) {
+                $(".status").append("<p> "+($(".status").find("p").length+1)+". " +row[0]+": invalid row format");
               }
             }
             $(".status").dialog({autoOpen: false,
