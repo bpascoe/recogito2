@@ -141,11 +141,12 @@ require([
          .fail(onLoadError);
     });
 
-    // $("a.jump-to-text").each(function() {
-    //     var text = $(this).attr('href');
-    //     text = text.replace("/annotation/", "/annotation2/");
-    //     $(this).attr('href',text);
-    // });
+    // add breadcrumbs
+    var breadcrumbs = sessionStorage.getItem("breadcrumbs");
+    $(".root").attr("href",window.location.origin+"#");
+    JSON.parse(breadcrumbs).map(function(e) {
+      $(".root").append(" &gt; <a class='folder' href="+window.location.origin+"#"+e.id+">"+e.title+"</a>");
+    });
   });
 });
 
