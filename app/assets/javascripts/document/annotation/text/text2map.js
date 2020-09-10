@@ -68,7 +68,7 @@ require([
               if (items.length > 1)
                 $.each(items,function(index,item){
                   var docId =item.id;
-                  if (docId != Config.documentId) 
+                  // if (docId != Config.documentId) 
                     $.ajax( {url:document.location.origin + "/api/document/" + docId+"/annotations",
                            type: 'get',async: false,success: function(data) {
                       result = result.concat(data);
@@ -80,7 +80,8 @@ require([
          return result;
         },
         onAnnotationsLoaded = function(a) {
-          if (folderId) a = a.concat(getAnnotations( folderId));
+          // if (folderId) a = a.concat(getAnnotations( folderId));
+          if (folderId) a = getAnnotations( folderId);
           var annotations = new AnnotationView(a);
           map.setAnnotations(annotations.readOnly());
           return API.listPlacesInDocument(Config.documentId, 0, 2000);
