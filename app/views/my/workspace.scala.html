@@ -25,13 +25,15 @@
     function colorNERedDocument() {
       $(".row .title").each(function(){
         var elem = $(this);
+        elem.css("background-color", ""); 
         var docId = elem.attr("href").split("/")[1];
         $.get( document.location.origin + "/api/isNERed/"+docId, function(data) {
           if (data) elem.css({"background-color": "rgba(17, 173, 17, 0.3)", "font-size": "110%"});
         });
       }); 
     }
-    setTimeout(colorNERedDocument,1000);
+    // setTimeout(colorNERedDocument,3000);
+    // setInterval(colorNERedDocument,3000);
 
     function CSVtoArray(text) {
       // var re_valid =  /^\s*(?:'[^'\\]*(?:\\[\S\s][^'\\]*)*'|"[^"\\]*(?:\\[\S\s][^"\\]*)*"|[^,'"\s\\]*(?:\s+[^,'"\s\\]+)*)\s*(?:,\s*(?:'[^'\\]*(?:\\[\S\s][^'\\]*)*'|"[^"\\]*(?:\\[\S\s][^"\\]*)*"|[^,'"\s\\]*(?:\s+[^,'"\s\\]+)*)\s*)*$/;

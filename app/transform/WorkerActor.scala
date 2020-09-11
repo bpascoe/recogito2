@@ -32,7 +32,7 @@ abstract class WorkerActor(
       // Actual work is left to the subclass to implement
       doWork(msg.document, msg.part, msg.dir, msg.jobDef, taskId)
       
-      taskService.scheduleTaskForRemoval(taskId, 60.minutes)(context.system)
+      // taskService.scheduleTaskForRemoval(taskId, 60.minutes)(context.system)
   }
   
   def doWork(
