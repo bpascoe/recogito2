@@ -237,14 +237,25 @@ class AnnotationAPIController @Inject() (
             val pubPlace  = (json \ "PublicationPlace").asOpt[String]
             val latitude  = (json \ "Latitude").asOpt[String]
             val longitude  = (json \ "Longitude").asOpt[String]
-            val startDate  = (json \ "StartDate").asOpt[String]
-            val endDate  = (json \ "EndDate").asOpt[String]
-            val row = documents.updateMetadata2(docId,title,author,description,language,source,edition,license,attribution,pubPlace,startDate,endDate,latitude,longitude)
-            // val entities = entity.listIndexedEntitiesInDocument(docId, Some(EntityType.PLACE))
+            val fromDate  = (json \ "StartDate").asOpt[String]
+            val toDate  = (json \ "EndDate").asOpt[String]
             val entities = entity.listIndexedEntitiesInDocument(docId, Some(EntityType.PLACE)).map { result =>
               result.map(e=>e.copy(e.entity.copy(temporalBoundsUnion=temporal_bounds)))
             }
-            entity.upsertEntities(Await.result(entities, 10.seconds))
+            val row = documents.updateMetadata2(docId,title,author,description,language,source,edition,license,attribution,pubPlace,fromDate,toDate,latitude,longitude)
+            // val entities = entity.listIndexedEntitiesInDocument(docId, Some(EntityType.PLACE))
+            entity.upsertEntities(Await.result(entities, 2.seconds))
+            if (fromDate.size>0)
+            annotationService.findByDocId(docId).map { result =>
+              val annotations = result.map(_._1)
+              annotations.map(e=>annotationService.upsertAnnotation(e.copy(startDate=fromDate)) )
+            }
+            if (toDate.size>0)
+            annotationService.findByDocId(docId).map { result =>
+              val annotations = result.map(_._1)
+              annotations.map(e=>annotationService.upsertAnnotation(e.copy(endDate=toDate)) )
+            }
+            
             Future.successful(Ok(filename+" success"))
           } else Future.successful(Ok(filename+" not in the current corpus"))
         } else Future.successful(Ok("Empty filename"))
@@ -332,8 +343,6 @@ class AnnotationAPIController @Inject() (
         val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,description2,altNames2,Some(point),Some(coord),ccode2,temporal_bounds,Seq.empty[String],None,Seq.empty[Link])
         // val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq.empty[Description],Seq(Name(title)),Some(point),Some(coord),None,None,Seq.empty[String],None,Seq.empty[Link])
         importer.importRecord(record)
-
-        // annotationStored <- annotationService.upsertAnnotation(annotation)
                        
         Future.successful(Ok("Success"))
         // Future {Ok("success")}

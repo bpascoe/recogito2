@@ -131,7 +131,9 @@ trait AnnotationsToCSV extends BaseSerializer with HasCSVParsing {
           maybePlace.map(_.subjects.map(_._1).mkString(",")).getOrElse(EMPTY),
           firstEntity.flatMap(_.status.map(_.value.toString)).getOrElse(EMPTY),
           getTagBodies(a).flatMap(_.value).mkString("|"),
-          getCommentBodies(a).flatMap(_.value).mkString("|"))
+          getCommentBodies(a).flatMap(_.value).mkString("|"),
+          a.startDate.getOrElse(EMPTY),
+          a.endDate.getOrElse(EMPTY))
     }
 
     val fAnnotationsByPart = Future.sequence {
@@ -219,7 +221,9 @@ trait AnnotationsToCSV extends BaseSerializer with HasCSVParsing {
           "PLACE_TYPE",
           "VERIFICATION_STATUS",
           "TAGS",
-          "COMMENTS")
+          "COMMENTS",
+          "START_DATE",
+          "END_DATE")
         
         val tmp = tmpFile.create(Paths.get(TempDir.get(), s"${UUID.randomUUID}.csv"))
         val underlying = tmp.path.toFile
