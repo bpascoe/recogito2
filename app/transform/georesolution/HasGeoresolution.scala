@@ -167,7 +167,9 @@ trait HasGeoresolution {
           Some(AnnotationStatus(AnnotationStatus.UNVERIFIED, None,now))
         )
       ),
-      Seq.empty[Relation]
+      Seq.empty[Relation],
+      Some(DateTime.now().toString("yyyy-MM-dd")),
+      Some(DateTime.now().toString("yyyy-MM-dd"))
     )
   }
   

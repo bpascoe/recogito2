@@ -19,7 +19,9 @@ case class Annotation(
   lastModifiedBy: Option[String],
   lastModifiedAt: DateTime,
   bodies: Seq[AnnotationBody],
-  relations: Seq[Relation]) {
+  relations: Seq[Relation],
+  startDate: Option[String],
+  endDate: Option[String]) {
   
   def withBody(body: AnnotationBody) = 
     this.copy(bodies = this.bodies :+ body.copy(lastModifiedAt = this.lastModifiedAt))
@@ -70,7 +72,9 @@ object BackendAnnotation extends HasDate with HasNullableSeq {
     (JsPath \ "last_modified_at").format[DateTime] and
     (JsPath \ "bodies").format[Seq[AnnotationBody]] and
     (JsPath \ "relations").formatNullable[Seq[Relation]]
-      .inmap[Seq[Relation]](fromOptSeq, toOptSeq)
+      .inmap[Seq[Relation]](fromOptSeq, toOptSeq) and
+    (JsPath \ "start_date").formatNullable[String]  and
+    (JsPath \ "end_date").formatNullable[String] 
   )(Annotation.apply, unlift(Annotation.unapply))
 
 }
@@ -90,7 +94,9 @@ object FrontendAnnotation extends HasDate with HasNullableSeq {
     (JsPath \ "last_modified_at").write[DateTime] and
     (JsPath \ "bodies").write[Seq[AnnotationBody]] and
     (JsPath \ "relations").writeNullable[Seq[Relation]]
-      .contramap[Seq[Relation]](toOptSeq)
+      .contramap[Seq[Relation]](toOptSeq) and
+    (JsPath \ "start_date").writeNullable[String] and
+    (JsPath \ "end_date").writeNullable[String]
   )(unlift(Annotation.unapply))
   
 }
@@ -108,6 +114,8 @@ object Annotation {
       None, // lastModifiedBy
       new DateTime(),
       Seq.empty[AnnotationBody],
-      Seq.empty[Relation])
+      Seq.empty[Relation],
+      Some(DateTime.now().toString("yyyy-MM-dd")),
+      Some(DateTime.now().toString("yyyy-MM-dd")))
 
 }

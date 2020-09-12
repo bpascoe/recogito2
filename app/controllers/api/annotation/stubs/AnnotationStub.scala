@@ -25,7 +25,9 @@ case class AnnotationStub(
       Some(user),
       now,
       bodies.map(_.toAnnotationBody(user, now)),
-      relations.map(_.toRelation(user, now)))
+      relations.map(_.toRelation(user, now)),
+      Some(DateTime.now().toString("yyyy-MM-dd")),
+      Some(DateTime.now().toString("yyyy-MM-dd")))
   }
   
 }

@@ -69,7 +69,9 @@ object TEITag extends {
       None, // lastModifiedBy
       lastModifiedAt,
       bodies,
-      Seq.empty[Relation])
+      Seq.empty[Relation],
+      Some(DateTime.now().toString("yyyy-MM-dd")),
+      Some(DateTime.now().toString("yyyy-MM-dd")))
 
   private def getAnchor(el: Element, ranges: DocumentRange) = {
     val rangeBefore = ranges.createRange()

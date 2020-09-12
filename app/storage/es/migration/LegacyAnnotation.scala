@@ -16,7 +16,9 @@ case class LegacyAnnotation(
   anchor: String,
   lastModifiedBy: Option[String],
   lastModifiedAt: DateTime,
-  bodies: Seq[LegacyAnnotationBody]
+  bodies: Seq[LegacyAnnotationBody],
+  startDate: Option[String],
+  endDate: Option[String]
 ) {
 
   def toNewAPI = Annotation(
@@ -28,7 +30,9 @@ case class LegacyAnnotation(
     lastModifiedBy,
     lastModifiedAt,
     bodies.map(_.toNewAPI),
-    Seq.empty[Relation])
+    Seq.empty[Relation],
+    startDate,
+    endDate)
 
 }
 
@@ -42,7 +46,9 @@ object LegacyAnnotation extends HasDate {
     (JsPath \ "anchor").format[String] and
     (JsPath \ "last_modified_by").formatNullable[String] and
     (JsPath \ "last_modified_at").format[DateTime] and
-    (JsPath \ "bodies").format[Seq[LegacyAnnotationBody]]
+    (JsPath \ "bodies").format[Seq[LegacyAnnotationBody]] and
+    (JsPath \ "start_date").formatNullable[String] and
+    (JsPath \ "end_date").formatNullable[String]
   )(LegacyAnnotation.apply, unlift(LegacyAnnotation.unapply))
 
 }

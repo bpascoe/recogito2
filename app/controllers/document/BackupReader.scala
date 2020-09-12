@@ -277,7 +277,9 @@ object BackupReader extends HasDate with HasContentTypeList with HasNullableSeq 
     lastModifiedBy: Option[String],
     lastModifiedAt: Option[DateTime],
     bodies: Seq[AnnotationBodyStub],
-    relations: Seq[Relation]
+    relations: Seq[Relation],
+    startDate: Option[String],
+    endDate: Option[String]
   ) {
 
     def toAnnotation(docId: String, fileparts: Seq[DocumentFilepartRecord]) = Annotation(
@@ -289,7 +291,9 @@ object BackupReader extends HasDate with HasContentTypeList with HasNullableSeq 
       lastModifiedBy,
       lastModifiedAt.getOrElse(new DateTime()),
       bodies.map(_.toAnnotationBody),
-      relations
+      relations,
+      startDate,
+      endDate
     )
 
   }
@@ -303,7 +307,9 @@ object BackupReader extends HasDate with HasContentTypeList with HasNullableSeq 
     (JsPath \ "last_modified_by").readNullable[String] and
     (JsPath \ "last_modified_at").readNullable[DateTime] and
     (JsPath \ "bodies").read[Seq[AnnotationBodyStub]] and
-    (JsPath \ "relations").readNullable[Seq[Relation]].map(fromOptSeq)
+    (JsPath \ "relations").readNullable[Seq[Relation]].map(fromOptSeq) and
+    (JsPath \ "start_date").readNullable[String] and
+    (JsPath \ "end_date").readNullable[String]
   )(AnnotationStub.apply _)
 
 }

@@ -54,7 +54,9 @@ case class MatchedPair(my: Annotation, toMerge: Annotation) {
       lastModifiedBy,
       lastModifiedAt,
       my.bodies ++ bodiesToAppend,
-      relations ++ relationsToAppend)
+      relations ++ relationsToAppend,
+      my.startDate,
+      my.endDate)
   }
 
 }

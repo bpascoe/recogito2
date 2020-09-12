@@ -29,6 +29,10 @@ case class AnnotationHistoryRecord (
   
   relations: Seq[Relation],
   
+  startDate: Option[String],
+  
+  endDate: Option[String],
+  
   deleted: Boolean
       
 ) {
@@ -43,7 +47,9 @@ case class AnnotationHistoryRecord (
     lastModifiedBy,
     lastModifiedAt,
     bodies,
-    relations)
+    relations,
+    startDate,
+    endDate)
   
 }
 
@@ -71,6 +77,8 @@ object AnnotationHistoryRecord extends HasDate with HasNullableSeq {
       .inmap(fromOptSeq[AnnotationBody], toOptSeq[AnnotationBody]) and
     (JsPath \ "relations").formatNullable[Seq[Relation]]
       .inmap(fromOptSeq[Relation], toOptSeq[Relation]) and
+    (JsPath \ "start_date").formatNullable[String] and
+    (JsPath \ "end_date").formatNullable[String] and
     (JsPath \ "deleted").formatNullable[Boolean]
       .inmap[Boolean](fromOptBoolean, toOptBoolean) 
   )(AnnotationHistoryRecord.apply, unlift(AnnotationHistoryRecord.unapply))
@@ -85,6 +93,8 @@ object AnnotationHistoryRecord extends HasDate with HasNullableSeq {
     a.lastModifiedAt,
     a.bodies,
     a.relations,
+    a.startDate,
+    a.endDate,
     false)
     
   def forDelete(a: Annotation, deletedBy: String, deletedAt: DateTime) = AnnotationHistoryRecord(
@@ -97,6 +107,8 @@ object AnnotationHistoryRecord extends HasDate with HasNullableSeq {
     deletedAt, 
     a.bodies,
     a.relations,
+    a.startDate,
+    a.endDate,
     true)
   
 }
