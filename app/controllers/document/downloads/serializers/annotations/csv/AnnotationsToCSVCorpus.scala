@@ -35,6 +35,7 @@ import storage.uploads.Uploads
 import storage.TempDir
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import services.generated.tables.records.DocumentRecord
 
 trait AnnotationsToCSVCorpus extends BaseSerializer with HasCSVParsing { 
 
@@ -109,7 +110,7 @@ trait AnnotationsToCSVCorpus extends BaseSerializer with HasCSVParsing {
              ctx: ExecutionContext
   ) = {
 
-    def serializeOne(a: Annotation, filename: String, places: Seq[Entity]): Seq[String] = {
+    def serializeOne(a: Annotation, filename: String, places: Seq[Entity], doc:DocumentRecord): Seq[String] = {
       val firstEntity = getFirstEntityBody(a)
       val maybePlace = firstEntity.flatMap(body => findPlace(body, places))
       
@@ -122,8 +123,22 @@ trait AnnotationsToCSVCorpus extends BaseSerializer with HasCSVParsing {
         
       val placeTypes = maybePlace.map(_.subjects.map(_._1).mkString(","))
 
-      Seq(a.annotationId.toString,
+      Seq(
           filename,
+          doc.getTitle,
+          doc.getAuthor,
+          doc.getDescription,
+          doc.getLanguage,
+          doc.getSource,
+          doc.getEdition,
+          doc.getLicense,
+          doc.getAttribution,
+          doc.getStartDate,
+          doc.getEndDate,
+          doc.getPublicationPlace,
+          doc.getLatitude,
+          doc.getLongitude,
+          a.annotationId.toString,
           quoteOrTranscription.getOrElse(EMPTY),
           a.anchor,
           firstEntity.map(_.hasType.toString).getOrElse(EMPTY),
@@ -143,8 +158,9 @@ trait AnnotationsToCSVCorpus extends BaseSerializer with HasCSVParsing {
     val fAnnotationsByPart = Future.sequence {
       docIds.map { docId => 
         val part = Await.result(docService.findPartByDocAndSeqNo2(docId, 1), 1.seconds)
+        val doc = Await.result(docService.getDocumentById(docId),1.seconds)
         annotationService.findByDocId(docId).map { annotationsWithId => 
-          (part, annotationsWithId.map(_._1))
+          (part, annotationsWithId.map(_._1),doc)
         }
       }
     }
@@ -211,34 +227,18 @@ trait AnnotationsToCSVCorpus extends BaseSerializer with HasCSVParsing {
       }
 
       scala.concurrent.blocking {
-        val header = Seq(
-          "UUID",
-          "FILE",
-          "QUOTE_TRANSCRIPTION",
-          "ANCHOR",
-          "TYPE",
-          "URI",
-          "VOCAB_LABEL",
-          "VOCAB_TEMPORAL_BOUNDS",
-          "LAT",
-          "LNG",
-          "PLACE_TYPE",
-          "VERIFICATION_STATUS",
-          "TAGS",
-          "COMMENTS",
-          "START_DATE",
-          "END_DATE")
-        
+        val header = Seq("Filename", "Title", "Author", "Description", "Language", "Source", "Edition", "License", "Attribution", "DocStartDate", "DocEndDate", "PublicationPlace", "DocLat", "DocLng","UUID","QuoteTranscription","Anchor","Type","URI","VocabLabel","VocabTempralBounds","AnnoLat","AnnoLng","PlaceType","VerificationStatus","Tags","Comments","AnnoStartDate","AnnoEndDate")
+
         val tmp = tmpFile.create(Paths.get(TempDir.get(), s"${UUID.randomUUID}.csv"))
         val underlying = tmp.path.toFile
         val config = CsvConfiguration(',', '"', QuotePolicy.Always, Header.Explicit(header))
         val writer = underlying.asCsvWriter[Seq[String]](config)
 
-        val sorted = annotationsByPart.flatMap { case (part, annotations) => 
-          sort(annotations).map { (_, part.getTitle) }
+        val sorted = annotationsByPart.flatMap { case (part, annotations,doc) => 
+          sort(annotations).map { (_, part.getTitle,doc) }
         }
 
-        val tupled = sorted.map(t => serializeOne(t._1, t._2, places))
+        val tupled = sorted.map(t => serializeOne(t._1, t._2, places,t._3))
         tupled.foreach(t => writer.write(t))
         writer.close()
         

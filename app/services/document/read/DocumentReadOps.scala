@@ -107,6 +107,11 @@ trait DocumentReadOps { self: DocumentService =>
     sql.selectFrom(DOCUMENT).where(DOCUMENT.ID.in(docIds)).fetchArray().toSeq
   }
 
+  /** Batch-retrieves the document records with the given IDs **/
+  def getDocumentById(docId: String) = db.query { sql => 
+    sql.selectFrom(DOCUMENT).where(DOCUMENT.ID.equal(docId)).fetchOne()
+  }
+
   /** Batch.retrieves document records along with runtime access level **/
   def getDocumentRecordsByIdWithAccessLevel(docIds: Seq[String], loggedInUser: Option[String] = None) = db.query { sql =>
     loggedInUser match {
