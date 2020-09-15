@@ -73,6 +73,7 @@ class DownloadsController @Inject() (
   implicit val ctx: ExecutionContext
 ) extends BaseOptAuthController(components, config, documents, users)
     with annotations.csv.AnnotationsToCSV
+    with annotations.csv.AnnotationsToCSVCorpus
     with annotations.oa.AnnotationsToOA
     with annotations.webannotation.AnnotationsToWebAnno
     with annotations.annotationlist.AnnotationsToAnnotationList
@@ -138,11 +139,59 @@ class DownloadsController @Inject() (
         // Normal table export only requires READ_DATA privileges
         if (userAccessLevel.canReadData)
           annotationsToCSV(docInfo).map { csv =>
-            Ok.sendFile(csv).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + documentId + ".csv" })
+            Ok.sendFile(csv).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + docInfo.title + ".csv" })
           }
         else
           Future.successful(Forbidden)    
     })
+  }
+
+  def downloadCSVCorpus(documentId: String, folderId: String, exportTables: Boolean) = silhouette.UserAwareAction.async { implicit request => 
+    if (folderId.isEmpty)
+      documentReadResponse(documentId, request.identity, { case (docInfo, userAccessLevel) =>
+      if (exportTables)
+        // Merged table export requires READ_ALL privileges
+        if (userAccessLevel.canReadAll)
+          exportMergedTables(docInfo).map { case (file, filename) =>
+            Ok.sendFile(file).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + filename })
+          }
+        else
+          Future.successful(Forbidden)
+      else
+        // Normal table export only requires READ_DATA privileges
+        if (userAccessLevel.canReadData)
+          annotationsToCSV(docInfo).map { csv =>
+            Ok.sendFile(csv).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + documentId + ".csv" })
+          }
+        else
+          Future.successful(Forbidden) 
+      })
+    else {
+      if (request.identity.map(_.username) == None) Future.successful(Forbidden)
+      else {
+      documentReadResponse(documentId, request.identity, { case (docInfo, userAccessLevel) =>
+      if (exportTables)
+        // Merged table export requires READ_ALL privileges
+        if (userAccessLevel.canReadAll)
+          exportMergedTables(docInfo).map { case (file, filename) =>
+            Ok.sendFile(file).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + filename })
+          }
+        else
+          Future.successful(Forbidden)
+      else
+        // Normal table export only requires READ_DATA privileges
+        if (userAccessLevel.canReadData) {
+          val loggedIn = request.identity.map(_.username).get
+          var folderName = Await.result(folders.getFolderName(UUID.fromString(folderId)), 2.seconds)
+          val docIds = Await.result(documents.listIds(Some(UUID.fromString(folderId)), loggedIn),2.seconds)
+          annotationsToCSVCorpus(docIds,loggedIn).map { csv =>
+            Ok.sendFile(csv).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + folderName + ".csv" })
+          }
+        }
+        else
+          Future.successful(Forbidden)})
+      }
+    }
   }
   
   private def downloadRDF(documentId: String, format: RDFFormat, extension: String) = silhouette.UserAwareAction.async { implicit request =>

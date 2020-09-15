@@ -40,11 +40,20 @@
           <ul>
             <li>
               <div class="description">
-                <h3>CSV</h3>
+                <h3>CSV (This file)</h3>
                 <p>@messages("document.downloads.annotations.csv.text")</p>
               </div>
               <div class="button-container">
                 <a href="@controllers.document.downloads.routes.DownloadsController.downloadCSV(doc.id)" class="btn small"><span class="icon">&#xf019;</span> CSV</a>
+              </div>
+            </li>
+            <li>
+              <div class="description">
+                <h3>CSV (This folder)</h3>
+                <p>Download annotations as a data table for importing into spreadsheet software or a GIS - for all files in this folder/corpus.</p>
+              </div>
+              <div class="button-container">
+                <a onmouseover="$('.forFolderId').attr('href',$('.forFolderId').attr('href').replace('forFolderId', sessionStorage.folderId))" href="@controllers.document.downloads.routes.DownloadsController.downloadCSVCorpus(doc.id,"forFolderId", false)" class="btn small forFolderId"><span class="icon">&#xf019;</span> CSV</a>
               </div>
             </li>
 
