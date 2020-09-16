@@ -130,7 +130,30 @@
                 </p>
               </div>
               <div class="button-container">
-                <a onmouseover="$('.forFolderId').attr('href',$('.forFolderId').attr('href').replace('forFolderId', sessionStorage.folderId))" href="@controllers.document.downloads.routes.DownloadsController.downloadKMLCorpusByDescription(doc.id,"forFolderId", false)" class="btn small forFolderId"><span class="icon">&#xf019;</span> KML</a>
+                <a onmouseover="$('.forFolderId2').attr('href',$('.forFolderId2').attr('href').replace('forFolderId2', sessionStorage.folderId))" href="@controllers.document.downloads.routes.DownloadsController.downloadKMLCorpusByDescription(doc.id,"forFolderId2", false)" class="btn small forFolderId2"><span class="icon">&#xf019;</span> KML</a>
+              </div>
+            </li>
+            <li>
+              <div class="description">
+                <h3>KML Annotations By File</span></h3>
+                <p>
+                  Annotations as KML file, with each annotation in the text as a single point, with each occurence listed under it and linked back.
+                </p>
+              </div>
+              <div class="button-container">
+                <a href="@controllers.document.downloads.routes.DownloadsController.downloadKMLByAnnotation(doc.id, false)" class="btn small"><span class="icon">&#xf019;</span> KML</a>
+              </div>
+            </li>
+
+            <li>
+              <div class="description">
+                <h3>KML Annotations By Corpus</span></h3>
+                <p>
+                  Annotations as KML file, with each annotation in the text as a single point, with each occurence listed under it and linked back - for all files in this folder/corpus.
+                </p>
+              </div>
+              <div class="button-container">
+                <a onmouseover="$('.forFolderId3').attr('href',$('.forFolderId3').attr('href').replace('forFolderId3', sessionStorage.folderId))" href="@controllers.document.downloads.routes.DownloadsController.downloadKMLCorpusByAnnotation(doc.id,"forFolderId3", false)" class="btn small forFolderId3"><span class="icon">&#xf019;</span> KML</a>
               </div>
             </li>
 

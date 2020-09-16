@@ -88,6 +88,8 @@ class DownloadsController @Inject() (
     with places.PlacesToKML
     with places.PlacesToKMLByDescription
     with places.CorpusPlacesToKMLByDescription
+    with places.PlacesToKMLByAnnotation
+    with places.CorpusPlacesToKMLByAnnotation
     with places.PlacesToGeoBrowser
     with relations.RelationsToTriplesCSV
     with relations.RelationsToGephi
@@ -254,6 +256,36 @@ class DownloadsController @Inject() (
       val docIds = Await.result(documents.listIds(Some(UUID.fromString(folderId)), loggedIn),10.seconds)
       download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
         val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else corpusPlacesToKMLByDescription(docIds)
+        fXml.map { xml =>
+          var folderName = Await.result(folders.getFolderName(UUID.fromString(folderId)), 2.seconds)
+          Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${folderName}.kml" })
+        }
+      })
+    }
+  }
+
+  def downloadKMLByAnnotation(documentId: String, forGeoBrowser: Boolean) = silhouette.UserAwareAction.async { implicit request => 
+    download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
+      val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else placesToKMLByAnnotation(documentId)
+      fXml.map { xml =>
+        Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.filename.getOrElse(doc.title)}.kml" })
+      }
+    })
+  }
+
+  def downloadKMLCorpusByAnnotation(documentId: String, folderId: String, forGeoBrowser: Boolean) = silhouette.UserAwareAction.async { implicit request => 
+    if (folderId.isEmpty)
+      download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
+        val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else placesToKMLByAnnotation(documentId)
+        fXml.map { xml =>
+          Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${doc.filename.getOrElse(doc.title)}.kml" })
+        }
+      }) else {
+      val loggedIn = request.identity.map(_.username).get
+      val owner = loggedIn
+      val docIds = Await.result(documents.listIds(Some(UUID.fromString(folderId)), loggedIn),10.seconds)
+      download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
+        val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else corpusPlacesToKMLByAnnotation(docIds)
         fXml.map { xml =>
           var folderName = Await.result(folders.getFolderName(UUID.fromString(folderId)), 2.seconds)
           Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${folderName}.kml" })
