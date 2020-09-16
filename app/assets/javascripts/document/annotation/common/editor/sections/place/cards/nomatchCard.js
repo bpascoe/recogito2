@@ -93,6 +93,7 @@ define([
       $(".annotation-editor-popup").hide();
       $("#main").after(addPlace);
       $(".add-place" ).dialog();
+      $(".add-place").prev().css("display","none");
       // datepicker
       $(".from" ).datepicker({
         dateFormat: 'yy-mm-dd',
@@ -156,14 +157,17 @@ define([
     
     addPlace.on( "click", ".btn-cancel-place", function() {
       $(".ui-dialog").remove();
+      $(".add-place").remove();
       $(".annotation-editor-popup").show();
     });
     // remove add place dialog if click no in the dialog
     $(document).mouseup(function(e){
       var container = $(".ui-dialog");
       if(!container.is(e.target) && container.has(e.target).length === 0){
-          if (!$("#ui-datepicker-div").is(e.target) && $("#ui-datepicker-div").has(e.target).length === 0)
-          container.hide();
+          if (!$("#ui-datepicker-div").is(e.target) && $("#ui-datepicker-div").has(e.target).length === 0) {
+            container.remove();
+            $(".add-place").remove();
+          }
           // $(".annotation-editor-popup").show();
       }
     });
