@@ -97,14 +97,15 @@
                       for (var j = 0; j < row.length; ++j) {
                         doc[header[j]] = row[j];
                       }
-                      if (validateDate(doc['StartDate']) && validateDate(doc['EndDate']))
+                      if (validateDate(doc['StartDate']) && validateDate(doc['EndDate'])) {
+                        if (doc['StartDate'] != true) doc['StartDate'] = validateDate(doc['StartDate'])
+                        if (doc['EndDate'] != true) doc['EndDate'] = validateDate(doc['EndDate'])
                       $.ajax({type: 'POST', url:document.location.origin + "/api/document/loadCsv", data: JSON.stringify(doc),contentType: 'application/json'}).done(function(data) {
                           // console.log( data + " " + textStatus );
                           if (data) $(".status").append("<p> "+($(".status").find("p").length+1)+". "+data);
                         }).fail(function(jqXHR, textStatus) {
                           $(".status").append("<p> "+($(".status").find("p").length+1)+". " +JSON.parse(this.data).Filename+": update annotations failed, please use the right date format (yyyy-mm-dd)");
-                        });
-                       else {
+                        });} else {
                         $(".status").append("<p> "+($(".status").find("p").length+1)+". " +row[0]+": invalid date format, please use the right date format (yyyy-mm-dd or dd/mm/yyyy)");
                       }
                     } else if (row.length > 0) {
