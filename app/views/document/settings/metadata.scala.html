@@ -6,6 +6,7 @@
 
 <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/document/annotation/text/index.css")"/>
 @_layout("Settings | Metadata", doc, currentUser, Some("metadata")) {
+  <div class="breadcrumbs"><h2><a class="root">My Documents</a></h2></div>
   <div class="document-metadata panel centered">
     <h2>@messages("document.settings.metadata.document_metadata")</h2>
     @flash.get("success").map { msg =>
@@ -74,6 +75,13 @@
         fileparts: @Html(play.api.libs.json.Json.toJson(doc.fileparts).toString)
       }
     }
+    
+    // add breadcrumbs
+    var breadcrumbs = sessionStorage.getItem("breadcrumbs");
+    $(".root").attr("href",window.location.origin+"#");
+    JSON.parse(breadcrumbs).map(function(e) {
+      $(".root").append(" &gt; <a class='folder' href="+window.location.origin+"#"+e.id+">"+e.title+"</a>");
+    });
   </script>
   @Html(webJarsUtil.script("jquery-ui.min.js"))
   @Html(webJarsUtil.requireJs(routes.Assets.versioned("javascripts/document/settings/metadata.js")))

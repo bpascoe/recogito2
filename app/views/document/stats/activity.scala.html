@@ -6,9 +6,10 @@
  )(implicit request: RequestHeader, messages: Messages, webJarsUtil: org.webjars.play.WebJarsUtil)
 
 @_layout("Activity Statistics", doc, currentUser, accessLevel, Some("activity"), p) {
+  <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/document/annotation/text/index.css")"/>
   <script type="text/javascript" src="@routes.Assets.versioned("javascripts/widgets/1.activity_stats.js")"></script>
   <script type="text/javascript" src="@routes.Assets.versioned("javascripts/widgets/activity_stats.js")"></script>
-  
+  <div class="breadcrumbs"><h2><a class="root">My Documents</a></h2></div>
   <div id="app"></div>
   
   <script type="text/javascript">
@@ -18,5 +19,12 @@
         document: '@doc.id'
       }); 
     })();
+
+    // add breadcrumbs
+    var breadcrumbs = sessionStorage.getItem("breadcrumbs");
+    $(".root").attr("href",window.location.origin+"#");
+    JSON.parse(breadcrumbs).map(function(e) {
+      $(".root").append(" &gt; <a class='folder' href="+window.location.origin+"#"+e.id+">"+e.title+"</a>");
+    });
   </script>
 }
