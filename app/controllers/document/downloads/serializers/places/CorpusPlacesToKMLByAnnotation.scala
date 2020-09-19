@@ -11,6 +11,8 @@ import java.net._
 trait CorpusPlacesToKMLByAnnotation extends BaseGeoAnnotationSerializer {
 
   def corpusPlacesToKMLByAnnotation(
+    folderId: String,
+    folderName: String,
     docIds: Seq[String]
   )(implicit 
       entityService: EntityService, 
@@ -21,25 +23,29 @@ trait CorpusPlacesToKMLByAnnotation extends BaseGeoAnnotationSerializer {
     val cdatastart = "<![CDATA["
     val cdataend = "]]>"
 
-    val kmlFeatures = features.map { f => 
-      <Annotation>
-        <UUID>{f.annotations.annotationId.toString}</UUID>
-        <name>{f.quotes.mkString(", ")}</name>
-        <anchor>{f.annotations.anchor}</anchor>
-        <modifiedBy>{f.annotations.lastModifiedBy.getOrElse("")}</modifiedBy>
-        <modifiedAt>{f.annotations.lastModifiedAt}</modifiedAt>
-        <TimeSpan>
-          <begin>{f.annotations.startDate.getOrElse("")}</begin>
-          <end>{f.annotations.endDate.getOrElse("")}</end>
-        </TimeSpan>
-        <description>
-      {scala.xml.PCData(buildAnnotationKMLStringCorpus(f, host))}
-        </description>
-          
-        {<Point>
-          <coordinates>{f.records.representativeGeometry.get.getCentroid.getX},{f.records.representativeGeometry.get.getCentroid.getY},0</coordinates>
-        </Point>}
-      </Annotation>
+    val kmlFeatures = features.map { f =>
+      <Folder>
+        <ID>{folderId}</ID>
+        <name>{folderName}</name>
+        <Annotation>
+          <UUID>{f.annotations.annotationId.toString}</UUID>
+          <name>{f.quotes.mkString(", ")}</name>
+          <anchor>{f.annotations.anchor}</anchor>
+          <modifiedBy>{f.annotations.lastModifiedBy.getOrElse("")}</modifiedBy>
+          <modifiedAt>{f.annotations.lastModifiedAt}</modifiedAt>
+          <TimeSpan>
+            <begin>{f.annotations.startDate.getOrElse("")}</begin>
+            <end>{f.annotations.endDate.getOrElse("")}</end>
+          </TimeSpan>
+          <description>
+        {scala.xml.PCData(buildAnnotationKMLStringCorpus(f, host))}
+          </description>
+            
+          {<Point>
+            <coordinates>{f.records.representativeGeometry.get.getCentroid.getX},{f.records.representativeGeometry.get.getCentroid.getY},0</coordinates>
+          </Point>}
+        </Annotation>
+      </Folder>
     }
   
   
