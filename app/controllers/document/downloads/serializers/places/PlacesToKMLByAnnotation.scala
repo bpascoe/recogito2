@@ -23,32 +23,22 @@ trait PlacesToKMLByAnnotation extends BaseGeoAnnotationSerializer {
 
     val kmlFeatures = features.map { f => 
       <Annotation>
-        <UUID></UUID>
-        <name>{f.quotes.distinct.mkString(",")}</name>
+        <UUID>{f.annotations.annotationId.toString}</UUID>
+        <name>{f.quotes.mkString(", ")}</name>
+        <anchor>{f.annotations.anchor}</anchor>
+        <modifiedBy>{f.annotations.lastModifiedBy.getOrElse("")}</modifiedBy>
+        <modifiedAt>{f.annotations.lastModifiedAt}</modifiedAt>
+        <TimeSpan>
+          <begin>{f.annotations.startDate.getOrElse("")}</begin>
+          <end>{f.annotations.endDate.getOrElse("")}</end>
+        </TimeSpan>
         <description>
 			{scala.xml.PCData(buildAnnotationKMLString(f, host))}
         </description>
           
-          { f.geometry match {
-            case geom: Polygon => 
-            <Polygon>
-              <extrude>1</extrude>
-              <altitudeMode>clampToGround</altitudeMode>
-              <outerBoundaryIs>
-                <LinearRing>
-                  <coordinates>
-                    { geom.getCoordinates.map { coord => 
-                      s"${coord.x},${coord.y},0\n"
-                    }}
-                  </coordinates>
-                </LinearRing>
-              </outerBoundaryIs>
-            </Polygon>
-          case geom =>
-            <Point>
-              <coordinates>{f.geometry.getCentroid.getX},{f.geometry.getCentroid.getY},0</coordinates>
-            </Point>
-        }}
+        {<Point>
+          <coordinates>{f.records.representativeGeometry.get.getCentroid.getX},{f.records.representativeGeometry.get.getCentroid.getY},0</coordinates>
+        </Point>}
       </Annotation>
     }
 	
@@ -75,23 +65,20 @@ trait PlacesToKMLByAnnotation extends BaseGeoAnnotationSerializer {
 		outCdata = outCdata + """
 			<div class="tlcmap recogito2">
 			<table>
-              <tr><td>ID</td><td><a href="""" + f.records.map(_.uri).distinct.mkString(", ") + """">""" + f.records.map(_.uri).distinct.mkString(", ") + """</a></td></tr>
-              <tr><td>Title</td><td>""" + f.titles.mkString(",") + """</td></tr>
-              <tr><td>Latitude</td><td>""" + f.geometry.getCentroid.getY + """</td></tr>
-              <tr><td>Longitude</td><td>""" + f.geometry.getCentroid.getX + """</td></tr>
-              <tr><td>CCode</td><td>""" + f.records.flatMap(_.countryCode).map(_.code).distinct.mkString(", ") + """</td></tr>
-              <tr><td>Description</td><td>""" + f.records.flatMap(_.descriptions).map(_.description).mkString(", ") + """</td></tr>
-              <tr><td>Contributor</td><td>""" + f.annotations.map(_.contributors.mkString(", ")).distinct.mkString(", ") + """</td></tr>
-              <tr><td>Source</td><td>""" + f.records.map(_.sourceAuthority).distinct.mkString(", ") + """</td></tr>
+              <tr><td>ID</td><td><a href="""" + f.records.isConflationOf.map(_.uri).distinct.mkString(", ") + """">""" + f.records.isConflationOf.map(_.uri).distinct.mkString(", ") + """</a></td></tr>
+              <tr><td>Title</td><td>""" + f.records.isConflationOf.map(_.title).distinct.mkString(", ") + """</td></tr>
+              <tr><td>Latitude</td><td>""" + f.records.representativeGeometry.get.getCentroid.getY + """</td></tr>
+              <tr><td>Longitude</td><td>""" + f.records.representativeGeometry.get.getCentroid.getX + """</td></tr>
+              <tr><td>CCode</td><td>""" + f.records.isConflationOf.flatMap(_.countryCode).map(_.code).distinct.mkString(", ") + """</td></tr>
+              <tr><td>Description</td><td>""" + f.records.isConflationOf.flatMap(_.descriptions).map(_.description).mkString(", ") + """</td></tr>
+              <tr><td>Contributor</td><td>""" + f.annotations.contributors.mkString(", ").distinct.mkString(", ") + """</td></tr>
+              <tr><td>Source</td><td>""" + f.records.isConflationOf.map(_.sourceAuthority).distinct.mkString(", ") + """</td></tr>
             </table>
 			<h3>Occurences in Text:</h3>
               <p class="annotation-links">
 			  """
-			  
-            f.annotations.zipWithIndex.map {
-                case(annotation, count) => 
-                  outCdata = outCdata + """<a href="""" + host + annotation.annotationId + """">""" + {count + 1} + """</a>, """
-            }
+			  outCdata = outCdata + """<a href="""" + host + f.annotations.annotationId + """">""" + {f.titles} + """</a>, """
+        
 			outCdata = outCdata.replaceAll(", $", ""); // remove the trailing comma
 			outCdata = outCdata + """
               </p>
