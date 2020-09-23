@@ -27,7 +27,7 @@ trait CorpusPlacesToKMLByAnnotation extends BaseGeoAnnotationSerializer {
       <Folder>
         <ID>{folderId}</ID>
         <name>{folderName}</name>
-        <Annotation>
+        <Placemark>
           <UUID>{f.annotations.annotationId.toString}</UUID>
           <name>{f.quotes.mkString(", ")}</name>
           <anchor>{f.annotations.anchor}</anchor>
@@ -44,7 +44,7 @@ trait CorpusPlacesToKMLByAnnotation extends BaseGeoAnnotationSerializer {
           {<Point>
             <coordinates>{f.records.representativeGeometry.get.getCentroid.getX},{f.records.representativeGeometry.get.getCentroid.getY},0</coordinates>
           </Point>}
-        </Annotation>
+        </Placemark>
       </Folder>
     }
   
