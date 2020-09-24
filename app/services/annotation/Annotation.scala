@@ -115,7 +115,7 @@ object Annotation {
       new DateTime(),
       Seq.empty[AnnotationBody],
       Seq.empty[Relation],
-      Some(DateTime.now().toString("yyyy-MM-dd")),
-      Some(DateTime.now().toString("yyyy-MM-dd")))
+      None,//Some(DateTime.now().toString("yyyy-MM-dd"))
+      None)
 
 }

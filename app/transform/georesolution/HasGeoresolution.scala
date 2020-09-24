@@ -168,8 +168,8 @@ trait HasGeoresolution {
         )
       ),
       Seq.empty[Relation],
-      Some(DateTime.now().toString("yyyy-MM-dd")),
-      Some(DateTime.now().toString("yyyy-MM-dd"))
+      None,
+      None
     )
   }
   
