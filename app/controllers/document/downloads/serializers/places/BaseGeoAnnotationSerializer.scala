@@ -6,6 +6,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import services.annotation.{Annotation, AnnotationService, AnnotationBody}
 import services.entity.{Entity,EntityType, EntityRecord}
 import services.entity.builtin.EntityService
+import services.document.DocumentService
 import storage.es.ES
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -41,7 +42,7 @@ trait BaseGeoAnnotationSerializer extends BaseSerializer {
   ): Future[Seq[AnnotationPlaceFeature]] = {
     val fAnnotations = annotationService.findByDocId(documentId, 0, ES.MAX_SIZE)
     val fPlaces = entityService.listEntitiesInDocument(documentId, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
-        
+    
     val f = for {
       annotations <- fAnnotations
       places <- fPlaces
@@ -50,9 +51,13 @@ trait BaseGeoAnnotationSerializer extends BaseSerializer {
     f.map { case (annotations, places) =>
       // All place annotations on this document
       val placeAnnotations = annotations.filter(_.bodies.map(_.hasType).contains(AnnotationBody.PLACE))  
-
+      val sortAnnotationsByLocation = placeAnnotations.sortBy { annotation =>
+        val a = annotation.anchor
+        val startOffset = a.substring(12).toInt
+        startOffset
+      }
       // Each annotation in this document
-      placeAnnotations.flatMap { a=>
+      sortAnnotationsByLocation.flatMap { a=>
         val placeURIs = a.bodies.filter(_.hasType == AnnotationBody.PLACE).flatMap(_.uri)
         val placeOnThisAnnotation = places.items.filter {e=>
           val place = e._1.entity
@@ -92,8 +97,15 @@ trait BaseGeoAnnotationSerializer extends BaseSerializer {
   )(implicit 
       entityService: EntityService, 
       annotationService: AnnotationService, 
-      ctx: ExecutionContext
-  ): Future[Seq[AnnotationPlaceFeature]] = {
+      ctx: ExecutionContext,
+      documents: DocumentService
+  ) = {
+    // docIds.map { docId=>
+    //   val doc = Await.result(documents.getDocumentById(docId),1.seconds)
+    //   // val doc = documents.getDocumentById(docId)
+    //   (doc, getAnnotationMappableFeatures(docId))
+    // }
+    
     val fAnnotations = annotationService.findByDocIds(docIds, 0, ES.MAX_SIZE)
     val fPlaces = entityService.listEntitiesInDocuments(docIds, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
         
