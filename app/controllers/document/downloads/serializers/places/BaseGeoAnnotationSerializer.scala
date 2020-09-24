@@ -51,11 +51,13 @@ trait BaseGeoAnnotationSerializer extends BaseSerializer {
     f.map { case (annotations, places) =>
       // All place annotations on this document
       val placeAnnotations = annotations.filter(_.bodies.map(_.hasType).contains(AnnotationBody.PLACE))  
-      val sortAnnotationsByLocation = placeAnnotations.sortBy { annotation =>
-        val a = annotation.anchor
-        val startOffset = a.substring(12).toInt
-        startOffset
-      }
+      // val sortAnnotationsByLocation = placeAnnotations.sortBy { annotation =>
+      //   val a = annotation.anchor
+      //   val startOffset = a.substring(12).toInt
+      //   startOffset
+      // }
+      val sortAnnotationsByLocation = sortByCharOffset(placeAnnotations)
+      
       // Each annotation in this document
       sortAnnotationsByLocation.flatMap { a=>
         val placeURIs = a.bodies.filter(_.hasType == AnnotationBody.PLACE).flatMap(_.uri)
@@ -106,21 +108,38 @@ trait BaseGeoAnnotationSerializer extends BaseSerializer {
     //   (doc, getAnnotationMappableFeatures(docId))
     // }
     
+    // val fAnnotations = docIds.map { docId => 
+    //   val annotations = annotationService.findByDocId(docId, 0, ES.MAX_SIZE)
+    //   annotations.map(_._1)
+    // }
+    val fAnnotationsByDocs = Future.sequence {
+      docIds.map { docId => 
+        val doc = Await.result(documents.getDocumentById(docId),1.seconds)
+        annotationService.findByDocId(docId).map { annotations => 
+          (doc, annotations.map(_._1))
+        }
+      }
+    }
+
     val fAnnotations = annotationService.findByDocIds(docIds, 0, ES.MAX_SIZE)
     val fPlaces = entityService.listEntitiesInDocuments(docIds, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
         
     val f = for {
-      annotations <- fAnnotations
+      annotations <- fAnnotationsByDocs
       places <- fPlaces
-    } yield (annotations.map(_._1), places)
+    } yield (annotations, places)
     
-    f.map { case (annotations, places) =>
+    f.map { case (annotationsByDocs, places) =>
       // All place annotations on this document
+      // val (doc, annotations) = annotationsByDocs
+      annotationsByDocs.map { case(doc, annotations) =>
+        annotations.filter(_.bodies.map(_.hasType).contains(AnnotationBody.PLACE))
       val placeAnnotations = annotations.filter(_.bodies.map(_.hasType).contains(AnnotationBody.PLACE))  
-
+      val sortAnnotationsByLocation = sortByCharOffset(placeAnnotations)
+      
       // Each place in this document, along with all the annotations on this place and 
       // the specific entity records the annotations point to (within the place union record) 
-      placeAnnotations.flatMap { a=>
+      sortAnnotationsByLocation.flatMap { a=>
         val placeURIs = a.bodies.filter(_.hasType == AnnotationBody.PLACE).flatMap(_.uri)
         val placeOnThisAnnotation = places.items.filter {e=>
           val place = e._1.entity
@@ -132,11 +151,11 @@ trait BaseGeoAnnotationSerializer extends BaseSerializer {
         }
         // val referencedRecords = placeOnThisAnnotation.isConflationOf.filter(g => placeURIs.contains(g.uri))
         placeOnThisAnnotation.map { geom => 
-          AnnotationPlaceFeature(placeOnThisAnnotation(0)._1.entity, a)
+          (doc,AnnotationPlaceFeature(placeOnThisAnnotation(0)._1.entity, a))
         }
         // AnnotationPlaceFeature(placeOnThisAnnotation(0)._1.entity, a)
       }
-    }        
+    }}     
   }
 
 }

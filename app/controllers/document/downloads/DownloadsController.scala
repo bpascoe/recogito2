@@ -287,6 +287,7 @@ class DownloadsController @Inject() (
       download(documentId, RuntimeAccessLevel.READ_DATA, { doc =>
         var folderName = Await.result(folders.getFolderName(UUID.fromString(folderId)), 2.seconds)
         val fXml = if (forGeoBrowser) placesToGeoBrowser(documentId, doc) else corpusPlacesToKMLByAnnotation(folderId, folderName, docIds)
+        // Ok(fXml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${folderName}.kml" })
         fXml.map { xml =>
           Ok(xml).withHeaders(CONTENT_DISPOSITION -> { s"attachment; filename=${folderName}.kml" })
         }
