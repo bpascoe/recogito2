@@ -10,6 +10,7 @@ import play.api.data.Forms._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import scala.concurrent.Future
+import services.annotation.AnnotationService
 // import java.sql.Timestamp
 // import play.api.data.format.Formats._
 
@@ -34,7 +35,6 @@ case class FilepartMetadata(
   source: Option[String])
 
 trait MetadataActions { self: SettingsController =>
-
   implicit val orderingReads: Reads[PartOrdering] = (
     (JsPath \ "id").read[UUID] and
     (JsPath \ "sequence_no").read[Int]
@@ -95,10 +95,14 @@ trait MetadataActions { self: SettingsController =>
           documents.updateMetadata(
             docId, f.filename, f.title, f.author, f.description, f.language, f.source, f.edition, f.license, f.attribution, f.publicationPlace, f.startDate, f.endDate, f.latitude, f.longitude
           ).map { success =>
-           if (success)
-              Redirect(controllers.document.settings.routes.SettingsController.showDocumentSettings(docId, Some("metadata")))
-                .flashing("success" -> "Your settings have been saved.")
-            else
+           if (success){
+            annotations.findByDocId(docId).map { result =>
+              val annotation = result.map(_._1)
+              annotation.map(e=>annotations.upsertAnnotation(e.copy(startDate=f.startDate,endDate=f.endDate)) )
+            }
+            Redirect(controllers.document.settings.routes.SettingsController.showDocumentSettings(docId, Some("metadata")))
+              .flashing("success" -> "Your settings have been saved.")
+           } else
               Redirect(controllers.document.settings.routes.SettingsController.showDocumentSettings(docId, Some("metadata")))
                 .flashing("error" -> "There was an error while saving your settings.")
           }.recover { case t:Throwable =>

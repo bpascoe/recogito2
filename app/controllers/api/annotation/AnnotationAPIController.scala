@@ -244,17 +244,17 @@ class AnnotationAPIController @Inject() (
             }
             val row = documents.updateMetadata2(docId,title,author,description,language,source,edition,license,attribution,pubPlace,fromDate,toDate,latitude,longitude)
             // val entities = entity.listIndexedEntitiesInDocument(docId, Some(EntityType.PLACE))
+            // if (fromDate.size>0)
+            // annotationService.findByDocId(docId).map { result =>
+            //   val annotations = result.map(_._1)
+            //   annotations.map(e=>annotationService.upsertAnnotation(e.copy(startDate=fromDate)) )
+            // }
+            // if (toDate.size>0)
+            annotationService.findByDocId(docId).map { result =>
+              val annotations = result.map(_._1)
+              annotations.map(e=>annotationService.upsertAnnotation(e.copy(startDate=fromDate,endDate=toDate)) )
+            }
             entity.upsertEntities(Await.result(entities, 2.seconds))
-            if (fromDate.size>0)
-            annotationService.findByDocId(docId).map { result =>
-              val annotations = result.map(_._1)
-              annotations.map(e=>annotationService.upsertAnnotation(e.copy(startDate=fromDate)) )
-            }
-            if (toDate.size>0)
-            annotationService.findByDocId(docId).map { result =>
-              val annotations = result.map(_._1)
-              annotations.map(e=>annotationService.upsertAnnotation(e.copy(endDate=toDate)) )
-            }
             
             Future.successful(Ok(filename+" success"))
           } else Future.successful(Ok(filename+" not in the current corpus"))
