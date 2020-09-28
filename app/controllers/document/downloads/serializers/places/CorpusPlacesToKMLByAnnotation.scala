@@ -25,12 +25,10 @@ trait CorpusPlacesToKMLByAnnotation extends BaseGeoAnnotationSerializer {
     val host = "http://" + InetAddress.getLocalHost.getHostName + ":9000/annotation2/"
     val cdatastart = "<![CDATA["
     val cdataend = "]]>"
-
+    var i = -1
     val kmlFeatures = features.map { feature =>
-      feature.map { case (doc, f) =>
-      <Folder>
-        <ID>{doc.getId}</ID>
-        <name>{doc.getFilename}</name>
+      i = i + 1
+      val kml = feature.map { case (doc, f) =>
         <Placemark>
           <UUID>{f.annotations.annotationId.toString}</UUID>
           <name>{f.quotes.mkString(", ")}</name>
@@ -49,8 +47,11 @@ trait CorpusPlacesToKMLByAnnotation extends BaseGeoAnnotationSerializer {
             <coordinates>{f.records.representativeGeometry.get.getCentroid.getX},{f.records.representativeGeometry.get.getCentroid.getY},0</coordinates>
           </Point>}
         </Placemark>
-      </Folder>
-    }}
+     
+    }
+    val (d, _) = feature(i)
+    <Folder><ID>{d.getId}</ID><name>{d.getFilename}</name>{ kml }</Folder>
+  }
   
   
     <kml xmlns="http://www.opengis.net/kml/2.2">
