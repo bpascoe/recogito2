@@ -45,6 +45,7 @@ import kantan.csv.CsvConfiguration.{Header, QuotePolicy}
 import kantan.csv.ops._
 import play.api.Configuration
 import storage.TempDir
+import services.folder.FolderService
 
 @Singleton
 class AnnotationAPIController @Inject() (
@@ -60,6 +61,7 @@ class AnnotationAPIController @Inject() (
   implicit val mimeTypes: FileMimeTypes,
   implicit val tmpFile: TemporaryFileCreator,
   implicit val uploads: Uploads,
+  implicit val folders: FolderService,
   implicit val ctx: ExecutionContext
 ) extends BaseController(components, config, users)
     with HasPrettyPrintJSON
@@ -291,8 +293,11 @@ class AnnotationAPIController @Inject() (
           writer.close() 
           underlying
          }
-
-        Future.successful(Ok.sendFile(file).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + username + ".csv" }))
+         val folderName = if (folderId.length<3) {""} else {
+          val name = Await.result(folders.getFolderName(UUID.fromString(folderId)), 1.seconds)
+          name+"-"
+         }
+        Future.successful(Ok.sendFile(file).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + folderName + "metadata.csv" }))
         }
       case None => {
         Logger.warn("Need necessary information in uploaded CSV file")

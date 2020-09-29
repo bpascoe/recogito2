@@ -141,7 +141,9 @@
         var hiddenElement = document.createElement('a');
         hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(data);
         hiddenElement.target = '_blank';
-        hiddenElement.download = $(".user h1").text()+'-download.csv';
+        var filename = $(".breadcrumbs").find(".folder").last().text();
+        if (filename) filename = filename +"-"; else filename ="";
+        hiddenElement.download = filename+'metadata.csv';
         hiddenElement.click();
       });
     });
