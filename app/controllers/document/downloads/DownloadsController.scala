@@ -84,6 +84,7 @@ class DownloadsController @Inject() (
     with document.iob.PlaintextToIOB
     with document.spacy.PlaintextToSpacy
     with places.PlacesToGeoJSON
+    with places.AnnotationsToGeoJSON
     with places.PlacesToGeoLPFJSON
     with places.PlacesToKML
     with places.PlacesToKMLByDescription
@@ -347,7 +348,7 @@ class DownloadsController @Inject() (
     // Standard GeoJSON download
     def downloadPlaces() = {
       val filename = Await.result(documents.getDocumentById(documentId),1.seconds).getFilename
-      placesToGeoJSON(documentId).map { featureCollection =>
+      placesToGeoJSONAnnotation(documentId).map { featureCollection =>
         Ok(Json.prettyPrint(featureCollection))
           .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + filename + ".json" })
       }}
@@ -394,14 +395,14 @@ class DownloadsController @Inject() (
     def downloadPlaces() =
       if (folderId.isEmpty) {
         val filename = Await.result(documents.getDocumentById(documentId),1.seconds).getFilename
-      placesToGeoJSON(documentId).map { featureCollection =>
+      placesToGeoJSONAnnotation(documentId).map { featureCollection =>
         Ok(Json.prettyPrint(featureCollection))
           .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + filename + ".json" })
       }} else {
         val loggedIn = request.identity.map(_.username).get
         var folderName = Await.result(folders.getFolderName(UUID.fromString(folderId)), 1.seconds)
         val docIds = Await.result(documents.listIds(Some(UUID.fromString(folderId)), loggedIn),1.seconds)
-        placesToGeoJSONCorpus(docIds).map { featureCollection =>
+        placesToGeoJSONAnnotationCorpus(docIds).map { featureCollection =>
         Ok(Json.prettyPrint(featureCollection))
           .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + folderName + ".json" })
         }

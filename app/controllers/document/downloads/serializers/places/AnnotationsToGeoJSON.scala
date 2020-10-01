@@ -16,13 +16,13 @@ import services.entity.{Entity, EntityRecord, EntityType}
 import services.entity.builtin.EntityService
 import storage.es.ES 
 import storage.uploads.Uploads
-
-trait PlacesToGeoJSON extends BaseGeoSerializer 
+// BaseGeoAnnotationSerializer
+trait AnnotationsToGeoJSON extends BaseGeoSerializer 
   with HasCSVParsing 
   with HasNullableSeq 
   with HasGeometry {
   
-  implicit val geoJsonFeatureWrites: Writes[AnnotatedPlaceFeature] = (
+  implicit val geoJsonAnnotationFeatureWrites: Writes[AnnotatedPlaceFeature] = (
     (JsPath \ "type").write[String] and
     (JsPath \ "geometry").write[Geometry] and
     (JsPath \ "properties").write[JsObject] and
@@ -31,7 +31,6 @@ trait PlacesToGeoJSON extends BaseGeoSerializer
     (JsPath \ "names").writeNullable[Seq[String]] and
     (JsPath \ "place_types").writeNullable[Seq[String]] and
     (JsPath \ "source_gazetteers").write[Seq[String]] and
-    (JsPath \ "time_span").write[JsObject] and
     (JsPath \ "quotes").writeNullable[Seq[String]] and
     (JsPath \ "tags").writeNullable[Seq[String]] and
     (JsPath \ "comments").writeNullable[Seq[String]] 
@@ -47,27 +46,21 @@ trait PlacesToGeoJSON extends BaseGeoSerializer
       toOptSeq(f.records.flatMap(_.names.map(_.name))),
       toOptSeq(f.records.flatMap(_.subjects)),
       f.records.map(_.sourceAuthority),
-      Json.obj(
-        "start" -> {val temporal = f.records(0).temporalBounds
-          if (temporal != None) {temporal.get.from.toString} else {""}
-        },
-        "end" -> {val temporal = f.records(0).temporalBounds
-          if (temporal != None) {temporal.get.to.toString} else {""}
-        }
-      ),
       toOptSeq(f.quotes),
       toOptSeq(f.tags),
       toOptSeq(f.comments)
     )
   )
 
-  def placesToGeoJSON(documentId: String)(implicit entityService: EntityService, annotationService: AnnotationService, ctx: ExecutionContext) = {
-    getMappableFeatures(documentId).map { features => 
+  def placesToGeoJSONAnnotation(documentId: String)(implicit entityService: EntityService, annotationService: AnnotationService, ctx: ExecutionContext) = {
+    getMappableFeatures(documentId).map { features =>
+    // getAnnotationMappableFeatures(documentId).map { features => 
       Json.toJson(GeoJSONFeatureCollection(features))
     }        
   }
-  def placesToGeoJSONCorpus(docIds: Seq[String])(implicit entityService: EntityService, annotationService: AnnotationService, ctx: ExecutionContext) = {
+  def placesToGeoJSONAnnotationCorpus(docIds: Seq[String])(implicit entityService: EntityService, annotationService: AnnotationService, ctx: ExecutionContext) = {
     getMappableFeaturesByIds(docIds).map { features => 
+    // getAnnotationMappableFeaturesByIds(docIds).map { features => 
       Json.toJson(GeoJSONFeatureCollection(features))
     }        
   }
