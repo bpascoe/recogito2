@@ -57,6 +57,11 @@ trait PlacesToGeoJSON extends BaseGeoSerializer
       Json.toJson(GeoJSONFeatureCollection(features))
     }        
   }
+  def placesToGeoJSONCorpus(docIds: Seq[String])(implicit entityService: EntityService, annotationService: AnnotationService, ctx: ExecutionContext) = {
+    getMappableFeaturesByIds(docIds).map { features => 
+      Json.toJson(GeoJSONFeatureCollection(features))
+    }        
+  }
     
 }
 

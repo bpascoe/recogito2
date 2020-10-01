@@ -80,11 +80,38 @@
           <ul>
             <li>
               <div class="description">
-                <h3>GeoJSON</h3>
+                <h3>TLCMap GeoJSON By Place (This file)</h3>
                 <p>@messages("document.downloads.annotations.geojson.text")</p>
               </div>
               <div class="button-container">
                 <a href="@controllers.document.downloads.routes.DownloadsController.downloadGeoJSON(doc.id)" class="btn small"><span class="icon">&#xf019;</span> GeoJSON</a>
+              </div>
+            </li>
+            <li>
+              <div class="description">
+                <h3>TLCMap GeoJSON By Place (This folder)</h3>
+                <p>Confirmed geo-located places in the folder as a GeoJSON FeatureCollection.</p>
+              </div>
+              <div class="button-container">
+                <a onmouseover="$('.forFolderId4').attr('href',$('.forFolderId4').attr('href').replace('forFolderId4', sessionStorage.folderId))" href="@controllers.document.downloads.routes.DownloadsController.downloadGeoJSONByCorpus(doc.id,"forFolderId4", false)" class="btn small forFolderId4"><span class="icon">&#xf019;</span> GeoJSON</a>
+              </div>
+            </li>
+            <li>
+              <div class="description">
+                <h3>TLCMap GeoJSON By Annotation (This file)</h3>
+                <p>Confirmed geo-located annotations in the file as a GeoJSON FeatureCollection.</p>
+              </div>
+              <div class="button-container">
+                <a href="@controllers.document.downloads.routes.DownloadsController.downloadGeoJSONAnnotation(doc.id)" class="btn small"><span class="icon">&#xf019;</span> GeoJSON</a>
+              </div>
+            </li>
+            <li>
+              <div class="description">
+                <h3>TLCMap GeoJSON By Annotation (This folder)</h3>
+                <p>Confirmed geo-located annotations in the folder as a GeoJSON FeatureCollection.</p>
+              </div>
+              <div class="button-container">
+                <a onmouseover="$('.forFolderId5').attr('href',$('.forFolderId5').attr('href').replace('forFolderId5', sessionStorage.folderId))" href="@controllers.document.downloads.routes.DownloadsController.downloadGeoJSONAnnotationByCorpus(doc.id,"forFolderId5", false)" class="btn small forFolderId5"><span class="icon">&#xf019;</span> GeoJSON</a>
               </div>
             </li>
             <li>

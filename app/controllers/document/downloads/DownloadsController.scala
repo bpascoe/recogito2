@@ -298,10 +298,168 @@ class DownloadsController @Inject() (
   def downloadGeoJSON(documentId: String, asGazetteer: Boolean) = silhouette.UserAwareAction.async { implicit request =>
     
     // Standard GeoJSON download
-    def downloadPlaces() =
+    def downloadPlaces() = {
+      val filename = Await.result(documents.getDocumentById(documentId),1.seconds).getFilename
       placesToGeoJSON(documentId).map { featureCollection =>
         Ok(Json.prettyPrint(featureCollection))
-          .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + documentId + ".json" })
+          .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + filename + ".json" })
+      }}
+    
+    // Places + spreadsheet info, according to Pelagios gazetteer GeoJSON conventions
+    def downloadGazetteer(doc: ExtendedDocumentMetadata) = request.body.asFormUrlEncoded.flatMap(_.get("json").flatMap(_.headOption)) match {
+      case Some(str) =>
+        Json.fromJson[FieldMapping](Json.parse(str)) match {
+          case result: JsSuccess[FieldMapping] =>
+            exportGeoJSONGazetteer(doc, result.get).map { featureCollection =>
+              Ok(Json.prettyPrint(featureCollection))
+                .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + documentId + ".json" })
+            }
+              
+          case error: JsError =>
+            Logger.warn("Attempt to download gazetteer but field mapping invalid: " + str + "\n" + error)
+            Future.successful(BadRequest)
+        }
+          
+      case None =>
+        Logger.warn("Attempt to download gazetteer without field mapping payload")
+        Future.successful(BadRequest)
+    }
+
+     documentReadResponse(documentId, request.identity, { case (docInfo, userAccessLevel) =>
+       if (asGazetteer)
+         // Download as gazetteer requires READ_ALL privileges
+         if (userAccessLevel.canReadAll)
+           downloadGazetteer(docInfo)
+         else
+           Future.successful(Forbidden)
+       else
+         // GeoJSON download only requires READ_DATA privileges
+         if (userAccessLevel.canReadData)
+           downloadPlaces
+         else
+           Future.successful(Forbidden)
+     })     
+  }
+
+
+  def downloadGeoJSONAnnotation(documentId: String, asGazetteer: Boolean) = silhouette.UserAwareAction.async { implicit request =>
+    
+    // Standard GeoJSON download
+    def downloadPlaces() = {
+      val filename = Await.result(documents.getDocumentById(documentId),1.seconds).getFilename
+      placesToGeoJSON(documentId).map { featureCollection =>
+        Ok(Json.prettyPrint(featureCollection))
+          .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + filename + ".json" })
+      }}
+    
+    // Places + spreadsheet info, according to Pelagios gazetteer GeoJSON conventions
+    def downloadGazetteer(doc: ExtendedDocumentMetadata) = request.body.asFormUrlEncoded.flatMap(_.get("json").flatMap(_.headOption)) match {
+      case Some(str) =>
+        Json.fromJson[FieldMapping](Json.parse(str)) match {
+          case result: JsSuccess[FieldMapping] =>
+            exportGeoJSONGazetteer(doc, result.get).map { featureCollection =>
+              Ok(Json.prettyPrint(featureCollection))
+                .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + documentId + ".json" })
+            }
+              
+          case error: JsError =>
+            Logger.warn("Attempt to download gazetteer but field mapping invalid: " + str + "\n" + error)
+            Future.successful(BadRequest)
+        }
+          
+      case None =>
+        Logger.warn("Attempt to download gazetteer without field mapping payload")
+        Future.successful(BadRequest)
+    }
+
+     documentReadResponse(documentId, request.identity, { case (docInfo, userAccessLevel) =>
+       if (asGazetteer)
+         // Download as gazetteer requires READ_ALL privileges
+         if (userAccessLevel.canReadAll)
+           downloadGazetteer(docInfo)
+         else
+           Future.successful(Forbidden)
+       else
+         // GeoJSON download only requires READ_DATA privileges
+         if (userAccessLevel.canReadData)
+           downloadPlaces
+         else
+           Future.successful(Forbidden)
+     })     
+  }
+
+  def downloadGeoJSONByCorpus(documentId: String, folderId: String, asGazetteer: Boolean) = silhouette.UserAwareAction.async { implicit request =>
+    
+    // Standard GeoJSON download
+    def downloadPlaces() =
+      if (folderId.isEmpty) {
+        val filename = Await.result(documents.getDocumentById(documentId),1.seconds).getFilename
+      placesToGeoJSON(documentId).map { featureCollection =>
+        Ok(Json.prettyPrint(featureCollection))
+          .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + filename + ".json" })
+      }} else {
+        val loggedIn = request.identity.map(_.username).get
+        var folderName = Await.result(folders.getFolderName(UUID.fromString(folderId)), 1.seconds)
+        val docIds = Await.result(documents.listIds(Some(UUID.fromString(folderId)), loggedIn),1.seconds)
+        placesToGeoJSONCorpus(docIds).map { featureCollection =>
+        Ok(Json.prettyPrint(featureCollection))
+          .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + folderName + ".json" })
+        }
+      }
+    
+    // Places + spreadsheet info, according to Pelagios gazetteer GeoJSON conventions
+    def downloadGazetteer(doc: ExtendedDocumentMetadata) = request.body.asFormUrlEncoded.flatMap(_.get("json").flatMap(_.headOption)) match {
+      case Some(str) =>
+        Json.fromJson[FieldMapping](Json.parse(str)) match {
+          case result: JsSuccess[FieldMapping] =>
+            exportGeoJSONGazetteer(doc, result.get).map { featureCollection =>
+              Ok(Json.prettyPrint(featureCollection))
+                .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + documentId + ".json" })
+            }
+              
+          case error: JsError =>
+            Logger.warn("Attempt to download gazetteer but field mapping invalid: " + str + "\n" + error)
+            Future.successful(BadRequest)
+        }
+          
+      case None =>
+        Logger.warn("Attempt to download gazetteer without field mapping payload")
+        Future.successful(BadRequest)
+    }
+
+     documentReadResponse(documentId, request.identity, { case (docInfo, userAccessLevel) =>
+       if (asGazetteer)
+         // Download as gazetteer requires READ_ALL privileges
+         if (userAccessLevel.canReadAll)
+           downloadGazetteer(docInfo)
+         else
+           Future.successful(Forbidden)
+       else
+         // GeoJSON download only requires READ_DATA privileges
+         if (userAccessLevel.canReadData)
+           downloadPlaces
+         else
+           Future.successful(Forbidden)
+     })     
+  }
+
+  def downloadGeoJSONAnnotationByCorpus(documentId: String, folderId: String, asGazetteer: Boolean) = silhouette.UserAwareAction.async { implicit request =>
+    
+    // Standard GeoJSON download
+    def downloadPlaces() =
+      if (folderId.isEmpty) {
+        val filename = Await.result(documents.getDocumentById(documentId),1.seconds).getFilename
+      placesToGeoJSON(documentId).map { featureCollection =>
+        Ok(Json.prettyPrint(featureCollection))
+          .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + filename + ".json" })
+      }} else {
+        val loggedIn = request.identity.map(_.username).get
+        var folderName = Await.result(folders.getFolderName(UUID.fromString(folderId)), 1.seconds)
+        val docIds = Await.result(documents.listIds(Some(UUID.fromString(folderId)), loggedIn),1.seconds)
+        placesToGeoJSONCorpus(docIds).map { featureCollection =>
+        Ok(Json.prettyPrint(featureCollection))
+          .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + folderName + ".json" })
+        }
       }
     
     // Places + spreadsheet info, according to Pelagios gazetteer GeoJSON conventions
