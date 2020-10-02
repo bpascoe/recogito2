@@ -395,14 +395,14 @@ class DownloadsController @Inject() (
     def downloadPlaces() =
       if (folderId.isEmpty) {
         val filename = Await.result(documents.getDocumentById(documentId),1.seconds).getFilename
-      placesToGeoJSONAnnotation(documentId).map { featureCollection =>
+      placesToGeoJSON(documentId).map { featureCollection =>
         Ok(Json.prettyPrint(featureCollection))
           .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + filename + ".json" })
       }} else {
         val loggedIn = request.identity.map(_.username).get
         var folderName = Await.result(folders.getFolderName(UUID.fromString(folderId)), 1.seconds)
         val docIds = Await.result(documents.listIds(Some(UUID.fromString(folderId)), loggedIn),1.seconds)
-        placesToGeoJSONAnnotationCorpus(docIds).map { featureCollection =>
+        placesToGeoJSONCorpus(docIds).map { featureCollection =>
         Ok(Json.prettyPrint(featureCollection))
           .withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + folderName + ".json" })
         }

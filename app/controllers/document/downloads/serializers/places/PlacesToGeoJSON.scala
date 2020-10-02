@@ -69,10 +69,42 @@ trait PlacesToGeoJSON extends BaseGeoSerializer
   }
   def placesToGeoJSONCorpus(docIds: Seq[String])(implicit entityService: EntityService, annotationService: AnnotationService, ctx: ExecutionContext,
       documents: DocumentService) = {
-    getMappableFeatures(docIds(0)).map { features => 
-    // getMappableFeaturesByIds(docIds).map { features => 
-      Json.toJson(GeoJSONFeatureCollection(features))
-    }        
+    getMappableFeaturesByIds(docIds).map { features => 
+      Json.toJson(Json.obj(
+      "type" -> "FeatureCollection",
+      "folder" -> {var i = -1
+        features.map{feature=>{
+        i = i + 1
+        val (d, _) = feature(i)
+        Json.obj("id"->d.getId,
+          "name" -> d.getFilename,
+          "features" -> Json.toJson(feature.map{case (doc, f)=>{
+          Json.obj("type" -> "Feature",
+          "geometry" -> f.geometry,
+          "properties" -> Json.obj(
+            "titles" -> f.titles.mkString(", "),
+            "annotations" -> f.annotations.size
+          ),
+          "uris" -> f.records.map(_.uri),
+          "titles" -> f.records.map(_.title),
+          "names" -> toOptSeq(f.records.flatMap(_.names.map(_.name))),
+          "place_types" -> toOptSeq(f.records.flatMap(_.subjects)),
+          "source_gazetteers" -> f.records.map(_.sourceAuthority),
+          "time_span" -> Json.obj(
+            "start" -> {val temporal = f.records(0).temporalBounds
+              if (temporal != None) {temporal.get.from.toString} else {""}
+            },
+            "end" -> {val temporal = f.records(0).temporalBounds
+              if (temporal != None) {temporal.get.to.toString} else {""}
+            },
+          "quotes" -> toOptSeq(f.quotes),
+          "tags" -> toOptSeq(f.tags),
+          "comments" -> toOptSeq(f.comments)
+          ))}
+      }))}}}
+    ))
+      // Json.toJson(GeoJSONFeatureCollection(f))
+    }
   }
     
 }
