@@ -5,6 +5,7 @@ import scala.concurrent.ExecutionContext
 import services.annotation.{AnnotationService, AnnotationBody}
 import services.entity.EntityType
 import services.entity.builtin.EntityService
+import services.document.DocumentService
 import storage.es.ES
 import java.net._
 
@@ -15,12 +16,18 @@ trait CorpusPlacesToKMLByDescription extends BaseGeoSerializer {
   )(implicit 
       entityService: EntityService, 
       annotationService: AnnotationService, 
-      ctx: ExecutionContext
+      ctx: ExecutionContext,
+      documents: DocumentService
   ) = getMappableFeaturesByIds(docIds).map { features => 
     val host = "http://" + InetAddress.getLocalHost.getHostName + ":9000/annotation2/"
     val cdatastart = "<![CDATA["
     val cdataend = "]]>"
-    val kmlFeatures = features.map { f => 
+    // val kmlFeatures = features.map { f => 
+    var i = -1
+    val kmlFeatures = features.map { feature =>
+      i = i + 1
+      val kml = feature.map { case (doc, f) =>
+      // val kml = 
       <Placemark>
         <name>{f.quotes.distinct.mkString(",")}</name>
         <description>
@@ -49,6 +56,9 @@ trait CorpusPlacesToKMLByDescription extends BaseGeoSerializer {
         }}
       </Placemark>
     }
+    val (d, _) = feature(i)
+    <Folder><ID>{d.getId}</ID><name>{d.getFilename}</name>{ kml }</Folder>
+  }
 
     <kml xmlns="http://www.opengis.net/kml/2.2">
       <Document>

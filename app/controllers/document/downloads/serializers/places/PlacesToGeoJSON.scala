@@ -16,6 +16,7 @@ import services.entity.{Entity, EntityRecord, EntityType}
 import services.entity.builtin.EntityService
 import storage.es.ES 
 import storage.uploads.Uploads
+import services.document.DocumentService
 
 trait PlacesToGeoJSON extends BaseGeoSerializer 
   with HasCSVParsing 
@@ -66,8 +67,10 @@ trait PlacesToGeoJSON extends BaseGeoSerializer
       Json.toJson(GeoJSONFeatureCollection(features))
     }        
   }
-  def placesToGeoJSONCorpus(docIds: Seq[String])(implicit entityService: EntityService, annotationService: AnnotationService, ctx: ExecutionContext) = {
-    getMappableFeaturesByIds(docIds).map { features => 
+  def placesToGeoJSONCorpus(docIds: Seq[String])(implicit entityService: EntityService, annotationService: AnnotationService, ctx: ExecutionContext,
+      documents: DocumentService) = {
+    getMappableFeatures(docIds(0)).map { features => 
+    // getMappableFeaturesByIds(docIds).map { features => 
       Json.toJson(GeoJSONFeatureCollection(features))
     }        
   }

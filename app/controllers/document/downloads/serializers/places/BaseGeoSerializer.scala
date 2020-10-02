@@ -6,7 +6,10 @@ import scala.concurrent.{ExecutionContext, Future}
 import services.annotation.{Annotation, AnnotationService, AnnotationBody}
 import services.entity.{EntityType, EntityRecord}
 import services.entity.builtin.EntityService
+import services.document.DocumentService
 import storage.es.ES
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 case class AnnotatedPlaceFeature(
   geometry: Geometry,
@@ -71,14 +74,23 @@ trait BaseGeoSerializer extends BaseSerializer {
   )(implicit 
       entityService: EntityService, 
       annotationService: AnnotationService, 
-      ctx: ExecutionContext
-  ): Future[Seq[AnnotatedPlaceFeature]] = {
+      ctx: ExecutionContext,
+      documents: DocumentService
+  ) = {
+    val fPlacesByDocs = Future.sequence {
+      docIds.map { docId => 
+        val doc = Await.result(documents.getDocumentById(docId),1.seconds)
+        entityService.listEntitiesInDocuments(docIds, Some(EntityType.PLACE), 0, ES.MAX_SIZE).map { places => 
+          (doc, places)
+        }
+      }
+    }
     val fAnnotations = annotationService.findByDocIds(docIds, 0, ES.MAX_SIZE)
-    val fPlaces = entityService.listEntitiesInDocuments(docIds, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
+    // val fPlaces = entityService.listEntitiesInDocuments(docIds, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
         
     val f = for {
       annotations <- fAnnotations
-      places <- fPlaces
+      places <- fPlacesByDocs
     } yield (annotations.map(_._1), places)
     
     f.map { case (annotations, places) =>
@@ -87,7 +99,8 @@ trait BaseGeoSerializer extends BaseSerializer {
 
       // Each place in this document, along with all the annotations on this place and 
       // the specific entity records the annotations point to (within the place union record) 
-      places.items.flatMap { e =>      
+      places.map { case (doc, entities) => 
+      entities.items.flatMap{e=>
         val place = e._1.entity
 
         val annotationsOnThisPlace = placeAnnotations.filter { a =>
@@ -100,9 +113,9 @@ trait BaseGeoSerializer extends BaseSerializer {
         val referencedRecords = place.isConflationOf.filter(g => placeURIs.contains(g.uri))
         
         place.representativeGeometry.map { geom => 
-          AnnotatedPlaceFeature(geom, referencedRecords, annotationsOnThisPlace)
+          (doc,AnnotatedPlaceFeature(geom, referencedRecords, annotationsOnThisPlace))
         }
-      }
+      }}
     }        
   }
 
