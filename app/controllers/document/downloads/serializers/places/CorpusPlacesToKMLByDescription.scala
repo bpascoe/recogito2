@@ -33,6 +33,14 @@ trait CorpusPlacesToKMLByDescription extends BaseGeoSerializer {
         <description>
 			{scala.xml.PCData(buildKMLStringCorpus(f, host))}
         </description>
+        <TimeSpan>
+          <begin>{val temporal = f.records(0).temporalBounds
+          if (temporal != None) {temporal.get.from.toString} else {""}
+        }</begin>
+          <end>{val temporal = f.records(0).temporalBounds
+          if (temporal != None) {temporal.get.to.toString} else {""}
+        }</end>
+      </TimeSpan>
           
           { f.geometry match {
             case geom: Polygon => 
