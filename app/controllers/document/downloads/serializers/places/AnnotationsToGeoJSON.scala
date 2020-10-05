@@ -18,58 +18,75 @@ import storage.es.ES
 import storage.uploads.Uploads
 import services.document.DocumentService
 // BaseGeoAnnotationSerializer
-trait AnnotationsToGeoJSON extends BaseGeoSerializer 
+trait AnnotationsToGeoJSON extends BaseGeoAnnotationSerializer 
   with HasCSVParsing 
   with HasNullableSeq 
   with HasGeometry {
-  
-  implicit val geoJsonAnnotationFeatureWrites: Writes[AnnotatedPlaceFeature] = (
-    (JsPath \ "type").write[String] and
-    (JsPath \ "geometry").write[Geometry] and
-    (JsPath \ "properties").write[JsObject] and
-    (JsPath \ "uris").write[Seq[String]] and
-    (JsPath \ "titles").write[Seq[String]] and
-    (JsPath \ "names").writeNullable[Seq[String]] and
-    (JsPath \ "place_types").writeNullable[Seq[String]] and
-    (JsPath \ "source_gazetteers").write[Seq[String]] and
-    (JsPath \ "quotes").writeNullable[Seq[String]] and
-    (JsPath \ "tags").writeNullable[Seq[String]] and
-    (JsPath \ "comments").writeNullable[Seq[String]] 
-  )(f => (
-      "Feature",
-      f.geometry,
-      Json.obj(
-        "titles" -> f.titles.mkString(", "),
-        "annotations" -> f.annotations.size
-      ),
-      f.records.map(_.uri),
-      f.records.map(_.title),
-      toOptSeq(f.records.flatMap(_.names.map(_.name))),
-      toOptSeq(f.records.flatMap(_.subjects)),
-      f.records.map(_.sourceAuthority),
-      toOptSeq(f.quotes),
-      toOptSeq(f.tags),
-      toOptSeq(f.comments)
-    )
-  )
 
   def placesToGeoJSONAnnotation(documentId: String)(implicit entityService: EntityService, annotationService: AnnotationService, ctx: ExecutionContext) = {
-    getMappableFeatures(documentId).map { features =>
-    // getAnnotationMappableFeatures(documentId).map { features => 
-      Json.toJson(GeoJSONFeatureCollection(features))
+    getAnnotationMappableFeatures(documentId).map { features => 
+      Json.toJson(Json.obj(
+      "type" -> "FeatureCollection",
+          "features" -> Json.toJson(features.map{f=>{
+          Json.obj("type" -> "Feature",
+          "geometry" -> f.records.representativeGeometry,
+          "properties" -> Json.obj(
+            "uuid" -> f.annotations.annotationId.toString,
+            "name" -> f.quotes.mkString(", "),
+            "time_span" -> Json.obj(
+              "start" -> f.annotations.startDate,
+              "end" -> f.annotations.endDate
+            ),
+            "modified_by" -> f.annotations.lastModifiedBy,
+            "modified_at" -> f.annotations.lastModifiedAt.toString
+          ),
+          "uri" -> f.annotations.bodies(0).uri,
+          "title" -> f.records.title,
+          "name" -> f.quotes.mkString(", "),
+          "annotation_type" -> f.records.entityType,
+          "source_gazetteer" -> f.records.isConflationOf(0).sourceAuthority,
+          "quotes" -> toOptSeq(f.quotes),
+          "tags" -> toOptSeq(f.tags),
+          "comments" -> toOptSeq(f.comments)
+          )}
+      })))
     }        
   }
   def placesToGeoJSONAnnotationCorpus(docIds: Seq[String])(implicit entityService: EntityService, annotationService: AnnotationService, ctx: ExecutionContext,
       documents: DocumentService) = {
-    getMappableFeatures(docIds(0)).map { features =>
-    // getMappableFeaturesByIds(docIds).map { features => 
-    // getAnnotationMappableFeaturesByIds(docIds).map { features => 
-      Json.toJson(GeoJSONFeatureCollection(features))
-    }        
-  }
+    getAnnotationMappableFeaturesByIds(docIds).map { features => 
+      Json.toJson(Json.obj(
+      "type" -> "FeatureCollection",
+      "folder" -> {var i = -1
+        features.map{feature=>{
+        i = i + 1
+        val (d, _) = feature(i)
+        Json.obj("id"->d.getId,
+          "name" -> d.getFilename,
+          "features" -> Json.toJson(feature.map{case (doc, f)=>{
+          Json.obj("type" -> "Feature",
+          "geometry" -> f.records.representativeGeometry,
+          "properties" -> Json.obj(
+            "uuid" -> f.annotations.annotationId.toString,
+            "name" -> f.quotes.mkString(", "),
+            "time_span" -> Json.obj(
+              "start" -> f.annotations.startDate,
+              "end" -> f.annotations.endDate
+            ),
+            "modified_by" -> f.annotations.lastModifiedBy,
+            "modified_at" -> f.annotations.lastModifiedAt.toString
+          ),
+          "uri" -> f.annotations.bodies(0).uri,
+          "title" -> f.records.title,
+          "name" -> f.quotes.mkString(", "),
+          "annotation_type" -> f.records.entityType,
+          "source_gazetteer" -> f.records.isConflationOf(0).sourceAuthority,
+          "quotes" -> toOptSeq(f.quotes),
+          "tags" -> toOptSeq(f.tags),
+          "comments" -> toOptSeq(f.comments)
+          )}
+      }))}}}
+    ))
+  }}
     
 }
-
-
-
-  
