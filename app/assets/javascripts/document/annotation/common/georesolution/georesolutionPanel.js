@@ -435,7 +435,7 @@ define([
               ccode = addPlace.find("#country").val(),
               altNames = addPlace.find(".altNames").val(),
               description = addPlace.find(".description").val();
-          if (!uri) uri = "http://www.tlcmap.net.au/" + window.location.hash.substring(1);
+          if (!uri) uri = "http://www.tlcmap.org/" + window.location.hash.substring(1);
           var jsonData = {'title':title, 'uri': uri, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'ccode': ccode, 'from': from, 'to': to,'description':description,'altNames':altNames};
           if (title && lat && lon)
             API.addPlace2Gazetter(jsonData).done(function(result) {

@@ -136,7 +136,7 @@ define([
           altNames = addPlace.find(".altNames").val(),
           description = addPlace.find(".description").val();
 
-      if (!uri) uri = "http://www.tlcmap.net.au/" + uuidv4();
+      if (!uri) uri = "http://www.tlcmap.org/" + uuidv4();
       var jsonData = {'title':title, 'uri': uri, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'ccode': ccode, 'from': from, 'to': to,'description':description,'altNames':altNames};
       if (title && lat && lon)
         API.addPlace2Gazetter(jsonData).done(function(result) {
