@@ -42,8 +42,11 @@ define([
               titles = PlaceUtils.getTitles(place, true),
               names = PlaceUtils.getDistinctPlaceNames(place, { excludeTitles: true }),
               descriptions = PlaceUtils.getDescriptions(place);
-
-          titleEl.html(titles.join(', '));
+          var gazetteer = place.is_conflation_of[0].source_authority;
+          // if (gazetteer == "contribution") {
+          //   gazetteer = "User"
+          // }
+          titleEl.html(titles.join(', ')+'<span style="float:right;">'+gazetteer+'</span>');
           namesEl.html(names.join(', '));
 
           jQuery.each(uris, function(idx, uri) {
