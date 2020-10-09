@@ -297,6 +297,9 @@ GET     /settings/password                           controllers.my.settings.Pas
 POST    /settings/password                           controllers.my.settings.PasswordSettingsController.updatePassword
 GET     /settings/restore                            controllers.my.settings.RestoreController.index
 POST    /settings/restore                            controllers.my.settings.RestoreController.restore
+GET     /settings/place                           controllers.my.settings.PlaceController.index
+GET     /settings/getPlaces                           controllers.my.settings.PlaceController.getPlaces()
+POST    /settings/place                           controllers.my.settings.PlaceController.updatePlace
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Personal space - upload
