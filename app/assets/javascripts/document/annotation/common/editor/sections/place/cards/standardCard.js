@@ -91,8 +91,8 @@ define([
             element.find('.to2').html(record.temporal_bounds.to);
           }
           if (record.representative_point) {
-            element.find('.latitude2').html(record.representative_point[0]);
-            element.find('.longitude2').html(record.representative_point[1]);
+            element.find('.longitude2').html(record.representative_point[0]);
+            element.find('.latitude2').html(record.representative_point[1]);
           }
           element.find('.ccode').html(record.country_code);
 
