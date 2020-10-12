@@ -13,13 +13,21 @@ import play.api.i18n.{ I18nSupport, MessagesApi }
 import play.api.mvc.{AbstractController, ControllerComponents}
 import scala.concurrent.{ ExecutionContext, Future }
 import play.api.libs.json.Json
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import services.annotation.AnnotationService
+import services.document.DocumentService
+import org.webjars.play.WebJarsUtil
 
 class PlaceController @Inject() (
     val components: ControllerComponents,
     val config: Configuration,
     val users: UserService,
     val silhouette: Silhouette[Security.Env],
-    implicit val ctx: ExecutionContext
+    val annotations: AnnotationService,
+    implicit val documents: DocumentService,
+    implicit val ctx: ExecutionContext,
+    implicit val webjars: WebJarsUtil
   ) extends AbstractController(components) with HasConfig with HasUserService with I18nSupport with HasPrettyPrintJSON {
 
   def index() = silhouette.SecuredAction { implicit request =>
@@ -29,10 +37,17 @@ class PlaceController @Inject() (
   def getPlaces() = silhouette.SecuredAction.async { implicit request =>
     request.body.asJson match {
       case Some(json) => {
-        val username = request.identity.username
-        val filename = (json \ "Filename").as[String]
-        val places = ""
-        Future.successful(jsonOk(Json.toJson(places)))
+        // val username = request.identity.username
+        val username = (json \ "username").as[String]
+        val response = Await.result(annotations.getUserAnnotation(username),1.seconds)
+        val annots = response.map {
+          case (annotation,_) =>
+            val docId = annotation.annotates.documentId
+            val filename = Await.result(documents.getDocumentById(docId),1.seconds).getFilename
+            ("place"->annotation.bodies(0).value,"file_name"->filename)
+        }
+        // val places = ""
+        Future.successful(jsonOk(Json.toJson(annots)))
       }
       case None => {Future.successful(jsonOk(Json.toJson("")))}
     }

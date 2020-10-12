@@ -1,11 +1,12 @@
 @(
   user: services.user.User
-)(implicit messages: Messages, flash: Flash)
+)(implicit messages: Messages, flash: Flash, webJarsUtil: org.webjars.play.WebJarsUtil)
 <!DOCTYPE html>
 <html>
   <head>
     <title>Place</title>
     <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/my/settings/index.css")"/>
+    @Html(webJarsUtil.script("1.12.0/jquery.min.js"))
   </head>
 
   <body>
@@ -50,15 +51,24 @@
           <div class="error flash-message"><span class="icon">&#xf00d;</span> @msg</div>
         }
         
-        <div class="places"></div>
+        <div class="places">
+          <table>
+            <tr><td>#</td><td>Place Name</td><td>File Name</td></tr>
+          </table>
+        </div>
       </div>
 
     </div>
     <script type="text/javascript">
       var places = $(".places");
-      $.ajax({type: 'POST', url:document.location.origin + "/api/document/loadCsv", data: JSON.stringify(doc),contentType: 'application/json'}).done(function(data) {
+      $.ajax({type: 'POST', url:document.location.origin + "/settings/getPlaces", data: JSON.stringify({"username":$(".to-index h1").text()}),contentType: 'application/json'}).done(function(data) {
         // console.log( data + " " + textStatus );
-        if (data) $(".status").append("<p> "+($(".status").find("p").length+1)+". "+data);
+        if (data.length > 0){
+          var annotations = data;//JSON.parse(data)
+          $.each(annotations, function(i, annotation) {
+            $(".places table").append("<tr><td>"+(i+1)+"</td><td>"+annotation[0][1] + "</td><td>" + annotation[1][1]+"</td></tr>");
+          });
+        }
       })
     </script>
   </body>

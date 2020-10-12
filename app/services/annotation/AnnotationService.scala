@@ -413,4 +413,12 @@ class AnnotationService @Inject() (
     } map { _.to[(Annotation, Long)] }
   }
 
+  def getUserAnnotation(user  : String): Future[Seq[(Annotation, Long)]] = {
+    es.client execute {
+      search (ES.RECOGITO / ES.ANNOTATION) query  {
+        termQuery("last_modified_by" -> user)
+      }
+    } map { _.to[(Annotation, Long)] }
+  }
+
 }
