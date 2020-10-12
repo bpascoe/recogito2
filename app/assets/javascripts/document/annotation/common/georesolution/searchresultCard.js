@@ -1,7 +1,7 @@
 define([
   'common/ui/formatting',
   'common/utils/placeUtils',
-  'common/hasEvents'], function(Formatting, PlaceUtils, HasEvents) {
+  'common/hasEvents','common/api'], function(Formatting, PlaceUtils, HasEvents, API) {
 
   var SearchResultCard = function(ul, place) {
 
@@ -43,9 +43,12 @@ define([
               names = PlaceUtils.getDistinctPlaceNames(place, { excludeTitles: true }),
               descriptions = PlaceUtils.getDescriptions(place);
           var gazetteer = place.is_conflation_of[0].source_authority;
-          // if (gazetteer == "contribution") {
-          //   gazetteer = "User"
-          // }
+          if (gazetteer == "contribution") {
+            $.ajax({url:document.location.origin + "/api/place/contributor", type: 'POST',contentType: 'application/json',data:JSON.stringify({"unionId":uris[0]}),async: false,success: function(user) {
+              gazetteer = gazetteer + " (" + user.split(",")[0] + ")";
+            }});
+            // gazetteer = gazetteer + ": " + place.contributor;
+          }
           titleEl.html(titles.join(', ')+'<span style="float:right;">'+gazetteer+'</span>');
           namesEl.html(names.join(', '));
 

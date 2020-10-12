@@ -401,4 +401,16 @@ class AnnotationService @Inject() (
     }
   }
 
+  def getContributorByUnionId(unionId  : String): Future[Seq[(Annotation, Long)]] = {
+    es.client execute {
+      search (ES.RECOGITO / ES.ANNOTATION) query constantScoreQuery {
+        nestedQuery("bodies") query {
+          // termQuery("bodies.reference.union_id" -> unionId)
+          termQuery("bodies.reference.uri" -> unionId)
+          // termQuery("bodies.type" -> "PLACE")
+        }
+      }
+    } map { _.to[(Annotation, Long)] }
+  }
+
 }

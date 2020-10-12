@@ -14,6 +14,9 @@ import play.api.mvc.{Action, ControllerComponents}
 import scala.concurrent.{Future, ExecutionContext }
 import scala.util.{Try, Success, Failure}
 import services.entity.EntityType
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import services.annotation.AnnotationService
 
 @Singleton
 class PlaceAPIController @Inject() (
@@ -23,6 +26,7 @@ class PlaceAPIController @Inject() (
   val users: UserService,
   val entities: EntityService,
   val silhouette: Silhouette[Security.Env],
+  val annotations: AnnotationService,
   implicit val ctx: ExecutionContext
 ) extends BaseOptAuthController(components, config, documents, users) with HasPrettyPrintJSON {
 
@@ -81,6 +85,22 @@ class PlaceAPIController @Inject() (
       else
         Future.successful(Forbidden)
     })
+  }
+  
+  def getContributorByUnionId() = silhouette.UserAwareAction.async { implicit request =>
+    request.body.asJson match {
+      case Some(json) => {
+        val unionId = (json \ "unionId").as[String]
+        val response = Await.result(annotations.getContributorByUnionId(unionId),1.seconds)
+        val user = response.map {
+          case (contributor,_) =>
+            // contributor.lastModifiedBy.getOrElse("")
+            contributor.lastModifiedBy.getOrElse("")
+        }
+        Future.successful(Ok(user.mkString(",")))
+      }
+      case None => {Future.successful(Ok(""))}
+    }
   }
 
 }

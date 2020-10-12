@@ -46,7 +46,7 @@ trait EntityDeleteImpl extends HasScrollProcessing with HasAnnotationIndexing { 
       remainingRecords match {
         case Seq() => (id, None)
         case records =>
-          val updated = EntityBuilder.fromRecords(records, e.entity.entityType, id)
+          val updated = EntityBuilder.fromRecords(records, e.entity.entityType, id)//, e.entity.contributor
           (id, Some(IndexedEntity(updated, e.version)))
       }
     }
