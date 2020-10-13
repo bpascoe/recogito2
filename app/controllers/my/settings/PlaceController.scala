@@ -44,7 +44,13 @@ class PlaceController @Inject() (
           case (annotation,_) =>
             val docId = annotation.annotates.documentId
             val filename = Await.result(documents.getDocumentById(docId),1.seconds).getFilename
-            ("place"->annotation.bodies(0).value,"file_name"->filename)
+            var id = ""
+            val ref = annotation.bodies(0).reference
+            if (ref != None) {
+              id = ref.get.unionId.toString
+            }
+            Json.obj("place"->annotation.bodies(0).value,"file_name"->filename,"union_id"->id)
+            
         }
         // val places = ""
         Future.successful(jsonOk(Json.toJson(annots)))

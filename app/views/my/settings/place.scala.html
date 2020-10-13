@@ -7,6 +7,22 @@
     <title>Place</title>
     <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/my/settings/index.css")"/>
     @Html(webJarsUtil.script("1.12.0/jquery.min.js"))
+    <style type="text/css">
+      .places table td span {
+        margin-left: 10px;
+        margin-right: 2px;
+        margin-top: 2px;
+        background-color: rgb(7, 55, 99);
+        color: white;
+        border: none;
+        cursor: pointer;
+        padding: 2px 12px 3px 12px;
+        text-decoration: none;
+      }
+      .places table tr {
+        height: 30px;
+      }
+    </style>
   </head>
 
   <body>
@@ -53,7 +69,6 @@
         
         <div class="places">
           <table>
-            <tr><td>#</td><td>Place Name</td><td>File Name</td></tr>
           </table>
         </div>
       </div>
@@ -64,9 +79,33 @@
       $.ajax({type: 'POST', url:document.location.origin + "/settings/getPlaces", data: JSON.stringify({"username":$(".to-index h1").text()}),contentType: 'application/json'}).done(function(data) {
         // console.log( data + " " + textStatus );
         if (data.length > 0){
-          var annotations = data;//JSON.parse(data)
-          $.each(annotations, function(i, annotation) {
-            $(".places table").append("<tr><td>"+(i+1)+"</td><td>"+annotation[0][1] + "</td><td>" + annotation[1][1]+"</td></tr>");
+          // get place by unique annotaiton
+          var annotations = [];//jQuery.unique(data);//JSON.parse(data)
+          $.each(data, function(i, annotation) {
+            annotations.push(JSON.stringify(annotation));
+          });
+          // annotations = jQuery.unique(annotations);
+          annotations = new Set(annotations);
+          var uniqueAnnotations = [];
+          annotations.forEach(function display(value1,value2) {
+            uniqueAnnotations.push(JSON.parse(value1));
+          });
+          $(".places table tr").remove();
+          $(".places table").append("<tr><td>#</td><td>Place Name</td><td>File Name</td><td></td></tr>");
+          $.each(uniqueAnnotations, function(i, annotation) {
+            $(".places table").append("<tr><td>"+(i+1)+"</td><td>"+annotation.place + "</td><td>" + annotation.file_name+"</td><td><span class='edit'>Edit</span><span class='delete'>Delete</span><span class='unionId' hidden>"+annotation.union_id+"</span></a></td></tr>");
+          });
+          $(".places table tr").on( "click", ".edit", function() {
+            var edit = $(this);
+            var unionId = edit.next().text();
+            // var entity = $span.attr('id');
+            // var show and edit entity
+            // submit
+          });
+          $(".places table tr").on( "click", ".delete", function() {
+            var edit = $(this);
+            var unionId = edit.next().text();
+            // delete entity by unionId
           });
         }
       })
