@@ -5,6 +5,7 @@
 <html>
   <head>
     <title>Annotation</title>
+    <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/document/annotation/text/index.css")"/>
     <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/my/settings/index.css")"/>
     @Html(webJarsUtil.script("1.12.0/jquery.min.js"))
     @Html(webJarsUtil.script("jquery-ui.min.js"))
@@ -25,13 +26,17 @@
         height: 30px;
       }
       .annotations table tr td{
-        padding: 10px;
+        padding: 5px;
       }
     div.ui-dialog{color: #3c763d;background-color: #dff0d8;padding:10px;}
     .ui-dialog-titlebar-close{float:right;}
     .ui-dialog-titlebar{color: black;font-size:20;}
     .overwriteTip{border: 1px solid #c5c5c5;background: #ffffff;color: #333333;padding: 0px 5px;}
     .ui-dialog-buttonset button.ui-button{color: #454545;text-decoration: none;background: #f6f6f6;margin: .5em .4em .5em 0;cursor: pointer;}
+    .ui-dialog-titlebar.ui-widget-header {display: none;}
+    .input--style-1 {
+        width: 280px;
+    }
     </style>
   </head>
 
@@ -92,32 +97,32 @@
     </div>
     <script type="text/javascript">
       function showStatus (msg) {
-      var showMsg = jQuery(
-      '<div class="msg">' +
-        msg +
-      '</div>');
-      showMsg.dialog({
-          autoOpen: false,
-          draggable: false,
-          resizable: false,
-          show: {
-              effect: 'fade',
-              duration: 1000
-          },
-          hide: {
-              effect: 'fade',
-              duration: 1000
-          },
-          open: function(){
-              $(this).dialog('close');
-          },
-          close: function(){
-              $(this).dialog('destroy');
-          }
-      });
-      showMsg.dialog("open");
-      location.reload();
-    }
+        var showMsg = jQuery(
+        '<div class="msg">' +
+          msg +
+        '</div>');
+        showMsg.dialog({
+            autoOpen: false,
+            draggable: false,
+            resizable: false,
+            show: {
+                effect: 'fade',
+                duration: 1000
+            },
+            hide: {
+                effect: 'fade',
+                duration: 1000
+            },
+            open: function(){
+                $(this).dialog('close');
+            },
+            close: function(){
+                $(this).dialog('destroy');
+            }
+        });
+        showMsg.dialog();
+        location.reload();
+      }
       var annotations = $(".annotations");
       $.ajax({type: 'POST', url:document.location.origin + "/settings/getAnnotations", data: JSON.stringify({"username":$(".to-index h1").text()}),contentType: 'application/json'}).done(function(data) {
         if (data.length > 0){
@@ -128,15 +133,44 @@
           });
           $(".annotations table tr").on( "click", ".edit", function() {
             var edit = $(this);
-            var unionId = edit.next().text();
-            // var entity = $span.attr('id');
-            // var show and edit entity
-            var overwriteTip = jQuery(
+            var json = JSON.parse(edit.next().next().next().text())
+            var addPlace = jQuery('<div class="add-place"><div class="card-1"><div class="card-body">' +
+            '<b class="title">Update Annotation </b><span style="font-size:12px; color:gray;">Fileds with * are required</span>'+
+            '<div class="input-group"><input class="input--style-1 title2" type="text" placeholder="Place Name*" disabled value="'+json.name+'" required></div>'+
+            '<div class="input-group"><input class="input--style-1 annotationId" type="text" placeholder="Annotation Id" disabled value="'+json.id+'" required></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker startDate" type="text" placeholder="Timespan Start yyyy-mm-dd" value="'+json.startDate+'"></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker2 endDate" type="text" placeholder="Timespan End yyyy-mm-dd" value="'+json.endDate+'"></div>'+
+            '<div class="p-t-20"><button class="btn btn--radius btn--red btn-cancel-place">Cancel</button>'+
+            '<button class="btn btn--radius btn--green add-place-submit">Submit</button></div>'+
+            '</div></div></div>'+
+            // '<div><button class="btn-add-place">Create Place</button></div>' +
+          '</div>');
+        // $(".startDate" ).datepicker({
+        //   dateFormat: 'yy-mm-dd',
+        //   changeMonth: true,
+        //   changeYear: true,
+        //   showOn: "button",
+        //   buttonImage: "https://jqueryui.com/resources/demos/datepicker/images/calendar.gif",
+        //   buttonImageOnly: true,
+        //   buttonText: "Select date",
+        //   forceParse: false
+        // });
+        // $(".endDate" ).datepicker({
+        //   dateFormat: 'yy-mm-dd',
+        //   changeMonth: true,
+        //   changeYear: true,
+        //   showOn: "button",
+        //   buttonImage: "https://jqueryui.com/resources/demos/datepicker/images/calendar.gif",
+        //   buttonImageOnly: true,
+        //   buttonText: "Select date",
+        //   forceParse: false
+        // });
+        addPlace.dialog();
+        addPlace.on('click', '.add-place-submit', function() {
+        var overwriteTip = jQuery(
             '<div class="overwriteTip">' +
-              'If you edit this record it may affect others who have used it. Do you wish to continue?' +
+              'If you edit this record it will update the annotation. Do you wish to continue?' +
             '</div>');
-            // var entity = {};
-            // showEditPlace(entity);
             overwriteTip.dialog({
               resizable: false,
               height: "auto",
@@ -144,8 +178,14 @@
               modal: true,
               buttons: {
                 "Continue": function() {
-                  $.ajax({type: 'POST', url:document.location.origin + "/settings/updateAnnotation", data: JSON.stringify({"unionId":unionId}),contentType: 'application/json'}).done(function(data) {
-                      });
+                  var title = addPlace.find(".title2").val(),
+                  from = addPlace.find(".startDate").val(),
+                  to = addPlace.find(".endDate").val(),
+                  id = addPlace.find(".annotationId").val();
+                  var jsonData = {'title':title, 'from': from, 'to': to,'id':id,'username':$(".to-index h1").text()};
+                  $.ajax({type: 'POST', url:document.location.origin + "/settings/updateAnnotation", data: JSON.stringify(jsonData),contentType: 'application/json'}).done(function(data) {
+                    showStatus(data);
+                  });
                   $( this ).dialog( "close" );
                 },
                 Cancel: function() {
@@ -153,7 +193,11 @@
                 }
               }
             });
-            // submit
+          });
+        
+        addPlace.on( "click", ".btn-cancel-place", function() {
+          addPlace.remove();
+        });
           });
           
           $(".annotations table tr").on( "click", ".delete", function() {

@@ -138,7 +138,7 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
         val annots = response.map {
           case (a,_) =>
               val filename = Await.result(documents.getDocumentById(a.annotates.documentId),1.seconds).getFilename
-              Json.obj("name"->a.bodies(0).value,"file"->filename,"id"->a.annotationId,"startDate"->a.startDate,"endDate"->a.endDate)
+              Json.obj("name"->a.bodies(0).value,"file"->filename,"id"->a.annotationId,"startDate"->a.startDate.getOrElse[String](""),"endDate"->a.endDate.getOrElse[String](""))
         }
         Future.successful(jsonOk(Json.toJson(annots)))
       }
@@ -147,7 +147,36 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
   }
 
   def updateAnnotation() = silhouette.SecuredAction { implicit request =>
-    Ok(views.html.my.settings.place(request.identity))
+    request.body.asJson match {
+      case Some(json) => {
+        val username = (json \ "username").as[String]
+        val id = (json \ "id").as[String]
+        val title = (json \ "title").as[String]
+        val time = DateTime.now()
+        val from  = (json \ "from").asOpt[String]
+        val to  = (json \ "to").asOpt[String]
+        // val temporal_bounds = if (from == "" || to == "") {None} else { 
+        //   val (fromYear, fromMonth, fromDay) = formatDateString(from) // yy-mm-dd
+        //   val (toYear, toMonth, toDay) = formatDateString(to)
+        //   Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromYear, fromMonth, fromDay).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(toYear, toMonth, toDay).withTime(0, 0, 0, 0)))
+        // }
+        val response = Await.result(annotations.findById(UUID.fromString(id)),1.seconds)
+        if (response != None) {
+          val result = response.map {
+            case (record,_) =>
+              Await.result(annotations.upsertAnnotation(record.copy(lastModifiedAt=time,startDate=from,endDate=to)),1.seconds)
+          }
+          if (result != None)
+            Ok("Success")
+          else
+            Ok("Fail")
+        } else {
+          Ok("Success")
+        }
+      }
+      case None =>
+        Ok("Success")
+    }
   }
 
   def deleteAnnotation() = silhouette.SecuredAction.async { implicit request =>
