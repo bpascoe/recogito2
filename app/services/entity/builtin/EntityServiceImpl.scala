@@ -113,6 +113,22 @@ class EntityServiceImpl @Inject()(
     }
   }
 
+  override def deleteEntityById(id: String): Future[Boolean] = {
+    if (id.isEmpty) {
+      Future.successful(true)
+    } else {
+      // es.client.java.prepareBulk()
+      es.client execute {
+        delete(id) from ES.RECOGITO / ES.ENTITY
+      } map { _ =>
+        true
+      } recover { case t: Throwable =>
+        t.printStackTrace()
+        false
+      }
+    }
+  }
+
   override def findByURI(uri: String): Future[Option[IndexedEntity]] =
     es.client execute {
       search(ES.RECOGITO / ES.ENTITY) query termQuery("is_conflation_of.uri" -> uri) limit 2

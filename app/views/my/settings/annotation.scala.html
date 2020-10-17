@@ -4,13 +4,13 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Place</title>
+    <title>Annotation</title>
     <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/my/settings/index.css")"/>
     @Html(webJarsUtil.script("1.12.0/jquery.min.js"))
     @Html(webJarsUtil.script("jquery-ui.min.js"))
     <!-- @Html(webJarsUtil.requireJs(routes.Assets.versioned("javascripts/my/settings/place.js"))) -->
     <style type="text/css">
-      .places table td span {
+      .annotations table td span {
         margin-left: 10px;
         margin-right: 2px;
         margin-top: 2px;
@@ -21,7 +21,7 @@
         padding: 2px 12px 3px 12px;
         text-decoration: none;
       }
-      .places table tr {
+      .annotations table tr {
         height: 30px;
       }
       .annotations table tr td{
@@ -58,14 +58,14 @@
           </a>
         </li>
 
-        <li class="active">
-          <a href="#" onclick="return false;">
+        <li>
+          <a href="@controllers.my.settings.routes.PlaceController.index" onclick="return false;">
             <span class="label">Place</span>
           </a>
         </li>
 
-        <li>
-          <a href="@controllers.my.settings.routes.PlaceController.annotation">
+        <li class="active">
+          <a href="#">
             <span class="label"><span class="label">Annotation</span></span>
           </a>
         </li>
@@ -75,7 +75,7 @@
     <div class="content">
 
       <div class="panel password-settings">
-        <h2>Manage Places</h2>
+        <h2>Manage Annotations</h2>
         @flash.get("success").map { msg =>
           <div class="success flash-message"><span class="icon">&#xf00c;</span> @msg</div>
         }
@@ -83,7 +83,7 @@
           <div class="error flash-message"><span class="icon">&#xf00d;</span> @msg</div>
         }
         
-        <div class="places">
+        <div class="annotations">
           <table>
           </table>
         </div>
@@ -91,28 +91,42 @@
 
     </div>
     <script type="text/javascript">
-      var places = $(".places");
-      $.ajax({type: 'POST', url:document.location.origin + "/settings/getPlaces", data: JSON.stringify({"username":$(".to-index h1").text()}),contentType: 'application/json'}).done(function(response) {
-        // console.log( data + " " + textStatus );
-        var data = response.items;
+      function showStatus (msg) {
+      var showMsg = jQuery(
+      '<div class="msg">' +
+        msg +
+      '</div>');
+      showMsg.dialog({
+          autoOpen: false,
+          draggable: false,
+          resizable: false,
+          show: {
+              effect: 'fade',
+              duration: 1000
+          },
+          hide: {
+              effect: 'fade',
+              duration: 1000
+          },
+          open: function(){
+              $(this).dialog('close');
+          },
+          close: function(){
+              $(this).dialog('destroy');
+          }
+      });
+      showMsg.dialog("open");
+      location.reload();
+    }
+      var annotations = $(".annotations");
+      $.ajax({type: 'POST', url:document.location.origin + "/settings/getAnnotations", data: JSON.stringify({"username":$(".to-index h1").text()}),contentType: 'application/json'}).done(function(data) {
         if (data.length > 0){
-          // get place by unique annotaiton
-          // var annotations = [];//jQuery.unique(data);//JSON.parse(data)
-          // $.each(data, function(i, annotation) {
-          //   annotations.push(JSON.stringify(annotation));
-          // });
-          // // annotations = jQuery.unique(annotations);
-          // annotations = new Set(annotations);
-          // var uniqueAnnotations = [];
-          // annotations.forEach(function display(value1,value2) {
-          //   uniqueAnnotations.push(JSON.parse(value1));
-          // });
-          $(".places table tr").remove();
-          $(".places table").append("<tr><td>#</td><td>Place Name</td><td>File Name</td><td></td></tr>");
+          $(".annotations table tr").remove();
+          $(".annotations table").append("<tr><td>#</td><td>Annotation</td><td>File</td><td>Start Date</td><td>End Date</td><td></td></tr>");
           $.each(data, function(i, annotation) {
-            $(".places table").append("<tr><td>"+(i+1)+"</td><td>"+annotation.place + "</td><td>" + annotation.file_name+"</td><td><span class='edit'>Edit</span><span class='delete'>Delete</span><span class='unionId' hidden>"+annotation.union_id+"</span><span hidden class='placeItem'>"+JSON.stringify(annotation)+"</span></td></tr>");
+            $(".annotations table").append("<tr><td>"+(i+1)+"</td><td>"+annotation.name + "</td><td>" + annotation.file+"</td><td>"+annotation.startDate+"</td><td>"+annotation.endDate+"</td><td><span class='edit'>Edit</span><span class='delete'>Delete</span><span class='unionId' hidden>"+annotation.id+"</span><span hidden class='item'>"+JSON.stringify(annotation)+"</span></td></tr>");
           });
-          $(".places table tr").on( "click", ".edit", function() {
+          $(".annotations table tr").on( "click", ".edit", function() {
             var edit = $(this);
             var unionId = edit.next().text();
             // var entity = $span.attr('id');
@@ -130,7 +144,7 @@
               modal: true,
               buttons: {
                 "Continue": function() {
-                  $.ajax({type: 'POST', url:document.location.origin + "/settings/updatePlace", data: JSON.stringify({"unionId":unionId}),contentType: 'application/json'}).done(function(data) {
+                  $.ajax({type: 'POST', url:document.location.origin + "/settings/updateAnnotation", data: JSON.stringify({"unionId":unionId}),contentType: 'application/json'}).done(function(data) {
                       });
                   $( this ).dialog( "close" );
                 },
@@ -142,13 +156,13 @@
             // submit
           });
           
-          $(".places table tr").on( "click", ".delete", function() {
+          $(".annotations table tr").on( "click", ".delete", function() {
             var edit = $(this);
-            var unionId = edit.next().text();
+            var id = edit.next().text();
             // delete entity by unionId
             var overwriteTip = jQuery(
             '<div class="overwriteTip">' +
-              'If you delete this record it may affect others who have used it. Do you wish to continue?' +
+              'Are you sure to delete this annotation?' +
             '</div>');
             overwriteTip.dialog({
               resizable: false,
@@ -157,9 +171,8 @@
               modal: true,
               buttons: {
                 "Continue": function() {
-                  $.ajax({type: 'POST', url:document.location.origin + "/settings/deletePlace", data: JSON.stringify({"unionId":unionId,"username":$(".to-index h1").text()}),contentType: 'application/json'}).done(function(data) {
-                    // if (data) showStatus ("Sucess");
-                    // else (data) showStatus ("Fail");
+                  $.ajax({type: 'POST', url:document.location.origin + "/settings/deleteAnnotation", data: JSON.stringify({"id":id,"username":$(".to-index h1").text()}),contentType: 'application/json'}).done(function(data) {
+                    showStatus(data);
                   });
                   $( this ).dialog( "close" );
                 },

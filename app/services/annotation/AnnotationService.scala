@@ -11,7 +11,14 @@ import scala.concurrent.{ExecutionContext, Future, Await}
 import services.annotation.relation.RelationService
 import services.annotation.stats.AnnotationStatsService
 import services.entity.builtin.{EntityService, IndexedEntity}
-import storage.es.{ES, HasScrollProcessing}
+import storage.es.{ES, HasScrollProcessing,HasAggregations }
+import services.entity.{Entity, EntityType}
+import services.{HasTryToEither, Page}
+import scala.util.Try
+import com.sksamuel.elastic4s.{Hit, HitReader, Indexable}
+import com.sksamuel.elastic4s.searches.RichSearchResponse
+import org.elasticsearch.search.aggregations.bucket.nested.InternalNested
+import org.elasticsearch.search.aggregations.bucket.terms.StringTerms
 
 @Singleton
 class AnnotationService @Inject() (
@@ -23,8 +30,23 @@ class AnnotationService @Inject() (
     with AnnotationStatsService
     with RelationService 
     with HasAnnotationMerging
-    with HasScrollProcessing {
+    with HasScrollProcessing with HasAggregations {
 
+  implicit object EntityIndexable extends Indexable[Entity] {
+    override def json(e: Entity): String =
+      try { Json.stringify(Json.toJson(e)) } catch { case t: Throwable =>
+        play.api.Logger.info(e.toString)
+        throw t
+      }
+  }
+
+  implicit object EntityHitReader extends HitReader[IndexedEntity] with HasTryToEither {
+    override def read(hit: Hit): Either[Throwable, IndexedEntity] = {
+      val e = Json.fromJson[Entity](Json.parse(hit.sourceAsString))
+      Try(IndexedEntity(e.get, Some(hit.version)))
+    }
+  }
+  
   /** Upserts an annotation.
     *
     * Automatically deals with version history.
@@ -413,12 +435,77 @@ class AnnotationService @Inject() (
     } map { _.to[(Annotation, Long)] }
   }
 
+  def getAnnotationsByUnionId(unionId  : String): Future[Seq[(Annotation, Long)]] = {
+    es.client execute {
+      search (ES.RECOGITO / ES.ANNOTATION) query constantScoreQuery {
+        nestedQuery("bodies") query {
+          termQuery("bodies.reference.union_id" -> unionId)
+        }
+      }
+    } map { _.to[(Annotation, Long)] }
+  }
+
+  def aggregateEntityIds(user: String): Future[Map[String, Long]] =
+    es.client execute {
+      search (ES.RECOGITO / ES.ANNOTATION) query {
+        termQuery("last_modified_by" -> user)
+      } aggregations (
+        nestedAggregation("per_body", "bodies") subaggs (
+          termsAggregation("by_union_id") field("bodies.reference.union_id") size ES.MAX_SIZE
+        )
+      ) size 0
+    } map { response =>
+      val terms = response.aggregations
+        .getAs[InternalNested]("per_body")
+        .getAggregations.get[StringTerms]("by_union_id")
+      parseTermsAggregation(terms)
+    }
+
   def getUserAnnotation(user  : String): Future[Seq[(Annotation, Long)]] = {
     es.client execute {
       search (ES.RECOGITO / ES.ANNOTATION) query  {
         termQuery("last_modified_by" -> user)
       }
     } map { _.to[(Annotation, Long)] }
+  }
+  def getUserPlace(user: String, eType: Option[EntityType] = None,
+    offset: Int = 0, limit: Int = ES.MAX_SIZE): Future[Page[(IndexedEntity, Long)]] = {
+
+    val startTime = System.currentTimeMillis
+    
+    val fAggregateIds = aggregateEntityIds(user)
+
+    def resolveEntities(unionIds: Seq[String]): Future[Seq[IndexedEntity]] =
+      if (unionIds.isEmpty)
+        Future.successful(Seq.empty[IndexedEntity])
+      else
+        es.client execute {
+          multiget (
+            unionIds.map { id => get(id) from ES.RECOGITO / ES.ENTITY }
+          )
+        } map { result => 
+          try {
+            // Can throw Nullpointers when containing URIs that are no longer indexed
+            result.items.map(_.to[IndexedEntity])
+          } catch { 
+            case t: Throwable => Seq.empty[IndexedEntity]
+          } 
+        }
+
+    val f = for {
+      counts <- fAggregateIds
+      entities <- resolveEntities(counts.map(_._1).toSeq)
+    } yield (counts, entities)
+
+    f.map { case (counts, entities) =>
+      val took = System.currentTimeMillis - startTime
+
+      val zipped = counts.zip(entities).map { case ((unionId, count), entity) =>
+        (entity, count)
+      }.toSeq
+
+      Page(took, 0l, 0, ES.MAX_SIZE, zipped)
+    }
   }
 
 }

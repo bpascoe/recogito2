@@ -61,4 +61,6 @@ trait EntityService {
 
   def deleteBySourceAuthority(authority: String): Future[Boolean]
 
+  def deleteEntityById(id: String): Future[Boolean]
+
 }
