@@ -63,4 +63,8 @@ trait EntityService {
 
   def deleteEntityById(id: String): Future[Boolean]
 
+  def upsertEntity(e: Entity): Future[Boolean]
+    
+  def findById(id: String): Future[Option[IndexedEntity]]
+
 }

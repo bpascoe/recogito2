@@ -100,6 +100,16 @@ class EntityServiceImpl @Inject()(
     }
   }
 
+  override def upsertEntity(e: Entity): Future[Boolean] = 
+      es.client execute {
+        indexInto(ES.RECOGITO / ES.ENTITY).doc(e).id(e.unionId.toString)
+      } map { _ => true
+      } recover { case t: Throwable =>
+        Logger.error(s"Error indexing entity ${e.unionId}: ${t.getMessage}")
+        t.printStackTrace
+        false
+      }
+
   override def deleteEntities(ids: Seq[UUID]): Future[Boolean] = {
     if (ids.isEmpty) {
       Future.successful(true)
@@ -139,6 +149,16 @@ class EntityServiceImpl @Inject()(
         Logger.warn(s"Search for ${uri} returned ${results.size} results")
         Some(results.head)
     }}
+
+  override def findById(id: String): Future[Option[IndexedEntity]] =
+    es.client execute {
+      get(id) from ES.RECOGITO / ES.ENTITY
+    } map { response =>
+      if (response.exists)
+        Some(response.to[IndexedEntity])
+      else
+        None
+    }
 
   override def findConnected(uris: Seq[String]): Future[Seq[IndexedEntity]] =
     es.client execute {

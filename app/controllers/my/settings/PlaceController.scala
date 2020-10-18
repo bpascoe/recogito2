@@ -24,6 +24,8 @@ import storage.es.ES
 import services.contribution._
 import org.joda.time.{DateTime,DateTimeZone}
 import java.util.UUID
+import services.entity.TemporalBounds
+import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
 
 class PlaceController @Inject() (
     val components: ControllerComponents,
@@ -41,6 +43,27 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
 
   def index() = silhouette.SecuredAction { implicit request =>
     Ok(views.html.my.settings.place(request.identity))
+  }
+
+  def formatDateString (date: String) = {
+    val dateArray = date.split("-")
+    if (date(0) == '-') {
+      if (dateArray.size == 4) {
+        (("-"+dateArray(1)).toInt,dateArray(2).toInt,dateArray(3).toInt)
+      } else if (dateArray.size == 3) {
+        (("-"+dateArray(1)).toInt,dateArray(2).toInt,1)
+      } else {
+        (("-"+dateArray(1)).toInt,1,1)
+      }
+    } else {
+      if (dateArray.size == 3) {
+        (dateArray(0).toInt,dateArray(1).toInt,dateArray(2).toInt)
+      } else if (dateArray.size == 2) {
+        (dateArray(0).toInt,dateArray(1).toInt,1)
+      } else {
+        (dateArray(0).toInt, 1, 1)
+      }
+    }
   }
 
   
@@ -78,8 +101,21 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
             // val placeURIs = annotationsOnThisPlace.flatMap(_.bodies).filter(_.hasType == AnnotationBody.PLACE).flatMap(_.uri)
             // val referencedRecords = place.isConflationOf.filter(g => placeURIs.contains(g.uri))
             var filename = "" 
+            val lat = place.representativeGeometry.get.getCentroid.getY
+            val lon = place.representativeGeometry.get.getCentroid.getX
             if (filenames.length > 0) filename = filenames(0)
-            Json.obj("place"->place.title,"file_name"->filename,"union_id"->place.unionId)
+            val temporal = place.temporalBoundsUnion
+            var from = ""
+            var to = ""
+            // val to = place.flatMap(_.temporalBoundsUnion.map(_.toString)).getOrElse(EMPTY)
+            if (temporal != None) {
+              from= temporal.get.from.toString
+              if (from.length > 10) from = from.substring(0,10)
+              to= temporal.get.to.toString
+              if (to.length > 10) to = to.substring(0,10)
+            }
+            Json.obj("name"->place.title,"file"->filename,"id"->place.unionId,
+              "startDate"->from,"endDate"->to,"lat"->lat,"lon"->lon)
           }
         } 
         // places.map { e =>      
@@ -95,7 +131,38 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
   }
 
   def updatePlace() = silhouette.SecuredAction { implicit request =>
-    Ok(views.html.my.settings.place(request.identity))
+    request.body.asJson match {
+      case Some(json) => {
+        val username = (json \ "username").as[String]
+        val id = (json \ "id").as[String]
+        val title = (json \ "title").as[String]
+        val lat = (json \ "lat").as[Double]
+        val lon = (json \ "lon").as[Double]
+        val coord = new Coordinate(lon, lat)
+        val point = new GeometryFactory().createPoint(coord)
+        val from  = (json \ "from").as[String]
+        val to  = (json \ "to").as[String]
+        val temporal_bounds = if (from == "" || to == "") {None} else { 
+          val (fromYear, fromMonth, fromDay) = formatDateString(from) // yy-mm-dd
+          val (toYear, toMonth, toDay) = formatDateString(to)
+          Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromYear, fromMonth, fromDay).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(toYear, toMonth, toDay).withTime(0, 0, 0, 0)))
+        }
+        val record = Await.result(entities.findById(id),1.seconds).get
+        // val response = entities.findById(id)
+        if (record != None) {
+          val newRecord = record.entity.copy(title=title,temporalBoundsUnion=temporal_bounds,representativePoint=Some(coord),representativeGeometry=Some(point))
+          val response = Await.result(entities.upsertEntity(newRecord),1.seconds)
+          if (response != None)
+            Ok("Success")
+          else
+            Ok("Fail")
+        } else {
+          Ok("Success")
+        }
+      }
+      case None =>
+        Ok("Success")
+    }
   }
 
   def deletePlace() = silhouette.SecuredAction.async { implicit request =>
