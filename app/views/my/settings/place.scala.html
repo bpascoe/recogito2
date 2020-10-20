@@ -89,6 +89,7 @@
         <div class="places">
           <table>
           </table>
+          <button class="btn btn--radius btn--red btn-add-place">Add Place</button>
         </div>
       </div>
 
@@ -148,7 +149,7 @@
             var addPlace = jQuery('<div class="add-place"><div class="card-1"><div class="card-body">' +
             '<b class="title">Update Place </b><span style="font-size:12px; color:gray;">Fileds with * are required</span>'+
             '<div class="input-group"><input class="input--style-1 title2" type="text" placeholder="Place Name*" disabled value="'+json.name+'" required></div>'+
-            '<div class="input-group"><input class="input--style-1 annotationId" type="text" placeholder="Annotation Id" disabled value="'+json.id+'" required></div>'+
+            '<div class="input-group"><input class="input--style-1 annotationId" type="text" placeholder="Place Id" disabled value="'+json.id+'" required></div>'+
             '<div class="input-group"><input class="input--style-1 latitude" type="text" placeholder="Latitude*" required value="'+json.lat+'"></div>'+
             '<div class="input-group"><input class="input--style-1 longitude" type="text" placeholder="Longitude*" required value="'+json.lon+'"></div>'+
             '<div class="input-group"><input class="input--style-1 js-datepicker startDate" type="text" placeholder="Timespan Start yyyy-mm-dd" value="'+json.startDate+'"></div>'+
@@ -156,7 +157,6 @@
             '<div class="p-t-20"><button class="btn btn--radius btn--red btn-cancel-place">Cancel</button>'+
             '<button class="btn btn--radius btn--green add-place-submit">Submit</button></div>'+
             '</div></div></div>'+
-            // '<div><button class="btn-add-place">Create Place</button></div>' +
           '</div>');
         // $(".startDate" ).datepicker({
         //   dateFormat: 'yy-mm-dd',
@@ -241,7 +241,41 @@
             // delete annotations by unionId
           });
         }
-      })
+      });
+      // add new place
+      function uuidv4() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      }
+      var addNewPlace = jQuery('<div class="add-place"><div class="card-1"><div class="card-body">' +
+            '<b class="title">Update Place </b><span style="font-size:12px; color:gray;">Fileds with * are required</span>'+
+            '<div class="input-group"><input class="input--style-1 title2" type="text" placeholder="Place Name*" required></div>'+
+            '<div class="input-group"><input class="input--style-1 latitude" type="text" placeholder="Latitude*" required></div>'+
+            '<div class="input-group"><input class="input--style-1 longitude" type="text" placeholder="Longitude*" required></div>'+'<div class="input-group"><input class="input--style-1 uri" type="text" placeholder="URI"></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker startDate" type="text" placeholder="Timespan Start yyyy-mm-dd"></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker2 endDate" type="text" placeholder="Timespan End yyyy-mm-dd"></div>'+
+            '<div class="p-t-20"><button class="btn btn--radius btn--red btn-cancel-place">Cancel</button>'+
+            '<button class="btn btn--radius btn--green add-place-submit">Submit</button></div>'+
+            '</div></div></div>'+
+          '</div>');
+      $(".btn-add-place").click(function(){
+        addNewPlace.dialog();
+        addNewPlace.on('click', '.add-place-submit', function() {
+        var title = addNewPlace.find(".title2").val(),
+        from = addNewPlace.find(".startDate").val(),
+        to = addNewPlace.find(".endDate").val(),
+        uri = addNewPlace.find(".uri").val(),
+        lat = addNewPlace.find(".latitude").val(),
+        lon = addNewPlace.find(".longitude").val();
+        if (!uri) uri = "http://www.tlcmap.org/" + uuidv4();
+        var jsonData = {'uri':uri,'title':title, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'from': from, 'to': to,'username':$(".to-index h1").text()};
+        $.ajax({type: 'POST', url:document.location.origin + "/settings/createPlace", data: JSON.stringify(jsonData),contentType: 'application/json'}).done(function(data) {
+          showStatus(data);
+        });
+      });
+      });
     </script>
   </body>
 </html>

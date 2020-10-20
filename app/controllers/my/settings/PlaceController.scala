@@ -19,12 +19,13 @@ import services.annotation.{Annotation, AnnotationService,AnnotationBody}
 import services.document.DocumentService
 import org.webjars.play.WebJarsUtil
 import services.entity.builtin.EntityService
-import services.entity.{EntityType, EntityRecord}
+import services.entity.{EntityType, EntityRecord,Entity}
 import storage.es.ES
 import services.contribution._
 import org.joda.time.{DateTime,DateTimeZone}
 import java.util.UUID
-import services.entity.TemporalBounds
+import services.entity.{TemporalBounds,Link,Description,Name}
+import services.entity.builtin.importer.EntityImporterFactory
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
 
 class PlaceController @Inject() (
@@ -36,6 +37,7 @@ class PlaceController @Inject() (
     implicit val documents: DocumentService,
     implicit val entities: EntityService,
     implicit val contributions: ContributionService,
+    implicit val importerFactory: EntityImporterFactory,
     implicit val ctx: ExecutionContext,
     implicit val webjars: WebJarsUtil
   ) extends AbstractController(components) with HasConfig 
@@ -159,6 +161,41 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
         } else {
           Ok("Success")
         }
+      }
+      case None =>
+        Ok("Success")
+    }
+  }
+
+  def createPlace() = silhouette.SecuredAction { implicit request =>
+    request.body.asJson match {
+      case Some(json) => {
+        val importer = importerFactory.createImporter(EntityType.PLACE)
+        val norURI = EntityRecord.normalizeURI((json \ "uri").as[String])
+        val username = (json \ "username").as[String]
+        val title = (json \ "title").as[String]
+        val lat = (json \ "lat").as[Double]
+        val lon = (json \ "lon").as[Double]
+        val time = DateTime.now()
+        val coord = new Coordinate(lon, lat)
+        val point = new GeometryFactory().createPoint(coord)
+        val from  = (json \ "from").as[String]
+        val to  = (json \ "to").as[String]
+        val temporal_bounds = if (from == "" || to == "") {None} else { 
+          val (fromYear, fromMonth, fromDay) = formatDateString(from) // yy-mm-dd
+          val (toYear, toMonth, toDay) = formatDateString(to)
+          Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromYear, fromMonth, fromDay).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(toYear, toMonth, toDay).withTime(0, 0, 0, 0)))
+        }
+        val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq.empty[Description],Seq.empty[Name],Some(point),Some(coord),None,temporal_bounds,Seq.empty[String],None,Seq.empty[Link])
+        val response = importer.importRecord(record)
+        if (response != None) {
+
+          val newRecord = Entity(UUID.randomUUID,EntityType.PLACE,title,Some(point),Some(coord),temporal_bounds,Seq(record))
+          Await.result(entities.createEntity(newRecord),1.seconds)
+          Ok("Success")
+        }
+        else
+          Ok("Fail")
       }
       case None =>
         Ok("Success")

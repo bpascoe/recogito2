@@ -302,6 +302,7 @@ GET     /settings/place                           controllers.my.settings.PlaceC
 POST     /settings/getPlaces                           controllers.my.settings.PlaceController.getPlaces
 POST     /settings/deletePlace                          controllers.my.settings.PlaceController.deletePlace
 POST     /settings/updatePlace                          controllers.my.settings.PlaceController.updatePlace
+POST     /settings/createPlace                          controllers.my.settings.PlaceController.createPlace
 GET     /settings/annotation                           controllers.my.settings.PlaceController.annotation 
 POST     /settings/getAnnotations                           controllers.my.settings.PlaceController.getAnnotations
 POST     /settings/deleteAnnotation                          controllers.my.settings.PlaceController.deleteAnnotation

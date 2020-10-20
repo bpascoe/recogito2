@@ -110,6 +110,16 @@ class EntityServiceImpl @Inject()(
         false
       }
 
+  override def createEntity(e: Entity): Future[Boolean] = 
+      es.client execute {
+        indexInto(ES.RECOGITO / ES.ENTITY).doc(e)
+      } map { _ => true
+      } recover { case t: Throwable =>
+        Logger.error(s"Error: ${t.getMessage}")
+        t.printStackTrace
+        false
+      }
+
   override def deleteEntities(ids: Seq[UUID]): Future[Boolean] = {
     if (ids.isEmpty) {
       Future.successful(true)
