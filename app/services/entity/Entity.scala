@@ -30,7 +30,7 @@ case class Entity (
   /** The gazetteer records that define that place **/
   isConflationOf: Seq[EntityRecord],
 
-  // contributor: Option[String],
+  contributor: Option[String],
 
   /** Bounding box, stored along with the entity (if any) **/
   private val storedBBox: Option[Envelope] = None
@@ -103,7 +103,7 @@ object Entity extends HasGeometry {
     (JsPath \ "representative_point").readNullable[Coordinate] and
     (JsPath \ "temporal_bounds_union").readNullable[TemporalBounds] and
     (JsPath \ "is_conflation_of").read[Seq[EntityRecord]] and
-    // (JsPath \ "contributor").readNullable[String] and
+    (JsPath \ "contributor").readNullable[String] and
     (JsPath \ "bbox").readNullable[Envelope]
   )(Entity.apply _)
 
@@ -115,8 +115,8 @@ object Entity extends HasGeometry {
     (JsPath \ "representative_point").writeNullable[Coordinate] and
     (JsPath \ "bbox").writeNullable[Envelope] and
     (JsPath \ "temporal_bounds_union").writeNullable[TemporalBounds] and
-    (JsPath \ "is_conflation_of").write[Seq[EntityRecord]]// and
-    // (JsPath \ "contributor").writeNullable[String]
+    (JsPath \ "is_conflation_of").write[Seq[EntityRecord]] and
+    (JsPath \ "contributor").writeNullable[String]
   )(entity => (
       entity.unionId,
       entity.entityType,
@@ -125,8 +125,8 @@ object Entity extends HasGeometry {
       entity.representativePoint,
       entity.bbox,
       entity.temporalBoundsUnion,
-      entity.isConflationOf//,
-      // entity.contributor
+      entity.isConflationOf,
+      entity.contributor
   ))
 
 }

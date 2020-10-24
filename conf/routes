@@ -307,6 +307,8 @@ GET     /settings/annotation                           controllers.my.settings.P
 POST     /settings/getAnnotations                           controllers.my.settings.PlaceController.getAnnotations
 POST     /settings/deleteAnnotation                          controllers.my.settings.PlaceController.deleteAnnotation
 POST     /settings/updateAnnotation                          controllers.my.settings.PlaceController.updateAnnotation
+POST     /settings/importPlaces      controllers.my.settings.PlaceController.importPlaces()
+POST     /settings/exportPlaces   controllers.my.settings.PlaceController.exportPlaces()
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Personal space - upload

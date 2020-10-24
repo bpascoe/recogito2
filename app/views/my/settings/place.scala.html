@@ -35,6 +35,9 @@
         width: 300px;
     }
     .ui-dialog-titlebar.ui-widget-header {display: none;}
+    .content .panel {
+      max-width: 1300px;
+    }
     </style>
   </head>
 
@@ -90,9 +93,12 @@
           <table>
           </table>
           <button class="btn btn--radius btn--red btn-add-place">Add Place</button>
+          <button class="btn btn--radius btn--red btn-import-place">Import Place</button>
+          <button class="btn btn--radius btn--red btn-export-place">Export Place</button>
         </div>
       </div>
 
+    <input id="csvBtn" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display:none">
     </div>
     <script type="text/javascript">
       function showStatus (msg) {
@@ -139,9 +145,9 @@
           //   uniqueAnnotations.push(JSON.parse(value1));
           // });
           $(".places table tr").remove();
-          $(".places table").append("<tr><td>#</td><td>Place Name</td><td>File Name</td><td>Latitude</td><td>Longitude</td><td>StartDate</td><td>EndDate</td><td></td></tr>");
+          $(".places table").append("<tr><td>#</td><td>Name</td><td>URI</td><td>Latitude</td><td>Longitude</td><td>Country</td><td>Description</td><td>StartDate</td><td>EndDate</td><td>Alternate Names</td><td></td></tr>");
           $.each(data, function(i, annotation) {
-            $(".places table").append("<tr><td>"+(i+1)+"</td><td>"+annotation.name + "</td><td>" + annotation.file+"</td><td>"+annotation.lat + "</td><td>"+annotation.lon + "</td><td>"+annotation.startDate + "</td><td>"+annotation.endDate + "</td><td><span class='edit'>Edit</span><span class='delete'>Delete</span><span class='unionId' hidden>"+annotation.id+"</span><span hidden class='placeItem'>"+JSON.stringify(annotation)+"</span></td></tr>");
+            $(".places table").append("<tr><td>"+(i+1)+"</td><td>"+annotation.name + "</td><td>" + annotation.uri+"</td><td>"+annotation.lat + "</td><td>"+annotation.lon + "</td><td>"+annotation.country + "</td><td>"+annotation.description + "</td><td>"+annotation.startDate + "</td><td>"+annotation.endDate + "</td><td>"+annotation.altNames + "</td><td><span class='edit'>Edit</span><span class='delete'>Delete</span><span class='unionId' hidden>"+annotation.id+"</span><span hidden class='placeItem'>"+JSON.stringify(annotation)+"</span></td></tr>");
           });
           $(".places table tr").on( "click", ".edit", function() {
             var edit = $(this);
@@ -149,11 +155,15 @@
             var addPlace = jQuery('<div class="add-place"><div class="card-1"><div class="card-body">' +
             '<b class="title">Update Place </b><span style="font-size:12px; color:gray;">Fileds with * are required</span>'+
             '<div class="input-group"><input class="input--style-1 title2" type="text" placeholder="Place Name*" disabled value="'+json.name+'" required></div>'+
-            '<div class="input-group"><input class="input--style-1 annotationId" type="text" placeholder="Place Id" disabled value="'+json.id+'" required></div>'+
+            '<div class="input-group"><input class="input--style-1 uri" type="text" placeholder="Place URI" value="'+json.uri+'" required></div>'+
             '<div class="input-group"><input class="input--style-1 latitude" type="text" placeholder="Latitude*" required value="'+json.lat+'"></div>'+
             '<div class="input-group"><input class="input--style-1 longitude" type="text" placeholder="Longitude*" required value="'+json.lon+'"></div>'+
+            '<div class="input-group"><input class="input--style-1 country" type="text" placeholder="Country Code" value="'+json.country+'"></div>'+
+            '<div class="input-group"><input class="input--style-1 description" type="text" placeholder="Place Description" value="'+json.description+'" required></div>'+
             '<div class="input-group"><input class="input--style-1 js-datepicker startDate" type="text" placeholder="Timespan Start yyyy-mm-dd" value="'+json.startDate+'"></div>'+
             '<div class="input-group"><input class="input--style-1 js-datepicker2 endDate" type="text" placeholder="Timespan End yyyy-mm-dd" value="'+json.endDate+'"></div>'+
+            '<div class="input-group"><input class="input--style-1 altNames" type="text" placeholder="Alternate Names" value="'+json.altNames+'" required></div>'+
+            '<div class="input-group"><input class="input--style-1 annotationId" type="text" hidden value="'+json.id+'"></div>'+
             '<div class="p-t-20"><button class="btn btn--radius btn--red btn-cancel-place">Cancel</button>'+
             '<button class="btn btn--radius btn--green add-place-submit">Submit</button></div>'+
             '</div></div></div>'+
@@ -178,6 +188,9 @@
         //   buttonText: "Select date",
         //   forceParse: false
         // });
+        addPlace.on( "click", ".btn-cancel-place", function() {
+          $(this).closest('.ui-dialog-content').dialog('close');
+        });
         addPlace.dialog();
         addPlace.on('click', '.add-place-submit', function() {
         var overwriteTip = jQuery(
@@ -196,9 +209,13 @@
                   to = addPlace.find(".endDate").val(),
                   lat = addPlace.find(".latitude").val(),
                   lon = addPlace.find(".longitude").val(),
+                  uri = addPlace.find(".uri").val(),
+                  country = addPlace.find(".country").val(),
+                  description = addPlace.find(".description").val(),
+                  altNames = addPlace.find(".altNames").val(),
                   id = addPlace.find(".annotationId").val();
                   
-                  var jsonData = {'title':title, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'from': from, 'to': to,'id':id,'username':$(".to-index h1").text()};
+                  var jsonData = {'title':title, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'from': from, 'to': to,'id':id, 'uri':uri, 'country':country, 'description':description, 'altNames':altNames,'username':$(".to-index h1").text()};
                   $.ajax({type: 'POST', url:document.location.origin + "/settings/updatePlace", data: JSON.stringify(jsonData),contentType: 'application/json'}).done(function(data) {
                     showStatus(data);
                   });
@@ -260,6 +277,9 @@
             '<button class="btn btn--radius btn--green add-place-submit">Submit</button></div>'+
             '</div></div></div>'+
           '</div>');
+      addNewPlace.on( "click", ".btn-cancel-place", function() {
+        $(this).closest('.ui-dialog-content').dialog('close');
+      });
       $(".btn-add-place").click(function(){
         addNewPlace.dialog();
         addNewPlace.on('click', '.add-place-submit', function() {
@@ -276,6 +296,118 @@
         });
       });
       });
+      // import and export places
+      function CSVtoArray(text) {
+      // var re_valid =  /^\s*(?:'[^'\\]*(?:\\[\S\s][^'\\]*)*'|"[^"\\]*(?:\\[\S\s][^"\\]*)*"|[^,'"\s\\]*(?:\s+[^,'"\s\\]+)*)\s*(?:,\s*(?:'[^'\\]*(?:\\[\S\s][^'\\]*)*'|"[^"\\]*(?:\\[\S\s][^"\\]*)*"|[^,'"\s\\]*(?:\s+[^,'"\s\\]+)*)\s*)*$/;
+      var re_value =  /(?!\s*$)\s*(?:'([^'\\]*(?:\\[\S\s][^'\\]*)*)'|"([^"\\]*(?:\\[\S\s][^"\\]*)*)"|([^,"\s\\]*(?:\s+[^,'"\s\\]+)*))\s*(?:,|$)/g;
+      // if (!re_valid.test(text)) return null;
+      var a = [];                    
+      text.replace(re_value,
+          function(m0, m1, m2, m3) {
+              if      (m1 !== undefined) a.push(m1.replace(/\\'/g, "'"));
+              else if (m2 !== undefined) a.push(m2.replace(/\\"/g, '"'));
+              else if (m3 !== undefined) a.push(m3);
+              return ''; 
+          });
+      if (/,\s*$/.test(text)) a.push('');
+      return a;
+    };
+    // load csv metadata
+    function validateDate(dateString) {
+      var reg = /^-?\d*[-\/]?\d*[-\/]?\d*$/;
+      if (!reg.test(dateString)) return false;// only digits,-, and / are valid
+      else if (!isNaN(dateString) || !dateString) return true;
+      else if (dateString.indexOf("/")>=0) {
+        var dateArr = dateString.split("/");
+        var tmp = dateArr[0];
+        dateArr[0] = dateArr[dateArr.length-1];
+        dateArr[dateArr.length-1] = tmp;
+        return dateArr.join("-");
+      } else if (dateString.indexOf("-")>=0) {
+        return dateString;
+      } else return false;
+    }
+    $(".btn-import-place").click(function(){
+      $("#csvBtn").click();
+      $("#csvBtn").change(function(e){
+        // console.log("test: "+e.target.files[0].name);
+        if (e.target.files != undefined) {
+          var overwriteTip = jQuery(
+          // Simplified version for read-only mode
+          '<div class="overwriteTip">' +
+            'This will overwrite existing metadata for the texts listed in the CSV file. Consider downloading the metadata first. Do you wish to continue?' +
+          '</div>');
+          overwriteTip.dialog({
+            resizable: false,
+            height: "auto",
+            width: 400,
+            modal: true,
+            buttons: {
+              "Continue": function() {
+                var reader = new FileReader();
+                var status = jQuery('<div class="status" title="Metadata import status:"></div>');
+                $("#app").append(status);
+                reader.onload = function(e) {
+                  // var docHeader = ['Filename', 'Title', 'Author', 'Description', 'Language', 'Source', 'Edition', 'License', 'Attribution', 'StartDate', 'EndDate', 'PublicationPlace', 'Latitude', 'Longitude'];
+                  // var Header = ['Filename', 'StartDate', 'EndDate'];
+                  var lines = e.target.result.split('\r\n');
+                  var header = lines[0].replace(/\"/g, "").split(",");
+                  for (var i = 1; i < lines.length; ++i) {
+                    var row = CSVtoArray(lines[i]);//.replace(/\"/g, "")
+                    if (row.length > 1 && row[0].length>2) {
+                      var doc = {folderId: sessionStorage.folderId}
+                      for (var j = 0; j < row.length; ++j) {
+                        doc[header[j]] = row[j];
+                      }
+                      if (validateDate(doc['StartDate']) && validateDate(doc['EndDate'])) {
+                        if (doc['StartDate'] != true) doc['StartDate'] = validateDate(doc['StartDate'])
+                        if (doc['EndDate'] != true) doc['EndDate'] = validateDate(doc['EndDate'])
+                      $.ajax({type: 'POST', url:document.location.origin + "/settings/importPlaces", data: JSON.stringify(doc),contentType: 'application/json'}).done(function(data) {
+                          // console.log( data + " " + textStatus );
+                          if (data) $(".status").append("<p> "+($(".status").find("p").length+1)+". "+data);
+                        }).fail(function(jqXHR, textStatus) {
+                          $(".status").append("<p> "+($(".status").find("p").length+1)+". " +JSON.parse(this.data).Filename+": update annotations failed, please use the right date format (yyyy-mm-dd)");
+                        });} else {
+                        $(".status").append("<p> "+($(".status").find("p").length+1)+". " +row[0]+": invalid date format, please use the right date format (yyyy-mm-dd or dd/mm/yyyy)");
+                      }
+                    } else if (row.length > 0) {
+                      $(".status").append("<p> "+($(".status").find("p").length+1)+". " +row[0]+": invalid row format");
+                    }
+                  }
+                  $(".status").dialog({autoOpen: false,
+                          maxWidth:400,maxHeight: 500,
+                          width: 350,height: 400,
+                          close: function(event, ui) {location.reload();
+                   }});
+                };
+                reader.readAsText(e.target.files.item(0));
+                $(".status").dialog();
+                $("div.ui-dialog").css({overflow:"auto"});
+                $( this ).dialog( "close" );
+              },
+              Cancel: function() {
+                $( this ).dialog( "close" );
+              }
+            }
+          });
+          
+        }
+      });
+    });
+
+    // download csv metadata
+    $(".btn-export-place").click(function(){
+      var doc = {folderId: sessionStorage.folderId}
+      $.ajax({type: 'POST', url:document.location.origin + "/settings/exportPlaces", data: JSON.stringify(doc),contentType: 'application/json'}).done(function(data) {
+        // console.log( "Data Loaded: " + data );
+        var hiddenElement = document.createElement('a');
+        hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(data);
+        hiddenElement.target = '_blank';
+        var filename = $(".to-index h1").text();
+        hiddenElement.download = filename+'-metadata.csv';
+        hiddenElement.click();
+      });
+    });
     </script>
   </body>
 </html>
