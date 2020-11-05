@@ -45,7 +45,9 @@ define([
           var gazetteer = place.is_conflation_of[0].source_authority;
           if (gazetteer == "contribution") {
             $.ajax({url:document.location.origin + "/api/place/contributor", type: 'POST',contentType: 'application/json',data:JSON.stringify({"unionId":uris[0]}),async: false,success: function(user) {
-              gazetteer = gazetteer + " (" + user.split(",")[0] + ")";
+              var username = user.split(",")[0]
+              if (username == "" || username == null) username = place.contributor;
+              gazetteer = gazetteer + " (" + username + ")";
             }});
             // gazetteer = gazetteer + ": " + place.contributor;
           }
