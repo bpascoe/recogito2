@@ -54,6 +54,7 @@
           "temporal_bounds": { "enabled": false },
           "subjects": { "type": "keyword" },
           "priority": { "type": "long" },
+          "contributor": { "type": "keyword" },
           "links": {
             "properties": {
               "uri":  { "type": "keyword" },

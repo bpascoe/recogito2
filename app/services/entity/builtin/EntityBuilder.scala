@@ -100,10 +100,10 @@ object EntityBuilder {
     val internalId = topRecord.map(_.unionId).getOrElse(UUID.randomUUID)
     val allRecords = entities.flatMap(_.isConflationOf) :+ normalizedRecord
     val contributor = entities.flatMap(_.contributor)
-    fromRecords(allRecords, entityType, internalId, Some(contributor(0)))
+    fromRecords(allRecords, entityType, internalId, Some(contributor(0)))//
   }
 
-  def fromRecords(records: Seq[EntityRecord], entityType: EntityType, unionId: UUID, contributor: Option[String]) = {
+  def fromRecords(records: Seq[EntityRecord], entityType: EntityType, unionId: UUID, contributor: Option[String]) = {//
     val mostDetailed = getMostDetailedRecord(records)
 
     val (geom, point) = getPreferredLocation(records)
@@ -119,7 +119,7 @@ object EntityBuilder {
       mostDetailed.title,
       geom, point,
       temporalBoundsUnion,
-      records,contributor)
+      records,contributor)//
   }
 
 }

@@ -24,6 +24,7 @@ object GeoNamesCrosswalk extends BaseGeoJSONCrosswalk {
       None, // temporalBounds
       Seq.empty[String], // subjects
       geonames.population, // priority
+      None, // contributor
       geonames.closeMatches.map(Link(_, LinkType.CLOSE_MATCH))
     )
   })

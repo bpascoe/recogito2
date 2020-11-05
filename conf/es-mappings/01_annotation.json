@@ -62,7 +62,9 @@
             }
           }
         }
-      }
+      },
+      "start_date": { "type": "keyword" },
+      "end_date": { "type": "keyword" }
     }
   }
 }

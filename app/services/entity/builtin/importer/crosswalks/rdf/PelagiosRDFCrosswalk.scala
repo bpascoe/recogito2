@@ -35,6 +35,7 @@ object PelagiosRDFCrosswalk {
         place.temporalCoverage.map(convertPeriodOfTime(_)),
         place.category.map(category => Seq(category.toString)).getOrElse(Seq.empty[String]),
         None, // priority
+        None, // contributor
         {
           toLinks(place.closeMatches, LinkType.CLOSE_MATCH) ++
           toLinks(place.exactMatches, LinkType.EXACT_MATCH)

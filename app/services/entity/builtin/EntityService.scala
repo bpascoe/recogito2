@@ -25,6 +25,11 @@ trait EntityService {
 
   def findConnected(uris: Seq[String]): Future[Seq[IndexedEntity]]
 
+  def getEntitiesByUser(user: String): Future[Seq[IndexedEntity]]
+
+  def getUserPlace(user: String, eType: Option[EntityType] = None,
+    offset: Int = 0, limit: Int = ES.MAX_SIZE): Future[Page[(IndexedEntity, Long)]]
+
   def searchEntities(
     query       : String,
     eType       : Option[EntityType] = None,
@@ -63,7 +68,7 @@ trait EntityService {
 
   def deleteEntityById(id: String): Future[Boolean]
 
-  def upsertEntity(e: Entity): Future[Boolean]
+  def upsertEntity(e: Entity,version: Option[Long]): Future[Boolean]
 
   def createEntity(e: Entity): Future[Boolean]
     

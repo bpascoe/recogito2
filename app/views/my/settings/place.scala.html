@@ -131,7 +131,8 @@
       var places = $(".places");
       $.ajax({type: 'POST', url:document.location.origin + "/settings/getPlaces", data: JSON.stringify({"username":$(".to-index h1").text()}),contentType: 'application/json'}).done(function(response) {
         // console.log( data + " " + textStatus );
-        var data = response.items;
+        // var data = response.items;
+        var data = response
         if (data.length > 0){
           // get place by unique annotaiton
           // var annotations = [];//jQuery.unique(data);//JSON.parse(data)
@@ -144,10 +145,17 @@
           // annotations.forEach(function display(value1,value2) {
           //   uniqueAnnotations.push(JSON.parse(value1));
           // });
+          var username = $(".to-index h1").text();
+          var ind = 0;
           $(".places table tr").remove();
           $(".places table").append("<tr><td>#</td><td>Name</td><td>URI</td><td>Latitude</td><td>Longitude</td><td>Country</td><td>Description</td><td>StartDate</td><td>EndDate</td><td>Alternate Names</td><td></td></tr>");
-          $.each(data, function(i, annotation) {
-            $(".places table").append("<tr><td>"+(i+1)+"</td><td>"+annotation.name + "</td><td>" + annotation.uri+"</td><td>"+annotation.lat + "</td><td>"+annotation.lon + "</td><td>"+annotation.country + "</td><td>"+annotation.description + "</td><td>"+annotation.startDate + "</td><td>"+annotation.endDate + "</td><td>"+annotation.altNames + "</td><td><span class='edit'>Edit</span><span class='delete'>Delete</span><span class='unionId' hidden>"+annotation.id+"</span><span hidden class='placeItem'>"+JSON.stringify(annotation)+"</span></td></tr>");
+          $.each(data, function(i, record) {
+            var annotation = record;
+            // var annotation = record[0];
+            if (username == annotation.user) {
+              ind = ind + 1;
+            $(".places table").append("<tr><td>"+(ind)+"</td><td>"+annotation.name + "</td><td>" + annotation.uri+"</td><td>"+annotation.lat + "</td><td>"+annotation.lon + "</td><td>"+annotation.country + "</td><td>"+annotation.description + "</td><td>"+annotation.startDate + "</td><td>"+annotation.endDate + "</td><td>"+annotation.altNames + "</td><td><span class='edit'>Edit</span><span class='delete'>Delete</span><span class='unionId' hidden>"+annotation.id+"</span><span hidden class='placeItem'>"+JSON.stringify(annotation)+"</span></td></tr>");
+            }
           });
           $(".places table tr").on( "click", ".edit", function() {
             var edit = $(this);
@@ -270,9 +278,9 @@
             '<b class="title">Update Place </b><span style="font-size:12px; color:gray;">Fileds with * are required</span>'+
             '<div class="input-group"><input class="input--style-1 title2" type="text" placeholder="Place Name*" required></div>'+
             '<div class="input-group"><input class="input--style-1 latitude" type="text" placeholder="Latitude*" required></div>'+
-            '<div class="input-group"><input class="input--style-1 longitude" type="text" placeholder="Longitude*" required></div>'+'<div class="input-group"><input class="input--style-1 uri" type="text" placeholder="URI"></div>'+
+            '<div class="input-group"><input class="input--style-1 longitude" type="text" placeholder="Longitude*" required></div>'+'<div class="input-group"><input class="input--style-1 uri" type="text" placeholder="URI"></div>'+'<div class="input-group"><input class="input--style-1 country" type="text" placeholder="Country Code"></div>'+'<div class="input-group"><input class="input--style-1 description" type="text" placeholder="Description"></div>'+
             '<div class="input-group"><input class="input--style-1 js-datepicker startDate" type="text" placeholder="Timespan Start yyyy-mm-dd"></div>'+
-            '<div class="input-group"><input class="input--style-1 js-datepicker2 endDate" type="text" placeholder="Timespan End yyyy-mm-dd"></div>'+
+            '<div class="input-group"><input class="input--style-1 js-datepicker2 endDate" type="text" placeholder="Timespan End yyyy-mm-dd"></div>'+'<div class="input-group"><input class="input--style-1 altNames" type="text" placeholder="Alternate Names"></div>'+
             '<div class="p-t-20"><button class="btn btn--radius btn--red btn-cancel-place">Cancel</button>'+
             '<button class="btn btn--radius btn--green add-place-submit">Submit</button></div>'+
             '</div></div></div>'+
@@ -286,11 +294,14 @@
         var title = addNewPlace.find(".title2").val(),
         from = addNewPlace.find(".startDate").val(),
         to = addNewPlace.find(".endDate").val(),
-        uri = addNewPlace.find(".uri").val(),
         lat = addNewPlace.find(".latitude").val(),
-        lon = addNewPlace.find(".longitude").val();
+        lon = addNewPlace.find(".longitude").val(),
+        uri = addNewPlace.find(".uri").val(),
+        country = addNewPlace.find(".country").val(),
+        description = addNewPlace.find(".description").val(),
+        altNames = addNewPlace.find(".altNames").val();
         if (!uri) uri = "http://www.tlcmap.org/" + uuidv4();
-        var jsonData = {'uri':uri,'title':title, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'from': from, 'to': to,'username':$(".to-index h1").text()};
+        var jsonData = {'title':title, 'lat':parseFloat(lat), 'lon':parseFloat(lon), 'from': from, 'to': to, 'uri':uri, 'country':country, 'description':description, 'altNames':altNames,'username':$(".to-index h1").text()};
         $.ajax({type: 'POST', url:document.location.origin + "/settings/createPlace", data: JSON.stringify(jsonData),contentType: 'application/json'}).done(function(data) {
           showStatus(data);
         });
@@ -355,10 +366,12 @@
                   for (var i = 1; i < lines.length; ++i) {
                     var row = CSVtoArray(lines[i]);//.replace(/\"/g, "")
                     if (row.length > 1 && row[0].length>2) {
-                      var doc = {folderId: sessionStorage.folderId}
+                      var doc = {};
                       for (var j = 0; j < row.length; ++j) {
                         doc[header[j]] = row[j];
                       }
+                      doc['Latitude'] = parseFloat(doc['Latitude']);
+                      doc['Longitude'] = parseFloat(doc['Longitude']);
                       if (validateDate(doc['StartDate']) && validateDate(doc['EndDate'])) {
                         if (doc['StartDate'] != true) doc['StartDate'] = validateDate(doc['StartDate'])
                         if (doc['EndDate'] != true) doc['EndDate'] = validateDate(doc['EndDate'])
@@ -397,14 +410,13 @@
 
     // download csv metadata
     $(".btn-export-place").click(function(){
-      var doc = {folderId: sessionStorage.folderId}
-      $.ajax({type: 'POST', url:document.location.origin + "/settings/exportPlaces", data: JSON.stringify(doc),contentType: 'application/json'}).done(function(data) {
+      $.ajax({type: 'POST', url:document.location.origin + "/settings/exportPlaces"}).done(function(data) {
         // console.log( "Data Loaded: " + data );
         var hiddenElement = document.createElement('a');
         hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(data);
         hiddenElement.target = '_blank';
-        var filename = $(".to-index h1").text();
-        hiddenElement.download = filename+'-metadata.csv';
+        var username = $(".to-index h1").text();
+        hiddenElement.download = username+'-places.csv';
         hiddenElement.click();
       });
     });

@@ -26,6 +26,7 @@ object PelagiosGeoJSONCrosswalk extends BaseGeoJSONCrosswalk {
       None, // temporal bounds
       Seq.empty[String], // subjects
       None, // priority
+      None, // contributor
       Seq.empty[Link]
     ))
   }

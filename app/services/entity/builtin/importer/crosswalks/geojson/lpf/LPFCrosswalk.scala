@@ -25,6 +25,7 @@ object LPFCrosswalk extends BaseGeoJSONCrosswalk {
     None, // temporal bounds
     f.placetypes.map(_.label),
     None, // priority
+    None, // contributor
     Seq.empty[Link] // TODO create from matches
   )
 

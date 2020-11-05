@@ -49,6 +49,8 @@ case class EntityRecord (
     */
   priority: Option[Long],
 
+  contributor: Option[String],
+
   /** close/exactMatch URIs etc. **/
   links: Seq[Link]
 
@@ -123,6 +125,7 @@ object EntityRecord extends HasDate with HasGeometry with HasNullableSeq {
     (JsPath \ "subjects").formatNullable[Seq[String]]
       .inmap[Seq[String]](fromOptSeq[String], toOptSeq[String]) and
     (JsPath \ "priority").formatNullable[Long] and
+    (JsPath \ "contributor").formatNullable[String] and
     (JsPath \ "links").formatNullable[Seq[Link]]
       .inmap[Seq[Link]](fromOptSeq[Link], toOptSeq[Link])
   )(EntityRecord.apply, unlift(EntityRecord.unapply))

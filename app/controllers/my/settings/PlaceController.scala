@@ -36,6 +36,7 @@ import play.api.{Configuration, Logger}
 import play.api.http.FileMimeTypes
 import play.api.libs.Files.TemporaryFileCreator
 import java.nio.file.Paths
+import scala.language.postfixOps
 
 class PlaceController @Inject() (
     val components: ControllerComponents,
@@ -142,39 +143,126 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
   //   }
   // }
   
+  // def getPlaces() = silhouette.SecuredAction.async { implicit request =>
+  //   request.body.asJson match {
+  //     case Some(json) => {
+  //       // val username = request.identity.username
+  //       val username = (json \ "username").as[String]
+  //       // val fAnnotations = annotations.getUserAnnotation(username)
+  //       // val fPlaces = entities.getUserPlace(username, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
+  //       val fPlaces = entities.getEntitiesByUser(username)
+  //       val f = for {
+  //         places <- fPlaces
+  //       } yield (places)
+  //       val annots = f.map { case ( places) =>       
+  //         places.map { e =>      
+  //           val place = e.entity
+  //           // if (place.contributor == username) {
+  //             val lat = place.representativeGeometry.get.getCentroid.getY
+  //             val lon = place.representativeGeometry.get.getCentroid.getX
+  //             val temporal = place.temporalBoundsUnion
+  //             var from = ""
+  //             var to = ""
+  //             if (temporal != None) {
+  //               from= temporal.get.from.toString
+  //               if (from.length > 10) from = from.substring(0,10)
+  //               to= temporal.get.to.toString
+  //               if (to.length > 10) to = to.substring(0,10)
+  //             }
+  //             val record = place.isConflationOf(0)
+  //             val descriptions = record.descriptions.map(d=>d.description)
+  //             val names = record.names.map(n=>n.name)
+  //             var ccode = ""
+  //             if (record.countryCode != None) ccode = record.countryCode.get.code
+  //             Json.obj("name"->place.title,"uri"->record.uri,"id"->place.unionId,"user"->record.contributor,
+  //             "startDate"->from,"endDate"->to,"lat"->lat,"lon"->lon,"country"->ccode,"description"->descriptions.mkString(", "),"altNames"->names.mkString(", "))
+  //           // }
+  //         }
+  //       } 
+  //       val places = Await.result(annots,5.seconds)
+  //       Future.successful(jsonOk(Json.toJson(places)))
+  //     }
+  //     case None => {Future.successful(jsonOk(Json.toJson("")))}
+  //   }
+  // }
+  
+  // def getPlaces() = silhouette.SecuredAction.async { implicit request =>
+  //   request.body.asJson match {
+  //     case Some(json) => {
+  //       // val username = request.identity.username
+  //       val username = (json \ "username").as[String]
+  //       // val fAnnotations = annotations.getUserAnnotation(username)
+  //       // val fPlaces = entities.getUserPlace(username, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
+  //       val fPlaces = entities.getEntitiesByUser(username)
+  //       val f = for {
+  //         places <- fPlaces
+  //       } yield (places)
+  //       val annots = f.map { case ( places) =>       
+  //         places.map { e =>      
+  //           val records = e.entity.isConflationOf
+  //           records.map {r =>
+  //             val lat = r.geometry.get.getCentroid.getY
+  //             val lon = r.geometry.get.getCentroid.getX
+  //             val temporal = r.temporalBounds
+  //             var from = ""
+  //             var to = ""
+  //             if (temporal != None) {
+  //               from= temporal.get.from.toString
+  //               if (from.length > 10) from = from.substring(0,10)
+  //               to= temporal.get.to.toString
+  //               if (to.length > 10) to = to.substring(0,10)
+  //             }
+  //             val descriptions = r.descriptions.map(d=>d.description)
+  //             val names = r.names.map(n=>n.name)
+  //             var ccode = ""
+  //             if (r.countryCode != None) ccode = r.countryCode.get.code
+  //             Json.obj("name"->r.title,"uri"->r.uri,"id"->r.uri,"user"->r.contributor,
+  //               "startDate"->from,"endDate"->to,"lat"->lat,"lon"->lon,"country"->ccode,"description"->descriptions.mkString(", "),"altNames"->names.mkString(", "))
+  //           }
+  //         }
+  //       } 
+  //       val places = Await.result(annots,10.seconds)
+  //       Future.successful(jsonOk(Json.toJson(places)))
+  //     }
+  //     case None => {Future.successful(jsonOk(Json.toJson("")))}
+  //   }
+  // }
+
   def getPlaces() = silhouette.SecuredAction.async { implicit request =>
     request.body.asJson match {
       case Some(json) => {
         // val username = request.identity.username
         val username = (json \ "username").as[String]
         // val fAnnotations = annotations.getUserAnnotation(username)
-        val fPlaces = annotations.getUserPlace(username, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
-        // val fPlaces = entities.listEntitiesInDocument("t0ikcct3t4yh9a")
+        // val fPlaces = entities.getUserPlace(username, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
+        val fPlaces = entities.getEntitiesByUser(username)
         val f = for {
           places <- fPlaces
         } yield (places)
         val annots = f.map { case ( places) =>       
           places.map { e =>      
-            val place = e._1.entity
+            val place = e.entity
             val lat = place.representativeGeometry.get.getCentroid.getY
-            val lon = place.representativeGeometry.get.getCentroid.getX
-            val temporal = place.temporalBoundsUnion
-            var from = ""
-            var to = ""
-            if (temporal != None) {
-              from= temporal.get.from.toString
-              if (from.length > 10) from = from.substring(0,10)
-              to= temporal.get.to.toString
-              if (to.length > 10) to = to.substring(0,10)
-            }
-            val record = place.isConflationOf(0)
-            var ccode = ""
-            if (record.countryCode != None) ccode = record.countryCode.get.code
-            Json.obj("name"->place.title,"uri"->record.uri,"id"->place.unionId,
-              "startDate"->from,"endDate"->to,"lat"->lat,"lon"->lon,"country"->ccode,"description"->record.descriptions.mkString(","),"altNames"->record.names.mkString(","))
+              val lon = place.representativeGeometry.get.getCentroid.getX
+              val temporal = place.temporalBoundsUnion
+              var from = ""
+              var to = ""
+              if (temporal != None) {
+                from= temporal.get.from.toString
+                if (from.length > 10) from = from.substring(0,10)
+                to= temporal.get.to.toString
+                if (to.length > 10) to = to.substring(0,10)
+              }
+              val record = place.isConflationOf(0)
+              val descriptions = record.descriptions.map(d=>d.description)
+              val names = record.names.map(n=>n.name)
+              var ccode = ""
+              if (record.countryCode != None) ccode = record.countryCode.get.code
+              Json.obj("name"->place.title,"uri"->record.uri,"id"->place.unionId,"user"->place.contributor,
+              "startDate"->from,"endDate"->to,"lat"->lat,"lon"->lon,"country"->ccode,"description"->descriptions.mkString(", "),"altNames"->names.mkString(", "))
           }
         } 
-        val places = Await.result(annots,5.seconds)
+        val places = Await.result(annots,10.seconds)
         Future.successful(jsonOk(Json.toJson(places)))
       }
       case None => {Future.successful(jsonOk(Json.toJson("")))}
@@ -195,7 +283,9 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
         val to  = (json \ "to").as[String]
         val norURI = EntityRecord.normalizeURI((json \ "uri").as[String])
         val country  = (json \ "country").as[String]
-        val ccode = CountryCode(country.toUpperCase)
+        val ccode = if (country.length != 2 ) {None} 
+        else {Some(CountryCode(country.toUpperCase))}
+        
         val time = DateTime.now()
         val altNames  = Name((json \ "altNames").asOpt[String].getOrElse(""))
         val description  = Description((json \ "description").asOpt[String].getOrElse(""))
@@ -205,12 +295,13 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
           val (toYear, toMonth, toDay) = formatDateString(to)
           Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromYear, fromMonth, fromDay).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(toYear, toMonth, toDay).withTime(0, 0, 0, 0)))
         }
-        val record = Await.result(entities.findById(id),1.seconds).get
+        val record = Await.result(entities.findById(id),1.seconds)
+        // val record = Await.result(entities.findByURI(norURI),1.seconds)
         // val referencedRecord = place.isConflationOf.map(g => uri)
-        val entityRecord = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq(description),Seq(altNames),Some(point),Some(coord),Some(ccode),temporal_bounds,Seq.empty[String],None,Seq.empty[Link])
+        val entityRecord = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq(description),Seq(altNames),Some(point),Some(coord),ccode,temporal_bounds,Seq.empty[String],None,Some(username),Seq.empty[Link])
         if (record != None) {
-          val newRecord = record.entity.copy(title=title,temporalBoundsUnion=temporal_bounds,representativePoint=Some(coord),representativeGeometry=Some(point),isConflationOf=Seq(entityRecord))
-          val response = Await.result(entities.upsertEntity(newRecord),1.seconds)
+          val newRecord = record.get.entity.copy(title=title,temporalBoundsUnion=temporal_bounds,representativePoint=Some(coord),representativeGeometry=Some(point),isConflationOf=Seq(entityRecord))
+          val response = Await.result(entities.upsertEntity(newRecord,record.get.version),1.seconds)
           if (response != None)
             Ok("Success")
           else
@@ -239,7 +330,8 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
         val from  = (json \ "from").as[String]
         val to  = (json \ "to").as[String]
         val country  = (json \ "country").as[String]
-        val ccode = CountryCode(country.toUpperCase)
+        val ccode = if (country.length != 2 ) {None} 
+        else {Some(CountryCode(country.toUpperCase))}
         val altNames  = Name((json \ "altNames").asOpt[String].getOrElse(""))
         val description  = Description((json \ "description").asOpt[String].getOrElse(""))
         val temporal_bounds = if (from == "" || to == "") {None} else { 
@@ -247,16 +339,15 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
           val (toYear, toMonth, toDay) = formatDateString(to)
           Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromYear, fromMonth, fromDay).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(toYear, toMonth, toDay).withTime(0, 0, 0, 0)))
         }
-        val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq.empty[Description],Seq.empty[Name],Some(point),Some(coord),None,temporal_bounds,Seq.empty[String],None,Seq.empty[Link])
+        val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq(description),Seq(altNames),Some(point),Some(coord),ccode,temporal_bounds,Seq.empty[String],None,Some(username),Seq.empty[Link])
         val response = importer.importRecord(record)
-        if (response != None) {
-
-          val newRecord = Entity(UUID.randomUUID,EntityType.PLACE,title,Some(point),Some(coord),temporal_bounds,Seq(record),Some(username))
+        // if (response != None) {
+          val newRecord = Entity(UUID.randomUUID,EntityType.PLACE,title,Some(point),Some(coord),temporal_bounds,Seq(record),Some(username))//
           Await.result(entities.createEntity(newRecord),1.seconds)
           Ok("Success")
-        }
-        else
-          Ok("Fail")
+        // }
+        // else
+        //   Ok("Fail")
       }
       case None =>
         Ok("Success")
@@ -282,8 +373,8 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
             // }
           }
         }
-        Future.successful(Ok("test:" + unionId))
-        // Future.successful(Ok("Success"))
+        // Future.successful(Ok("test:" + unionId))
+        Future.successful(Ok("Success"))
       }
       case None => {Future.successful(Ok(""))}
     }
@@ -297,7 +388,10 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
         if (name.length>0) {
           val importer = importerFactory.createImporter(EntityType.PLACE)
           val norURI = EntityRecord.normalizeURI((json \ "URI").as[String])
-          val entity = Await.result(entities.findByURI(norURI), 10 seconds).get.entity
+          val entity = Await.result(entities.findByURI(norURI), 10 seconds).get
+          // val entity = Await.result(entities.findByURI(norURI).map { _ match {
+          //   case Some(e) => e.entity
+          // }},1.seconds)
 
           val from  = (json \ "StartDate").asOpt[String].getOrElse("")
           val to  = (json \ "EndDate").asOpt[String].getOrElse("")
@@ -307,7 +401,9 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
             Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromYear, fromMonth, fromDay).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(toYear, toMonth, toDay).withTime(0, 0, 0, 0)))
           }
           val country  = (json \ "Country").asOpt[String].getOrElse("")
-          val ccode = CountryCode(country.toUpperCase)
+          val ccode = if (country.length != 2 ) {None} 
+          else {Some(CountryCode(country.toUpperCase))}
+          
           val altNames  = Name((json \ "AlternateNames").asOpt[String].getOrElse(""))
           val description  = Description((json \ "Description").asOpt[String].getOrElse(""))
           val latitude  = (json \ "Latitude").as[Double]
@@ -317,18 +413,18 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
           val point = new GeometryFactory().createPoint(coord)
           val fromDate  = (json \ "StartDate").asOpt[String]
           val toDate  = (json \ "EndDate").asOpt[String]
-          val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),name,Seq(description),Seq(altNames),Some(point),Some(coord),Some(ccode),temporal_bounds,Seq.empty[String],None,Seq.empty[Link])
+          val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),name,Seq(description),Seq(altNames),Some(point),Some(coord),ccode,temporal_bounds,Seq.empty[String],None,Some(username),Seq.empty[Link])
           if (entity != None) {
-            entities.upsertEntity(entity.copy(title=name,temporalBoundsUnion=temporal_bounds,representativePoint=Some(coord),representativeGeometry=Some(point),isConflationOf=Seq(record)))
+            Await.result(entities.upsertEntity(entity.entity.copy(title=name,temporalBoundsUnion=temporal_bounds,representativePoint=Some(coord),representativeGeometry=Some(point),isConflationOf=Seq(record)),entity.version),1.seconds)
           } else { 
             val response = importer.importRecord(record)
             if (response != None) {
-              val newRecord = Entity(UUID.randomUUID,EntityType.PLACE,name,Some(point),Some(coord),temporal_bounds,Seq(record),Some(username))
+              val newRecord = Entity(UUID.randomUUID,EntityType.PLACE,name,Some(point),Some(coord),temporal_bounds,Seq(record),Some(username))//
               Await.result(entities.createEntity(newRecord),1.seconds)
               Ok("Success")
             }
           }
-          Future.successful(Ok(name+" success"))
+          Future.successful(Ok("Success"))
         } else Future.successful(Ok("Fail"))
       }
       case None => {
@@ -338,47 +434,46 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
 
   def exportPlaces() = silhouette.UserAwareAction.async { implicit request =>
     val username = request.identity.get.username
-    request.body.asJson match {
-      case Some(json) => {
-        val file = scala.concurrent.blocking {
-          val header = Seq("Name", "URI", "Latitude", "Longitude", "Country", "Description", "StartDate", "EndDate", "AlternateNames")
-          val tmp = tmpFile.create(Paths.get(TempDir.get(), s"${username}.csv"))
-          val underlying = tmp.path.toFile
-          val configs = CsvConfiguration(',', '"', QuotePolicy.Always, Header.Explicit(header))
-          def toStr (r: String) = {
-            if (r == null) "" else r.asInstanceOf[String]
-          }
-          val writer = underlying.asCsvWriter[Seq[String]](configs)
-          val fPlaces = annotations.getUserPlace(username, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
-          val places = Await.result(fPlaces,5.seconds)
-          places.map { e =>      
-            val place = e._1.entity
-            val lat = place.representativeGeometry.get.getCentroid.getY
-            val lon = place.representativeGeometry.get.getCentroid.getX
-            val temporal = place.temporalBoundsUnion
-            var from = ""
-            var to = ""
-            if (temporal != None) {
-              from= temporal.get.from.toString
-              if (from.length > 10) from = from.substring(0,10)
-              to= temporal.get.to.toString
-              if (to.length > 10) to = to.substring(0,10)
-            }
-            val record = place.isConflationOf(0)
-            var ccode = ""
-            if (record.countryCode != None) ccode = record.countryCode.get.code
-            val row = Seq(toStr(place.title),toStr(record.uri), toStr(lat.toString), toStr(lon.toString), toStr(ccode), toStr(record.descriptions.mkString(",")), toStr(from), toStr(to), toStr(record.names.mkString(",")))
-            writer.write(row)
-          }
-          writer.close() 
-          underlying
-         }
-        Future.successful(Ok.sendFile(file).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + username + "-places.csv" }))
+    val file = scala.concurrent.blocking {
+    val header = Seq("Name", "URI", "Latitude", "Longitude", "Country", "Description", "StartDate", "EndDate", "AlternateNames")
+    val tmp = tmpFile.create(Paths.get(TempDir.get(), s"${username}.csv"))
+    val underlying = tmp.path.toFile
+    val configs = CsvConfiguration(',', '"', QuotePolicy.Always, Header.Explicit(header))
+    def toStr (r: String) = {
+      if (r == null) "" else r.asInstanceOf[String]
+    }
+    val writer = underlying.asCsvWriter[Seq[String]](configs)
+    // val fPlaces = entities.getUserPlace(username, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
+    val fPlaces = entities.getEntitiesByUser(username)
+    val places = Await.result(fPlaces,5.seconds)
+    places.map { e =>      
+      val place = e.entity
+      // val place = e._1.entity
+      if (place.contributor == username) {
+        val lat = place.representativeGeometry.get.getCentroid.getY
+        val lon = place.representativeGeometry.get.getCentroid.getX
+        val temporal = place.temporalBoundsUnion
+        var from = ""
+        var to = ""
+        if (temporal != None) {
+          from= temporal.get.from.toString
+          if (from.length > 10) from = from.substring(0,10)
+          to= temporal.get.to.toString
+          if (to.length > 10) to = to.substring(0,10)
         }
-      case None => {
-        Logger.warn("Need necessary information in uploaded CSV file")
-        Future.successful(Ok("nothing"))}
+        val record = place.isConflationOf(0)
+        val descriptions = record.descriptions.map(d=>d.description)
+        val names = record.names.map(n=>n.name)
+        var ccode = ""
+        if (record.countryCode != None) ccode = record.countryCode.get.code
+        val row = Seq(toStr(place.title),toStr(record.uri), toStr(lat.toString), toStr(lon.toString), toStr(ccode), toStr(descriptions.mkString(", ")), toStr(from), toStr(to), toStr(names.mkString(", ")))
+        writer.write(row)
       }
+    }
+    writer.close() 
+    underlying
+   }
+   Future.successful(Ok.sendFile(file).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + username + "-places.csv" }))
   }
   // manage annotations
   def annotation() = silhouette.SecuredAction { implicit request =>

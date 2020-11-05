@@ -100,16 +100,23 @@ class EntityServiceImpl @Inject()(
     }
   }
 
-  override def upsertEntity(e: Entity): Future[Boolean] = 
+  override def upsertEntity(e: Entity,version: Option[Long]): Future[Boolean] = { 
+      val query = version match {
+        case Some(version) =>
+          update(e.unionId.toString) in ES.RECOGITO / ES.ENTITY doc e version version
+
+        case None =>
+          indexInto(ES.RECOGITO / ES.ENTITY) id e.unionId.toString doc e
+      }
       es.client execute {
-        indexInto(ES.RECOGITO / ES.ENTITY).doc(e).id(e.unionId.toString)
-      } map { _ => true
+        bulk (query)
+        } map { _ => true
       } recover { case t: Throwable =>
         Logger.error(s"Error indexing entity ${e.unionId}: ${t.getMessage}")
         t.printStackTrace
         false
       }
-
+    }
   override def createEntity(e: Entity): Future[Boolean] = 
       es.client execute {
         indexInto(ES.RECOGITO / ES.ENTITY).doc(e)
@@ -397,6 +404,88 @@ class EntityServiceImpl @Inject()(
     es.client execute {
       search(ES.RECOGITO / ES.ENTITY) query termQuery("is_conflation_of.source_authority" -> identifier)
     } map { _.to[IndexedEntity] }
+  }
+
+
+  def aggregateEntityIdsByUser(user: String): Future[Map[String, Long]] =
+    es.client execute {
+      search (ES.RECOGITO / ES.ANNOTATION) query {
+        termQuery("last_modified_by" -> user)
+      } aggregations (
+        nestedAggregation("per_body", "bodies") subaggs (
+          termsAggregation("by_union_id") field("bodies.reference.union_id") size ES.MAX_SIZE
+        )
+      ) size 0
+    } map { response =>
+      val terms = response.aggregations
+        .getAs[InternalNested]("per_body")
+        .getAggregations.get[StringTerms]("by_union_id")
+      parseTermsAggregation(terms)
+    }
+  def getEntityIdsByUser(user: String): Future[Map[String, Long]] =
+    es.client execute {
+      search (ES.RECOGITO / ES.ENTITY) query {
+        termQuery("is_conflation_of.contributor" -> user)
+        // search(ES.RECOGITO / ES.ENTITY) query termQuery("entity_type" -> t.toString)
+      } size 0 aggs (
+        termsAggregation("by_time") field ("is_conflation_of.last_changed_at") size ES.MAX_SIZE
+      ) size 0
+    } map { response =>
+      parseTermsAggregation(response.aggregations.termsResult("by_time"))
+    }
+
+  override def getEntitiesByUser(user: String): Future[Seq[IndexedEntity]] =
+    es.client execute {
+      search (ES.RECOGITO / ES.ENTITY) query {
+        boolQuery must (
+        // termQuery("is_conflation_of.contributor" -> user),
+        termQuery("is_conflation_of.source_authority" -> ES.CONTRIBUTION)
+        )
+      } sortBy (
+        fieldSort("is_conflation_of.last_changed_at") order SortOrder.DESC
+      ) limit ES.MAX_SIZE
+    } map { _.to[IndexedEntity] }
+
+  def getUserPlace(user: String, eType: Option[EntityType] = None,
+    offset: Int = 0, limit: Int = ES.MAX_SIZE): Future[Page[(IndexedEntity, Long)]] = {
+
+    val startTime = System.currentTimeMillis
+    
+    val fAggregateIds = getEntityIdsByUser(user)
+    // val fAggregateIds = aggregateEntityIdsByUser(user)
+
+    def resolveEntities(unionIds: Seq[String]): Future[Seq[IndexedEntity]] =
+      if (unionIds.isEmpty)
+        Future.successful(Seq.empty[IndexedEntity])
+      else
+        es.client execute {
+          multiget (
+            unionIds.map { id => get(id) from ES.RECOGITO / ES.ENTITY }
+          )
+        } map { result => 
+          try {
+            // Can throw Nullpointers when containing URIs that are no longer indexed
+            result.items.map(_.to[IndexedEntity])
+          } catch { 
+            case t: Throwable => Seq.empty[IndexedEntity]
+          } 
+        }
+
+    val f = for {
+      counts <- fAggregateIds
+      entities <- resolveEntities(counts.map(_._1).toSeq)
+    } yield (counts, entities)
+
+    f.map { case (counts, entities) =>
+      val took = System.currentTimeMillis - startTime
+
+      val zipped = counts.zip(entities).map { case ((unionId, count), entity) =>
+        (entity, count)
+      }.toSeq
+
+      Page(took, 0l, 0, ES.MAX_SIZE, zipped)
+    }
+
   }
 
   override def searchEntitiesInDocument(query: String, docId: String, eType: Option[EntityType] = None,

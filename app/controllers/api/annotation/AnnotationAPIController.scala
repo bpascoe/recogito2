@@ -26,7 +26,7 @@ import services.generated.tables.records.{DocumentRecord, DocumentFilepartRecord
 import storage.uploads.Uploads
 
 import services.entity.builtin.importer.EntityImporterFactory
-import services.entity.{EntityType, EntityRecord, Name,CountryCode, LinkType, Link, Description,TemporalBounds}
+import services.entity.{EntityType, EntityRecord,Entity, Name,CountryCode, LinkType, Link, Description,TemporalBounds}
 import services.entity.builtin.importer.crosswalks.geojson.lpf.LPFCrosswalk
 import services.annotation.Annotation
 import storage.es.ES
@@ -313,7 +313,7 @@ class AnnotationAPIController @Inject() (
       if (ent != None) {
         val place = ent.get.entity
         place.isConflationOf.map(record=>
-          importer.importRecord(record.copy(sourceAuthority = ES.CONTRIBUTION, title = annotation.bodies.flatMap(_.value).mkString(" "),lastSyncedAt=DateTime.now(),lastChangedAt=Some(DateTime.now()))))
+          importer.importRecord(record.copy(contributor=annotation.lastModifiedBy,sourceAuthority = ES.CONTRIBUTION, title = annotation.bodies.flatMap(_.value).mkString(" "),lastSyncedAt=DateTime.now(),lastChangedAt=Some(DateTime.now()))))
       }
     }
   }
@@ -321,6 +321,7 @@ class AnnotationAPIController @Inject() (
   def createPlace() = silhouette.UserAwareAction.async { implicit request =>
     request.body.asJson match {
       case Some(json) => {
+        val username = request.identity.get.username
         val importer = importerFactory.createImporter(EntityType.PLACE)
         val norURI = EntityRecord.normalizeURI((json \ "uri").as[String])
         val title = (json \ "title").as[String]
@@ -345,7 +346,7 @@ class AnnotationAPIController @Inject() (
         
         // val description = new Description((json \ "description").as[String])
         // Seq(description)
-        val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,description2,altNames2,Some(point),Some(coord),ccode2,temporal_bounds,Seq.empty[String],None,Seq.empty[Link])
+        val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,description2,altNames2,Some(point),Some(coord),ccode2,temporal_bounds,Seq.empty[String],None,Some(username),Seq.empty[Link])
         // val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq.empty[Description],Seq(Name(title)),Some(point),Some(coord),None,None,Seq.empty[String],None,Seq.empty[Link])
         importer.importRecord(record)
                        
