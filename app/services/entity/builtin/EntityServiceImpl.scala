@@ -104,7 +104,6 @@ class EntityServiceImpl @Inject()(
       val query = version match {
         case Some(version) =>
           update(e.unionId.toString) in ES.RECOGITO / ES.ENTITY doc e version version
-
         case None =>
           indexInto(ES.RECOGITO / ES.ENTITY) id e.unionId.toString doc e
       }

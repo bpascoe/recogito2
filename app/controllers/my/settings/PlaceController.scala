@@ -36,6 +36,7 @@ import play.api.{Configuration, Logger}
 import play.api.http.FileMimeTypes
 import play.api.libs.Files.TemporaryFileCreator
 import java.nio.file.Paths
+import com.sksamuel.elastic4s.Hit
 import scala.language.postfixOps
 
 class PlaceController @Inject() (
@@ -259,7 +260,7 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
               var ccode = ""
               if (record.countryCode != None) ccode = record.countryCode.get.code
               Json.obj("name"->place.title,"uri"->record.uri,"id"->place.unionId,"user"->place.contributor,
-              "startDate"->from,"endDate"->to,"lat"->lat,"lon"->lon,"country"->ccode,"description"->descriptions.mkString(", "),"altNames"->names.mkString(", "))
+              "startDate"->from,"version"->e.version,"endDate"->to,"lat"->lat,"lon"->lon,"country"->ccode,"description"->descriptions.mkString(", "),"altNames"->names.mkString(", "))
           }
         } 
         val places = Await.result(annots,10.seconds)
@@ -295,23 +296,26 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
           val (toYear, toMonth, toDay) = formatDateString(to)
           Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromYear, fromMonth, fromDay).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(toYear, toMonth, toDay).withTime(0, 0, 0, 0)))
         }
-        val record = Await.result(entities.findById(id),1.seconds)
-        // val record = Await.result(entities.findByURI(norURI),1.seconds)
+        // val record = Await.result(entities.findById(id),5.seconds)
+        val record = Await.result(entities.findByURI(norURI),5.seconds)
         // val referencedRecord = place.isConflationOf.map(g => uri)
         val entityRecord = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq(description),Seq(altNames),Some(point),Some(coord),ccode,temporal_bounds,Seq.empty[String],None,Some(username),Seq.empty[Link])
         if (record != None) {
+          var version = record.get.version
+          // if (version == None) version = 1.toLong
+          // else version = version + 1.toLong
           val newRecord = record.get.entity.copy(title=title,temporalBoundsUnion=temporal_bounds,representativePoint=Some(coord),representativeGeometry=Some(point),isConflationOf=Seq(entityRecord))
-          val response = Await.result(entities.upsertEntity(newRecord,record.get.version),1.seconds)
+          val response = Await.result(entities.upsertEntity(newRecord,version),5.seconds)
           if (response != None)
             Ok("Success")
           else
             Ok("Fail")
         } else {
-          Ok("Success")
+          Ok("Success2")
         }
       }
       case None =>
-        Ok("Success")
+        Ok("Success3")
     }
   }
 
@@ -343,7 +347,7 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
         val response = importer.importRecord(record)
         // if (response != None) {
           val newRecord = Entity(UUID.randomUUID,EntityType.PLACE,title,Some(point),Some(coord),temporal_bounds,Seq(record),Some(username))//
-          Await.result(entities.createEntity(newRecord),1.seconds)
+          Await.result(entities.createEntity(newRecord),10.seconds)
           Ok("Success")
         // }
         // else
@@ -361,12 +365,12 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
         val username = (json \ "username").as[String]
         val unionId = (json \ "unionId").as[String]
         if (unionId.length > 0) {
-          val response = Await.result(entities.deleteEntityById(unionId),1.seconds)
+          val response = Await.result(entities.deleteEntityById(unionId),5.seconds)
           val now = DateTime.now
-          val annots = Await.result(annotations.getAnnotationsByUnionId(unionId),1.seconds)
+          val annots = Await.result(annotations.getAnnotationsByUnionId(unionId),5.seconds)
           annots.flatMap {
             case (a,_)=>
-            Await.result(annotations.deleteAnnotation(a.annotationId, username, now),1.seconds)
+            Await.result(annotations.deleteAnnotation(a.annotationId, username, now),5.seconds)
             // .flatMap {
             //   case Some(annotation) =>
             //     contributions.insertContribution(createDeleteContribution(annotation, document, username, now))
@@ -432,6 +436,49 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
     }
   }
 
+  // def exportPlaces() = silhouette.UserAwareAction.async { implicit request =>
+  //   val username = request.identity.get.username
+  //   val file = scala.concurrent.blocking {
+  //   val header = Seq("Name", "URI", "Latitude", "Longitude", "Country", "Description", "StartDate", "EndDate", "AlternateNames")
+  //   val tmp = tmpFile.create(Paths.get(TempDir.get(), s"${username}.csv"))
+  //   val underlying = tmp.path.toFile
+  //   val configs = CsvConfiguration(',', '"', QuotePolicy.Always, Header.Explicit(header))
+  //   def toStr (r: String) = {
+  //     if (r == null) "" else r.asInstanceOf[String]
+  //   }
+  //   val writer = underlying.asCsvWriter[Seq[String]](configs)
+  //   // val fPlaces = entities.getUserPlace(username, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
+  //   val fPlaces = entities.getEntitiesByUser(username)
+  //   val places = Await.result(fPlaces,5.seconds)
+  //   places.map { e =>      
+  //     val place = e.entity
+  //     // val place = e._1.entity
+  //     if (place.contributor == username) {
+  //       val lat = place.representativeGeometry.get.getCentroid.getY
+  //       val lon = place.representativeGeometry.get.getCentroid.getX
+  //       val temporal = place.temporalBoundsUnion
+  //       var from = ""
+  //       var to = ""
+  //       if (temporal != None) {
+  //         from= temporal.get.from.toString
+  //         if (from.length > 10) from = from.substring(0,10)
+  //         to= temporal.get.to.toString
+  //         if (to.length > 10) to = to.substring(0,10)
+  //       }
+  //       val record = place.isConflationOf(0)
+  //       val descriptions = record.descriptions.map(d=>d.description)
+  //       val names = record.names.map(n=>n.name)
+  //       var ccode = ""
+  //       if (record.countryCode != None) ccode = record.countryCode.get.code
+  //       val row = Seq(toStr(place.title),toStr(record.uri), toStr(lat.toString), toStr(lon.toString), toStr(ccode), toStr(descriptions.mkString(", ")), toStr(from), toStr(to), toStr(names.mkString(", ")))
+  //       writer.write(row)
+  //     }
+  //   }
+  //   writer.close() 
+  //   underlying
+  //  }
+  //  Future.successful(Ok.sendFile(file).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + username + "-places.csv" }))
+  // }
   def exportPlaces() = silhouette.UserAwareAction.async { implicit request =>
     val username = request.identity.get.username
     val file = scala.concurrent.blocking {
@@ -446,35 +493,44 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
     // val fPlaces = entities.getUserPlace(username, Some(EntityType.PLACE), 0, ES.MAX_SIZE)
     val fPlaces = entities.getEntitiesByUser(username)
     val places = Await.result(fPlaces,5.seconds)
-    places.map { e =>      
-      val place = e.entity
-      // val place = e._1.entity
-      if (place.contributor == username) {
-        val lat = place.representativeGeometry.get.getCentroid.getY
-        val lon = place.representativeGeometry.get.getCentroid.getX
-        val temporal = place.temporalBoundsUnion
-        var from = ""
-        var to = ""
-        if (temporal != None) {
-          from= temporal.get.from.toString
-          if (from.length > 10) from = from.substring(0,10)
-          to= temporal.get.to.toString
-          if (to.length > 10) to = to.substring(0,10)
+    // val f = for {
+    //   places <- fPlaces
+    // } yield (places)
+    // val annots = f.map { case ( places) =>    
+      places.map { e =>      
+        val place = e.entity
+        var user = ""
+        if (place.contributor != None ) user = place.contributor.get
+        if (user == username) {
+          val lat = place.representativeGeometry.get.getCentroid.getY
+            val lon = place.representativeGeometry.get.getCentroid.getX
+            val temporal = place.temporalBoundsUnion
+            var from = ""
+            var to = ""
+            if (temporal != None) {
+              from= temporal.get.from.toString
+              if (from.length > 10) from = from.substring(0,10)
+              to= temporal.get.to.toString
+              if (to.length > 10) to = to.substring(0,10)
+            }
+            val record = place.isConflationOf(0)
+            val descriptions = record.descriptions.map(d=>d.description)
+            val names = record.names.map(n=>n.name)
+            var ccode = ""
+            if (record.countryCode != None) ccode = record.countryCode.get.code
+            
+            val row = Seq(toStr(place.title),toStr(record.uri), toStr(lat.toString), toStr(lon.toString), toStr(ccode), toStr(descriptions.mkString(", ")), toStr(from), toStr(to), toStr(names.mkString(", ")))
+            writer.write(row)
         }
-        val record = place.isConflationOf(0)
-        val descriptions = record.descriptions.map(d=>d.description)
-        val names = record.names.map(n=>n.name)
-        var ccode = ""
-        if (record.countryCode != None) ccode = record.countryCode.get.code
-        val row = Seq(toStr(place.title),toStr(record.uri), toStr(lat.toString), toStr(lon.toString), toStr(ccode), toStr(descriptions.mkString(", ")), toStr(from), toStr(to), toStr(names.mkString(", ")))
-        writer.write(row)
       }
-    }
+    // } 
+    // Await.result(annots,10.seconds)
     writer.close() 
     underlying
    }
    Future.successful(Ok.sendFile(file).withHeaders(CONTENT_DISPOSITION -> { "attachment; filename=" + username + "-places.csv" }))
   }
+
   // manage annotations
   def annotation() = silhouette.SecuredAction { implicit request =>
     Ok(views.html.my.settings.annotation(request.identity))
