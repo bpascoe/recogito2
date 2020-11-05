@@ -349,6 +349,8 @@ class AnnotationAPIController @Inject() (
         val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,description2,altNames2,Some(point),Some(coord),ccode2,temporal_bounds,Seq.empty[String],None,Some(username),Seq.empty[Link])
         // val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq.empty[Description],Seq(Name(title)),Some(point),Some(coord),None,None,Seq.empty[String],None,Seq.empty[Link])
         importer.importRecord(record)
+        val newRecord = Entity(UUID.randomUUID,EntityType.PLACE,title,Some(point),Some(coord),temporal_bounds,Seq(record),Some(username))//
+        Await.result(entity.createEntity(newRecord),1.seconds)
                        
         Future.successful(Ok("Success"))
         // Future {Ok("success")}
