@@ -304,7 +304,7 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
           var version = 1.toLong
           if (record.get.version != None && record.get.version.get > 0) version = record.get.version.get
           val newRecord = record.get.entity.copy(title=title,temporalBoundsUnion=temporal_bounds,representativePoint=Some(coord),representativeGeometry=Some(point),isConflationOf=Seq(entityRecord))
-          val indexRecord = new IndexedEntity(newRecord,None)
+          val indexRecord = new IndexedEntity(newRecord,Some(version))
           val response =Await.result(entities.upsertEntities(Seq(indexRecord)),5.seconds)
           // val response = Await.result(entities.upsertEntities(Seq(record.get.copy(entity=newRecord))),5.seconds)
           if (response != None)
@@ -428,7 +428,8 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
             var version = 1.toLong
             if (ent.get.version != None && ent.get.version.get > 0) version = ent.get.version.get
             val newRecord = ent.get.entity.copy(title=name,temporalBoundsUnion=temporal_bounds,representativePoint=Some(coord),representativeGeometry=Some(point),isConflationOf=Seq(record))
-            Await.result(entities.upsertEntities(Seq(ent.get.copy(entity=newRecord))),5.seconds)
+            val indexRecord = new IndexedEntity(newRecord,Some(version))
+            Await.result(entities.upsertEntities(Seq(indexRecord)),5.seconds)
           } else { 
             val response = importer.importRecord(record)
             // if (response != None) {
@@ -436,7 +437,6 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
               // Await.result(entities.createEntity(newRecord),5.seconds)
               val indexRecord = new IndexedEntity(newRecord,None)
               Await.result(entities.upsertEntities(Seq(indexRecord)),5.seconds)
-              Ok("Success")
             // }
           }
           Future.successful(Ok("Success"))
