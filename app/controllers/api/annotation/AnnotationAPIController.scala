@@ -30,7 +30,7 @@ import services.entity.{EntityType, EntityRecord,Entity, Name,CountryCode, LinkT
 import services.entity.builtin.importer.crosswalks.geojson.lpf.LPFCrosswalk
 import services.annotation.Annotation
 import storage.es.ES
-import services.entity.builtin.EntityService
+import services.entity.builtin.{EntityService,IndexedEntity}
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
@@ -350,7 +350,9 @@ class AnnotationAPIController @Inject() (
         // val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq.empty[Description],Seq(Name(title)),Some(point),Some(coord),None,None,Seq.empty[String],None,Seq.empty[Link])
         importer.importRecord(record)
         val newRecord = Entity(UUID.randomUUID,EntityType.PLACE,title,Some(point),Some(coord),temporal_bounds,Seq(record),Some(username))//
-        Await.result(entity.createEntity(newRecord),1.seconds)
+        // Await.result(entity.createEntity(newRecord),1.seconds)
+        val indexRecord = new IndexedEntity(newRecord,None)
+        Await.result(entity.upsertEntities(Seq(indexRecord)),5.seconds)
                        
         Future.successful(Ok("Success"))
         // Future {Ok("success")}

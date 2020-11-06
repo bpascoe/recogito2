@@ -356,8 +356,8 @@
             buttons: {
               "Continue": function() {
                 var reader = new FileReader();
-                var status = jQuery('<div class="status" title="Metadata import status:"></div>');
-                $("#app").append(status);
+                var status = jQuery('<div class="status" title="Places import status:"></div>');
+                // $("#app").append(status);
                 reader.onload = function(e) {
                   // var docHeader = ['Filename', 'Title', 'Author', 'Description', 'Language', 'Source', 'Edition', 'License', 'Attribution', 'StartDate', 'EndDate', 'PublicationPlace', 'Latitude', 'Longitude'];
                   // var Header = ['Filename', 'StartDate', 'EndDate'];
@@ -370,6 +370,7 @@
                       for (var j = 0; j < row.length; ++j) {
                         doc[header[j]] = row[j];
                       }
+                      if (doc['URI'] == "") doc['URI'] = "http://www.tlcmap.org/" + uuidv4();;
                       doc['Latitude'] = parseFloat(doc['Latitude']);
                       doc['Longitude'] = parseFloat(doc['Longitude']);
                       if (validateDate(doc['StartDate']) && validateDate(doc['EndDate'])) {
@@ -377,24 +378,25 @@
                         if (doc['EndDate'] != true) doc['EndDate'] = validateDate(doc['EndDate'])
                       $.ajax({type: 'POST', url:document.location.origin + "/settings/importPlaces", data: JSON.stringify(doc),contentType: 'application/json'}).done(function(data) {
                           // console.log( data + " " + textStatus );
-                          if (data) $(".status").append("<p> "+($(".status").find("p").length+1)+". "+data);
+                          if (data) status.append("<p> "+(status.find("p").length+1)+". "+data);
                         }).fail(function(jqXHR, textStatus) {
-                          $(".status").append("<p> "+($(".status").find("p").length+1)+". " +JSON.parse(this.data).Filename+": update annotations failed, please use the right date format (yyyy-mm-dd)");
+                          status.append("<p> "+(status.find("p").length+1)+". " +JSON.parse(this.data).Filename+": update annotations failed, please use the right date format (yyyy-mm-dd)");
                         });} else {
-                        $(".status").append("<p> "+($(".status").find("p").length+1)+". " +row[0]+": invalid date format, please use the right date format (yyyy-mm-dd or dd/mm/yyyy)");
+                        status.append("<p> "+(status.find("p").length+1)+". " +row[0]+": invalid date format, please use the right date format (yyyy-mm-dd or dd/mm/yyyy)");
                       }
                     } else if (row.length > 0) {
-                      $(".status").append("<p> "+($(".status").find("p").length+1)+". " +row[0]+": invalid row format");
+                      status.append("<p> "+(status.find("p").length+1)+". " +row[0]+": invalid row format");
                     }
                   }
-                  $(".status").dialog({autoOpen: false,
+                  status.dialog({autoOpen: false,
                           maxWidth:400,maxHeight: 500,
                           width: 350,height: 400,
                           close: function(event, ui) {location.reload();
                    }});
                 };
                 reader.readAsText(e.target.files.item(0));
-                $(".status").dialog();
+                // status.dialog();
+                showStatus(status);
                 $("div.ui-dialog").css({overflow:"auto"});
                 $( this ).dialog( "close" );
               },

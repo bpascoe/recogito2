@@ -62,7 +62,8 @@
             }
           }
         }
-      }
+      },
+      "contributor": { "type": "keyword" }
     }
   }
 }

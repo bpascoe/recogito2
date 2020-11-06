@@ -18,7 +18,7 @@ import scala.concurrent.duration._
 import services.annotation.{Annotation, AnnotationService,AnnotationBody}
 import services.document.DocumentService
 import org.webjars.play.WebJarsUtil
-import services.entity.builtin.EntityService
+import services.entity.builtin.{EntityService,IndexedEntity}
 import services.entity.{EntityType, EntityRecord,Entity,CountryCode}
 import storage.es.ES
 import services.contribution._
@@ -296,21 +296,24 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
           val (toYear, toMonth, toDay) = formatDateString(to)
           Some(new TemporalBounds(new DateTime(DateTimeZone.UTC).withDate(fromYear, fromMonth, fromDay).withTime(0, 0, 0, 0), new DateTime(DateTimeZone.UTC).withDate(toYear, toMonth, toDay).withTime(0, 0, 0, 0)))
         }
-        // val record = Await.result(entities.findById(id),5.seconds)
-        val record = Await.result(entities.findByURI(norURI),5.seconds)
+        val record = Await.result(entities.findById(id),5.seconds)
+        // val record = Await.result(entities.findByURI(norURI),5.seconds)
         // val referencedRecord = place.isConflationOf.map(g => uri)
         val entityRecord = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),title,Seq(description),Seq(altNames),Some(point),Some(coord),ccode,temporal_bounds,Seq.empty[String],None,Some(username),Seq.empty[Link])
         if (record != None) {
-          var version = record.get.version
-          // if (version == None) version = 1.toLong
-          // else version = version + 1.toLong
+          var version = 1.toLong
+          if (record.get.version != None && record.get.version.get > 0) version = record.get.version.get
           val newRecord = record.get.entity.copy(title=title,temporalBoundsUnion=temporal_bounds,representativePoint=Some(coord),representativeGeometry=Some(point),isConflationOf=Seq(entityRecord))
-          val response = Await.result(entities.upsertEntity(newRecord,version),5.seconds)
+          val indexRecord = new IndexedEntity(newRecord,None)
+          val response =Await.result(entities.upsertEntities(Seq(indexRecord)),5.seconds)
+          // val response = Await.result(entities.upsertEntities(Seq(record.get.copy(entity=newRecord))),5.seconds)
           if (response != None)
             Ok("Success")
           else
             Ok("Fail")
         } else {
+          // val newRecord = record.get.entity.copy(title=title,temporalBoundsUnion=temporal_bounds,representativePoint=Some(coord),representativeGeometry=Some(point),isConflationOf=Seq(entityRecord))
+          // Await.result(entities.createEntity(newRecord),10.seconds)
           Ok("Success2")
         }
       }
@@ -347,7 +350,9 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
         val response = importer.importRecord(record)
         // if (response != None) {
           val newRecord = Entity(UUID.randomUUID,EntityType.PLACE,title,Some(point),Some(coord),temporal_bounds,Seq(record),Some(username))//
-          Await.result(entities.createEntity(newRecord),10.seconds)
+          // Await.result(entities.createEntity(newRecord),10.seconds)
+          val indexRecord = new IndexedEntity(newRecord,None)
+          Await.result(entities.upsertEntities(Seq(indexRecord)),5.seconds)
           Ok("Success")
         // }
         // else
@@ -392,7 +397,6 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
         if (name.length>0) {
           val importer = importerFactory.createImporter(EntityType.PLACE)
           val norURI = EntityRecord.normalizeURI((json \ "URI").as[String])
-          val entity = Await.result(entities.findByURI(norURI), 10 seconds).get
           // val entity = Await.result(entities.findByURI(norURI).map { _ match {
           //   case Some(e) => e.entity
           // }},1.seconds)
@@ -417,16 +421,23 @@ with HasUserService with I18nSupport with HasPrettyPrintJSON {
           val point = new GeometryFactory().createPoint(coord)
           val fromDate  = (json \ "StartDate").asOpt[String]
           val toDate  = (json \ "EndDate").asOpt[String]
+          val ent = Await.result(entities.findByURI(norURI), 10 seconds)
+
           val record = EntityRecord(norURI,ES.CONTRIBUTION,time,Some(time),name,Seq(description),Seq(altNames),Some(point),Some(coord),ccode,temporal_bounds,Seq.empty[String],None,Some(username),Seq.empty[Link])
-          if (entity != None) {
-            Await.result(entities.upsertEntity(entity.entity.copy(title=name,temporalBoundsUnion=temporal_bounds,representativePoint=Some(coord),representativeGeometry=Some(point),isConflationOf=Seq(record)),entity.version),1.seconds)
+          if (ent != None) {
+            var version = 1.toLong
+            if (ent.get.version != None && ent.get.version.get > 0) version = ent.get.version.get
+            val newRecord = ent.get.entity.copy(title=name,temporalBoundsUnion=temporal_bounds,representativePoint=Some(coord),representativeGeometry=Some(point),isConflationOf=Seq(record))
+            Await.result(entities.upsertEntities(Seq(ent.get.copy(entity=newRecord))),5.seconds)
           } else { 
             val response = importer.importRecord(record)
-            if (response != None) {
+            // if (response != None) {
               val newRecord = Entity(UUID.randomUUID,EntityType.PLACE,name,Some(point),Some(coord),temporal_bounds,Seq(record),Some(username))//
-              Await.result(entities.createEntity(newRecord),1.seconds)
+              // Await.result(entities.createEntity(newRecord),5.seconds)
+              val indexRecord = new IndexedEntity(newRecord,None)
+              Await.result(entities.upsertEntities(Seq(indexRecord)),5.seconds)
               Ok("Success")
-            }
+            // }
           }
           Future.successful(Ok("Success"))
         } else Future.successful(Ok("Fail"))

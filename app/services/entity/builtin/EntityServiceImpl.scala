@@ -100,15 +100,10 @@ class EntityServiceImpl @Inject()(
     }
   }
 
-  override def upsertEntity(e: Entity,version: Option[Long]): Future[Boolean] = { 
-      val query = version match {
-        case Some(version) =>
-          update(e.unionId.toString) in ES.RECOGITO / ES.ENTITY doc e version version
-        case None =>
-          indexInto(ES.RECOGITO / ES.ENTITY) id e.unionId.toString doc e
-      }
+  override def upsertEntity(e: Entity,version: Long): Future[Boolean] = { 
+      es.client.java.prepareBulk()
       es.client execute {
-        bulk (query)
+        bulk(update(e.unionId.toString) in ES.RECOGITO / ES.ENTITY doc e version version)
         } map { _ => true
       } recover { case t: Throwable =>
         Logger.error(s"Error indexing entity ${e.unionId}: ${t.getMessage}")
@@ -140,18 +135,14 @@ class EntityServiceImpl @Inject()(
   }
 
   override def deleteEntityById(id: String): Future[Boolean] = {
-    if (id.isEmpty) {
-      Future.successful(true)
-    } else {
-      // es.client.java.prepareBulk()
-      es.client execute {
-        delete(id) from ES.RECOGITO / ES.ENTITY
-      } map { _ =>
-        true
-      } recover { case t: Throwable =>
-        t.printStackTrace()
-        false
-      }
+    es.client execute {
+      delete(id) from ES.RECOGITO / ES.ENTITY
+      // deleteById(ES.RECOGITO / ES.ENTITY, id)
+    } map { _ =>
+      true
+    } recover { case t: Throwable =>
+      t.printStackTrace()
+      false
     }
   }
 
@@ -168,13 +159,20 @@ class EntityServiceImpl @Inject()(
 
   override def findById(id: String): Future[Option[IndexedEntity]] =
     es.client execute {
-      get(id) from ES.RECOGITO / ES.ENTITY
-    } map { response =>
-      if (response.exists)
-        Some(response.to[IndexedEntity])
-      else
-        None
-    }
+      // get(id) from ES.RECOGITO / ES.ENTITY
+      search(ES.RECOGITO / ES.ENTITY) query termQuery("union_id" -> id) limit 1
+    } map { _.to[IndexedEntity].toList match {
+      case Nil => None
+      case Seq(e) => Some(e)
+      case results  =>
+        Some(results.head)
+    }}
+    // map { response =>
+    //   if (response.exists)
+    //     Some(response.to[IndexedEntity])
+    //   else
+    //     None
+    // }
 
   override def findConnected(uris: Seq[String]): Future[Seq[IndexedEntity]] =
     es.client execute {
